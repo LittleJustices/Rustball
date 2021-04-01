@@ -37,7 +37,7 @@ impl EventHandler for Handler {
                     Ok(s) => format!("My profile picture is sourced from: {}", s),
                     Err(e) => {
                         println!("Failed to read PFP source file: {:?}", e);
-                        "I'm sorry, I lost the source!".to_string()
+                        ":radioactive: I'm sorry, I lost the source! :radioactive:".to_string()
                     }
                 };
 

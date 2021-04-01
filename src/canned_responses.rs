@@ -11,6 +11,12 @@ impl Can {
 
         responses.insert(String::from("!ping"), String::from("Pong!"));
         responses.insert(String::from("!squid"), String::from("＜コ:彡"));
+        responses.insert(
+            String::from("!shadowruns"), 
+            String::from(
+                "Say it with me now:\n\t\t\t\tWatch your back.\n\t\t\t\tShoot straight.\n\t\t\t\tConserve ammo.\n\t\t\t\tAnd never, ever deal with a dragon!\n(ﾉ≧∀≦)ﾉ"
+            )
+        );
 
         Can { responses }
     }
