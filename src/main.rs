@@ -2,6 +2,8 @@ use std::fs;
 
 use serenity::{
     prelude::*,
+    // model::channel::Message,
+    // async_trait,
 };
 
 mod message_handler;
@@ -21,3 +23,10 @@ async fn main() {
         println!("Client error: {:?}", why);
     }
 }
+
+// #[async_trait]
+// async fn send_message(ctx: Context, call: Message, response: String) {
+//     if let Err(why) = call.channel_id.say(&ctx.http, response).await {
+        
+//     }
+// }

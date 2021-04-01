@@ -2,8 +2,12 @@ use std::fs;
 
 use serenity::{
     async_trait,
-    model::{channel::Message, gateway::Ready},
+    model::{
+        channel::Message, 
+        gateway::Ready
+    },
     prelude::*,
+    utils::MessageBuilder,
 };
 
 pub struct Handler;
@@ -11,29 +15,41 @@ pub struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "!ping" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-        if msg.content == "!pfp" {
-            let sauce = fs::read_to_string("PFP_Source.txt");
+        match &msg.content[..] {
+            "!ping" => {
+                let pong = MessageBuilder::new()
+                    .push(&msg.author.name)
+                    .push(" Pong!")
+                    .build();
 
-            let answer = match sauce {
-                Ok(s) => format!("My profile picture is sourced from: {}", s),
-                Err(e) => {
-                    println!("Failed to read PFP source file: {:?}", e);
-                    "I'm sorry, I lost the source!".to_string()
-                }
-            };
+                self.call_and_response(&ctx, msg, pong).await;
+                },
+            "!pfp" => {
+                let sauce = fs::read_to_string("PFP_Source.txt");
 
-            if let Err(why) = msg.channel_id.say(&ctx.http, answer).await {
-                println!("Error sending message: {:?}", why);
-            }
+                let answer = match sauce {
+                    Ok(s) => format!("My profile picture is sourced from: {}", s),
+                    Err(e) => {
+                        println!("Failed to read PFP source file: {:?}", e);
+                        "I'm sorry, I lost the source!".to_string()
+                    }
+                };
+
+                self.call_and_response(&ctx, msg, answer).await;
+            },
+            _ => {}
         }
     }   
 
     async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+    }
+}
+
+impl Handler {
+    async fn call_and_response(&self, context: &Context, call: Message, response: String) {
+        if let Err(why) = call.channel_id.say(&context.http, response).await {
+            println!("Error sending message: {:?}", why);
+        }
     }
 }
