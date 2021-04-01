@@ -24,12 +24,14 @@ impl EventHandler for Handler {
 
     async fn message(&self, ctx: Context, msg: Message) {
         match &msg.content[..] {
+            // Shutdown order
             "!bye" => {
                 let bye = "Bye~! :heart:".to_string();
 
                 self.call_and_response(&ctx, msg, bye).await;
                 std::process::exit(0);
             },
+            // Source for profile pic
             "!pfp" => {
                 let sauce = fs::read_to_string("PFP_Source.txt");
 
@@ -43,6 +45,7 @@ impl EventHandler for Handler {
 
                 self.call_and_response(&ctx, msg, answer).await;
             },
+            // Any other order, check if it's a canned response, otherwise do nothing
             _ => {
                 // If find_in_can returns a result (not error), send the response to channel, otherwise ignore
                 if let Ok(ans) = self.responses.find_in_can(&msg.content) {
