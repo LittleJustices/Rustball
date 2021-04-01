@@ -7,24 +7,29 @@ use serenity::{
         gateway::Ready
     },
     prelude::*,
-    utils::MessageBuilder,
+    // utils::MessageBuilder,
 };
 
-pub struct Handler;
+use super::canned_responses::Can;
+
+pub struct Handler {
+    pub responses: Can,
+}
 
 #[async_trait]
 impl EventHandler for Handler {
+    async fn ready(&self, _: Context, ready: Ready) {
+        println!("{} is connected!", ready.user.name);
+    }
+
     async fn message(&self, ctx: Context, msg: Message) {
         match &msg.content[..] {
-            "!ping" => {
-                let pong = MessageBuilder::new()
-                    .push("@")
-                    .push(&msg.author.name)
-                    .push(" Pong!")
-                    .build();
+            "!bye" => {
+                let bye = "Bye~! :heart:".to_string();
 
-                self.call_and_response(&ctx, msg, pong).await;
-                },
+                self.call_and_response(&ctx, msg, bye).await;
+                std::process::exit(0);
+            },
             "!pfp" => {
                 let sauce = fs::read_to_string("PFP_Source.txt");
 
@@ -38,19 +43,14 @@ impl EventHandler for Handler {
 
                 self.call_and_response(&ctx, msg, answer).await;
             },
-            "!bye" => {
-                let bye = "Bye~! :heart:".to_string();
-
-                self.call_and_response(&ctx, msg, bye).await;
-                std::process::exit(0);
+            _ => {
+                // If find_in_can returns a result (not error), send the response to channel, otherwise ignore
+                if let Ok(ans) = self.responses.find_in_can(&msg.content) {
+                    self.call_and_response(&ctx, msg, ans).await;
+                }
             }
-            _ => {}
         }
     }   
-
-    async fn ready(&self, _: Context, ready: Ready) {
-        println!("{} is connected!", ready.user.name);
-    }
 }
 
 impl Handler {
