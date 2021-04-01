@@ -18,6 +18,7 @@ impl EventHandler for Handler {
         match &msg.content[..] {
             "!ping" => {
                 let pong = MessageBuilder::new()
+                    .push("@")
                     .push(&msg.author.name)
                     .push(" Pong!")
                     .build();
@@ -37,6 +38,12 @@ impl EventHandler for Handler {
 
                 self.call_and_response(&ctx, msg, answer).await;
             },
+            "!bye" => {
+                let bye = "Bye~! :heart:".to_string();
+
+                self.call_and_response(&ctx, msg, bye).await;
+                std::process::exit(0);
+            }
             _ => {}
         }
     }   
