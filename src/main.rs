@@ -10,6 +10,7 @@ mod message_handler;
 use message_handler::Handler;
 mod canned_responses;
 use canned_responses::Can;
+mod tests;
 
 #[tokio::main]
 async fn main() {
