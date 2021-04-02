@@ -4,7 +4,8 @@ use serenity::{
     async_trait,
     model::{
         channel::Message, 
-        gateway::Ready
+        gateway::Ready,
+        id::ChannelId,
     },
     prelude::*,
     // utils::MessageBuilder,
@@ -28,7 +29,12 @@ impl EventHandler for Handler {
         let content;
         match msg.content.trim().strip_prefix(PREFIX) {
             Some(s) => content = s,
-            None => return
+            None => {
+                println!("content: {}", msg.content);
+                println!("channel: {}", msg.channel_id);
+                println!("user: {}", msg.author);
+                return
+            }
         }
         let command = split_message(content);
         match &command[0][..] {
@@ -36,7 +42,7 @@ impl EventHandler for Handler {
             "bye" => {
                 let bye = "Bye~! :heart:".to_string();
 
-                self.call_and_response(&ctx, msg, bye).await;
+                self.send_msg(&ctx, msg.channel_id, bye).await;
                 std::process::exit(0);
             },
             // Source for profile pic
@@ -65,8 +71,15 @@ impl EventHandler for Handler {
 }
 
 impl Handler {
+    async fn send_msg(&self, context: &Context, chan: ChannelId, msg: String) {
+        if let Err(why) = chan.say(&context.http, msg).await {
+            println!("Error sending message: {:?}", why);
+        }
+    }
+
     async fn call_and_response(&self, context: &Context, call: Message, response: String) {
-        if let Err(why) = call.channel_id.say(&context.http, response).await {
+        let msg = format!("{} {}", call.author, response);
+        if let Err(why) = call.channel_id.say(&context.http, msg).await {
             println!("Error sending message: {:?}", why);
         }
     }
