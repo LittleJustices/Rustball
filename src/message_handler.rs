@@ -18,6 +18,7 @@ pub struct Handler {
 }
 
 const PREFIX: char = '!';   // Prefix for messages Sixball will parse
+const LOGGING: ChannelId = ChannelId(826898213889114183);
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -30,10 +31,10 @@ impl EventHandler for Handler {
         match msg.content.trim().strip_prefix(PREFIX) {
             Some(s) => content = s,
             None => {
-                println!("content: {}", msg.content);
-                println!("channel: {}", msg.channel_id);
-                println!("user: {}", msg.author);
-                return
+                if msg.channel_id == LOGGING {
+                    println!("{} {}: {}", msg.timestamp, msg.author.name, msg.content);
+                }
+                return;
             }
         }
         let command = split_message(content);
