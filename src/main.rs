@@ -6,10 +6,11 @@ use serenity::{
     // async_trait,
 };
 
-mod message_handler;
-use message_handler::Handler;
-mod canned_responses;
-use canned_responses::Can;
+mod messaging;
+use messaging::{
+    canned_responses::Can,
+    message_handler::Handler,
+};
 mod tests;
 
 #[tokio::main]
