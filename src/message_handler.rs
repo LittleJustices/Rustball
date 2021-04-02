@@ -26,11 +26,12 @@ impl EventHandler for Handler {
 
     async fn message(&self, ctx: Context, msg: Message) {
         let content;
-        match msg.content.strip_prefix(PREFIX) {
+        match msg.content.trim().strip_prefix(PREFIX) {
             Some(s) => content = s,
             None => return
         }
-        match content {
+        let command = split_message(content);
+        match &command[0][..] {
             // Shutdown order
             "bye" => {
                 let bye = "Bye~! :heart:".to_string();
@@ -55,7 +56,7 @@ impl EventHandler for Handler {
             // Any other order, check if it's a canned response, otherwise do nothing
             _ => {
                 // If find_in_can returns a result (not error), send the response to channel, otherwise ignore
-                if let Ok(ans) = self.responses.find_in_can(content) {
+                if let Ok(ans) = self.responses.find_in_can(&command[0]) {
                     self.call_and_response(&ctx, msg, ans).await;
                 }
             }
@@ -71,39 +72,35 @@ impl Handler {
     }
 }
 
-fn split_message<'a>(message: &'a String) -> Vec<&'a str> {
+fn split_message<'a>(message: &'a str) -> Vec<String> {
     // Create string vector to hold the content
-    let mut content = Vec::<&'a str>::new();
+    let mut content = Vec::new();
 
-    // If message does not have the prefix, just return the body of the message
-    if !message.starts_with(PREFIX) { 
-        content.push(message);
-        return content;
-    }
-
-    // If it does, remove the prefix (first char in string)
-    let mut chars = message.chars();
-    chars.next();
-    let command = chars.as_str();
-
-    // If the string is now empty, just push and return an empty string
-    if command == "" {
-        content.push("");
+    // If the input is empty, just push and return the empty string
+    if message == "" {
+        content.push(message.to_string());
         return content;
     }
 
     // Then, split along spaces
-    let mut arguments = command.split_whitespace();
+    let arguments = message.split_whitespace();
 
-    // Loop over the chunks
-    for chunk in arguments {
-        // First iteration, we want to push an empty string and return if it's None and push the chunk if Some
-        // Second iteration, we want to push the chunk if it's Some and 
+    // Holding string for leftover comment text
+    let mut leftover_text = "".to_string();
+
+    // Loop over the first two chunks and push to content
+    for (i, chunk) in arguments.enumerate() {
+        if i < 2 {
+            content.push(chunk.to_string().to_lowercase());
+        } else {
+            leftover_text = leftover_text + chunk;
+        }
     }
+
+    // Push leftovers to content as a single string, if not empty
+    if leftover_text != "" { content.push(leftover_text) };
     
-    // push the first element
-    // If there is a second, push that too
-    // If there are more left, concatenate them all into one string and push that
+    // return content
     content
 }
 
@@ -114,19 +111,21 @@ mod tests {
     #[test]
     fn message_split_test() {
         let input = [
-            String::from("!roll 2d6"),
-            String::from("!ping"),
-            String::from("!roll apple"),
-            String::from("!roll 2d6 asdf"),
-            String::from("&roll 2d6 asdf"),
-            String::from("roll! 2d6 asdfdsa!"),
-            String::from("!RoLl 2D6"),
-            String::from("!"),
-            String::from("Lorem Ipsum"),
-            String::from(""),
+            "roll 2d6",
+            "ping",
+            "roll apple",
+            "roll 2d6 asdf",
+            "roll! 2d6 asdfdsa!",
+            "RoLl 2D6",
+            "",
         ];
         
         assert_eq!(split_message(&input[0]), ["roll", "2d6"]);
-        assert_eq!(split_message(&input[8]), ["Lorem Ipsum"]);
+        assert_eq!(split_message(&input[1]), ["ping"]);
+        assert_eq!(split_message(&input[2]), ["roll", "apple"]);
+        assert_eq!(split_message(&input[3]), ["roll", "2d6", "asdf"]);
+        assert_eq!(split_message(&input[4]), ["roll!", "2d6", "asdfdsa!"]);
+        assert_eq!(split_message(&input[5]), ["roll", "2d6"]);
+        assert_eq!(split_message(&input[6]), [""]);
     }
 }

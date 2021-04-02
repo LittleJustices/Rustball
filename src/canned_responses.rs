@@ -48,7 +48,7 @@ impl Can {
         Can { responses }
     }
 
-    pub fn find_in_can(&self, call: &str) -> Result<String, ErrorKind> {
+    pub fn find_in_can(&self, call: &String) -> Result<String, ErrorKind> {
         match self.responses.get(call) {
             Some(response) => Ok(response.to_string()),
             None => Err(ErrorKind::NotFound)
