@@ -21,11 +21,11 @@ impl Can {
             String::from("shadowruns"), 
             String::from(
                 "Say it with me now:
-                \t\t\t\tWatch your back.
-                \t\t\t\tShoot straight.
-                \t\t\t\tConserve ammo.
-                \t\t\t\tAnd never, ever deal with a dragon!
-                (ﾉ≧∀≦)ﾉ"
+\t\t\t\tWatch your back.
+\t\t\t\tShoot straight.
+\t\t\t\tConserve ammo.
+\t\t\t\tAnd never, ever deal with a dragon!
+(ﾉ≧∀≦)ﾉ"
             )
         );
         responses.insert(
