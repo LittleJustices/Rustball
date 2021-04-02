@@ -1,3 +1,4 @@
+use std::io::ErrorKind;
 use std::fs;
 
 use serenity::{
@@ -11,14 +12,17 @@ use serenity::{
     // utils::MessageBuilder,
 };
 
-use super::canned_responses::Can;
+use super::{
+    canned_responses::Can,
+    logger,
+};
 
 pub struct Handler {
     pub responses: Can,
 }
 
 const PREFIX: char = '!';   // Prefix for messages Sixball will parse
-const LOGGING: ChannelId = ChannelId(826898213889114183);
+// const LOGGING: ChannelId = ChannelId(826898213889114183);
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -31,7 +35,7 @@ impl EventHandler for Handler {
         match msg.content.trim().strip_prefix(PREFIX) {
             Some(s) => content = s,
             None => {
-                if msg.channel_id == LOGGING {
+                if logger::logging().contains(&msg.channel_id.0) {
                     println!("{} {}: {}", msg.timestamp, msg.author.name, msg.content);
                 }
                 return;
@@ -45,6 +49,30 @@ impl EventHandler for Handler {
 
                 self.send_msg(&ctx, msg.channel_id, bye).await;
                 std::process::exit(0);
+            },
+            "log" => {
+                match logger::log_channel(msg.channel_id.0) {
+                    Ok(c) => {
+                        let log_confirm = format!("Logging <#{}> now! :heart:", c);
+                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
+                    },
+                    Err(_) => {
+                        let log_error = ":radioactive: I'm already logging that channel! :radioactive:".to_string();
+                        self.call_and_response(&ctx, msg, log_error).await;
+                    }
+                }
+            },
+            "unlog" => {
+                match logger::unlog_channel(msg.channel_id.0) {
+                    Ok(c) => {
+                        let log_confirm = format!("Okay, I'll stop logging <#{}>! :heart:", c);
+                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
+                    },
+                    Err(_) => {
+                        let log_error = ":radioactive: I'm not logging that channel yet! :radioactive:".to_string();
+                        self.call_and_response(&ctx, msg, log_error).await;
+                    }
+                }
             },
             // Source for profile pic
             "pfp" => {
@@ -118,6 +146,24 @@ fn split_message<'a>(message: &'a str) -> Vec<String> {
     content
 }
 
+fn interpret_channel_mention(mention: String) -> Result<u64, ErrorKind> {
+    match mention.strip_prefix("<#") {
+        Some(ention) => {                       // Get it? "mention" with the prefix removed
+            match ention.strip_suffix(">") {
+                Some(entio) => {                // And then with the suffix removed
+                    if let Ok(id) = entio.parse::<u64>() {
+                        Ok(id)
+                    } else {
+                        Err(ErrorKind::InvalidInput)
+                    }
+                },
+                None => Err(ErrorKind::InvalidInput)
+            }
+        },
+        None => Err(ErrorKind::InvalidInput)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,6 +178,7 @@ mod tests {
             "roll! 2d6 asdfdsa!",
             "RoLl 2D6",
             "",
+            "log <#826898213889114183>"
         ];
         
         assert_eq!(split_message(&input[0]), ["roll", "2d6"]);
@@ -141,5 +188,16 @@ mod tests {
         assert_eq!(split_message(&input[4]), ["roll!", "2d6", "asdfdsa!"]);
         assert_eq!(split_message(&input[5]), ["roll", "2d6"]);
         assert_eq!(split_message(&input[6]), [""]);
+        assert_eq!(split_message(&input[7]), ["log", "<#826898213889114183>"]);
+    }
+
+    #[test]
+    fn channel_id_test() {
+        let id: u64 = 826898213889114183;
+        let channel_mention = "<#826898213889114183>".to_string();
+        let bad_mention = "826898213889114183".to_string();
+
+        assert_eq!(interpret_channel_mention(channel_mention), Ok(id));
+        assert_eq!(interpret_channel_mention(bad_mention), Err(ErrorKind::InvalidInput));
     }
 }
