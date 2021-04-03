@@ -51,6 +51,7 @@ impl EventHandler for Handler {
                 self.send_msg(&ctx, msg.channel_id, bye).await;
                 std::process::exit(0);
             },
+            // Start logging a channel
             "log" => {
                 let chan = match interpret_channel_mention(argument) {
                     Ok(c) => c,
@@ -73,6 +74,7 @@ impl EventHandler for Handler {
                     },
                 }
             },
+            // Stop logging a channel
             "unlog" => {
                 let chan = match interpret_channel_mention(argument) {
                     Ok(c) => c,
@@ -93,6 +95,21 @@ impl EventHandler for Handler {
                         self.call_and_response(&ctx, msg, chan_error).await;
                         return;
                     },
+                }
+            },
+            // Check if a channel is currently being logged
+            "logging" => {
+                let chan = match interpret_channel_mention(argument) {
+                    Ok(c) => c,
+                    Err(ErrorKind::Other) => msg.channel_id.0,
+                    Err(_) => 0,
+                };
+                if self.log.logging(chan) {
+                    let yes = format!("I'm logging <#{}> right now!", chan);
+                    self.call_and_response(&ctx, msg, yes).await;
+                } else {
+                    let no = format!("I'm not logging <#{}> right now!", chan);
+                    self.call_and_response(&ctx, msg, no).await;
                 }
             },
             // Source for profile pic
