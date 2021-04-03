@@ -45,7 +45,7 @@ impl EventHandler for Handler {
         match &command[0][..] {
             // Shutdown order
             "bye" => {
-                let bye = "Bye~! :heart:".to_string();
+                let bye = "Bye~! ❤".to_string();
 
                 self.send_msg(&ctx, msg.channel_id, bye).await;
                 std::process::exit(0);
@@ -53,11 +53,11 @@ impl EventHandler for Handler {
             "log" => {
                 match logger::log_channel(msg.channel_id.0) {
                     Ok(c) => {
-                        let log_confirm = format!("Logging <#{}> now! :heart:", c);
+                        let log_confirm = format!("Logging <#{}> now! ❤", c);
                         self.send_msg(&ctx, msg.channel_id, log_confirm).await;
                     },
                     Err(_) => {
-                        let log_error = ":radioactive: I'm already logging that channel! :radioactive:".to_string();
+                        let log_error = "☢ I'm already logging that channel! ☢".to_string();
                         self.call_and_response(&ctx, msg, log_error).await;
                     }
                 }
@@ -65,11 +65,11 @@ impl EventHandler for Handler {
             "unlog" => {
                 match logger::unlog_channel(msg.channel_id.0) {
                     Ok(c) => {
-                        let log_confirm = format!("Okay, I'll stop logging <#{}>! :heart:", c);
+                        let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤", c);
                         self.send_msg(&ctx, msg.channel_id, log_confirm).await;
                     },
                     Err(_) => {
-                        let log_error = ":radioactive: I'm not logging that channel yet! :radioactive:".to_string();
+                        let log_error = "☢ I'm not logging that channel yet! ☢".to_string();
                         self.call_and_response(&ctx, msg, log_error).await;
                     }
                 }
@@ -82,7 +82,7 @@ impl EventHandler for Handler {
                     Ok(s) => format!("My profile picture is sourced from: {}", s),
                     Err(e) => {
                         println!("Failed to read PFP source file: {:?}", e);
-                        ":radioactive: I'm sorry, I lost the source! :radioactive:".to_string()
+                        "☢ I'm sorry, I lost the source! ☢".to_string()
                     }
                 };
 
@@ -178,7 +178,7 @@ mod tests {
             "roll! 2d6 asdfdsa!",
             "RoLl 2D6",
             "",
-            "log <#826898213889114183>"
+            "log <#654644643515>"
         ];
         
         assert_eq!(split_message(&input[0]), ["roll", "2d6"]);
@@ -188,14 +188,14 @@ mod tests {
         assert_eq!(split_message(&input[4]), ["roll!", "2d6", "asdfdsa!"]);
         assert_eq!(split_message(&input[5]), ["roll", "2d6"]);
         assert_eq!(split_message(&input[6]), [""]);
-        assert_eq!(split_message(&input[7]), ["log", "<#826898213889114183>"]);
+        assert_eq!(split_message(&input[7]), ["log", "<#654644643515>"]);
     }
 
     #[test]
     fn channel_id_test() {
-        let id: u64 = 826898213889114183;
-        let channel_mention = "<#826898213889114183>".to_string();
-        let bad_mention = "826898213889114183".to_string();
+        let id: u64 = 654644643515;
+        let channel_mention = "<#654644643515>".to_string();
+        let bad_mention = "654644643515".to_string();
 
         assert_eq!(interpret_channel_mention(channel_mention), Ok(id));
         assert_eq!(interpret_channel_mention(bad_mention), Err(ErrorKind::InvalidInput));

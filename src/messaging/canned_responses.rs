@@ -36,6 +36,10 @@ impl Can {
             String::from("help"), 
             String::from("If you read this, please tell my boss to write the documentation already!")
         );
+        responses.insert(
+            String::from("atom"), 
+            String::from("☢ 😤 ☢ Up and atom! ☢ 😤 ☢")
+        );
 
         // To be removed when !roll works
         responses.insert(String::from("roll"), String::from("I don't know how to roll dice yet!"));
