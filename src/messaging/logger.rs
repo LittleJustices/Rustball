@@ -14,6 +14,7 @@ impl Logger {
     }
 
     pub fn log_channel(&self, chan: u64) -> Result<u64, ErrorKind> {
+        if chan == 0 { return Err(ErrorKind::InvalidInput) }
         let channels = Arc::clone(&self.logged_channels);
         let mut channel_list = channels.lock().unwrap();
         if channel_list.contains(&chan) {
@@ -25,6 +26,7 @@ impl Logger {
     }
 
     pub fn unlog_channel(&self, chan: u64) -> Result<u64, ErrorKind> {
+        if chan == 0 { return Err(ErrorKind::InvalidInput) }
         let channels = Arc::clone(&self.logged_channels);
         let mut channel_list = channels.lock().unwrap();
         if channel_list.contains(&chan) {

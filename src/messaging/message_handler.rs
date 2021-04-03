@@ -57,20 +57,20 @@ impl EventHandler for Handler {
                     Err(ErrorKind::Other) => msg.channel_id.0,
                     Err(_) => 0,
                 };
-                if chan == 0 {
-                    let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
-                    self.call_and_response(&ctx, msg, chan_error).await;
-                    return;
-                }
                 match self.log.log_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Logging <#{}> now! ❤", c);
                         self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
                     },
-                    Err(_) => {
+                    Err(ErrorKind::AlreadyExists) => {
                         let log_error = "☢ I'm already logging that channel! ☢".to_string();
                         self.call_and_response(&ctx, msg, log_error).await;
-                    }
+                    },
+                    Err(_) => {
+                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                        self.call_and_response(&ctx, msg, chan_error).await;
+                        return;
+                    },
                 }
             },
             "unlog" => {
@@ -79,20 +79,20 @@ impl EventHandler for Handler {
                     Err(ErrorKind::Other) => msg.channel_id.0,
                     Err(_) => 0,
                 };
-                if chan == 0 {
-                    let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
-                    self.call_and_response(&ctx, msg, chan_error).await;
-                    return;
-                }
                 match self.log.unlog_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤", c);
                         self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
                     },
-                    Err(_) => {
+                    Err(ErrorKind::NotFound) => {
                         let log_error = "☢ I'm not logging that channel yet! ☢".to_string();
                         self.call_and_response(&ctx, msg, log_error).await;
-                    }
+                    },
+                    Err(_) => {
+                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                        self.call_and_response(&ctx, msg, chan_error).await;
+                        return;
+                    },
                 }
             },
             // Source for profile pic
