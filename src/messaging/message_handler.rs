@@ -14,11 +14,12 @@ use serenity::{
 
 use super::{
     canned_responses::Can,
-    logger,
+    logger::Logger,
 };
 
 pub struct Handler {
     pub responses: Can,
+    pub log: Logger,
 }
 
 const PREFIX: char = '!';   // Prefix for messages Sixball will parse
@@ -35,7 +36,7 @@ impl EventHandler for Handler {
         match msg.content.trim().strip_prefix(PREFIX) {
             Some(s) => content = s,
             None => {
-                if logger::logging().contains(&msg.channel_id.0) {
+                if self.log.logging(msg.channel_id.0) {
                     println!("{} {}: {}", msg.timestamp, msg.author.name, msg.content);
                 }
                 return;
@@ -61,7 +62,7 @@ impl EventHandler for Handler {
                     self.call_and_response(&ctx, msg, chan_error).await;
                     return;
                 }
-                match logger::log_channel(chan) {
+                match self.log.log_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Logging <#{}> now! ❤", c);
                         self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
@@ -83,7 +84,7 @@ impl EventHandler for Handler {
                     self.call_and_response(&ctx, msg, chan_error).await;
                     return;
                 }
-                match logger::unlog_channel(chan) {
+                match self.log.unlog_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤", c);
                         self.send_msg(&ctx, ChannelId(chan), log_confirm).await;

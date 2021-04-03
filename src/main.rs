@@ -10,6 +10,7 @@ mod messaging;
 use messaging::{
     canned_responses::Can,
     message_handler::Handler,
+    logger::Logger,
 };
 mod tests;
 
@@ -19,9 +20,10 @@ async fn main() {
         .expect("Expected a token in the root folder");
 
     let responses = Can::new();
+    let log = Logger::new();
 
     let mut client = Client::builder(&token)
-        .event_handler(Handler { responses })
+        .event_handler(Handler { responses, log })
         .await
         .expect("Error creating client");
 
