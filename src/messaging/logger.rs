@@ -1,8 +1,6 @@
 use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 
-// static LOGGED_CHANNELS: Arc<Mutex<Vec<u64>>> = Arc::new(Mutex::new(Vec::<u64>::new()));
-
 #[derive(Debug)]
 pub struct Logger {
     logged_channels: Arc<Mutex<Vec<u64>>>
