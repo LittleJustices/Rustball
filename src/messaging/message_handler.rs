@@ -41,8 +41,8 @@ impl EventHandler for Handler {
                 return;
             }
         }
-        let command = split_message(content);
-        match &command[0][..] {
+        let (command, argument, _comment) = split_message(content);
+        match &command[..] {
             // Shutdown order
             "bye" => {
                 let bye = "Bye~! ❤".to_string();
@@ -51,10 +51,20 @@ impl EventHandler for Handler {
                 std::process::exit(0);
             },
             "log" => {
-                match logger::log_channel(msg.channel_id.0) {
+                let chan = match interpret_channel_mention(argument) {
+                    Ok(c) => c,
+                    Err(ErrorKind::Other) => msg.channel_id.0,
+                    Err(_) => 0,
+                };
+                if chan == 0 {
+                    let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                    self.call_and_response(&ctx, msg, chan_error).await;
+                    return;
+                }
+                match logger::log_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Logging <#{}> now! ❤", c);
-                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
+                        self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
                     },
                     Err(_) => {
                         let log_error = "☢ I'm already logging that channel! ☢".to_string();
@@ -63,10 +73,20 @@ impl EventHandler for Handler {
                 }
             },
             "unlog" => {
-                match logger::unlog_channel(msg.channel_id.0) {
+                let chan = match interpret_channel_mention(argument) {
+                    Ok(c) => c,
+                    Err(ErrorKind::Other) => msg.channel_id.0,
+                    Err(_) => 0,
+                };
+                if chan == 0 {
+                    let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                    self.call_and_response(&ctx, msg, chan_error).await;
+                    return;
+                }
+                match logger::unlog_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤", c);
-                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
+                        self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
                     },
                     Err(_) => {
                         let log_error = "☢ I'm not logging that channel yet! ☢".to_string();
@@ -91,7 +111,7 @@ impl EventHandler for Handler {
             // Any other order, check if it's a canned response, otherwise do nothing
             _ => {
                 // If find_in_can returns a result (not error), send the response to channel, otherwise ignore
-                if let Ok(ans) = self.responses.find_in_can(&command[0]) {
+                if let Ok(ans) = self.responses.find_in_can(&command) {
                     self.call_and_response(&ctx, msg, ans).await;
                 }
             }
@@ -114,39 +134,47 @@ impl Handler {
     }
 }
 
-fn split_message<'a>(message: &'a str) -> Vec<String> {
+fn split_message<'a>(message: &'a str) -> (String, String, String) {
     // Create string vector to hold the content
-    let mut content = Vec::new();
+    let (mut command, mut argument, mut comment) = ("".to_string(), "".to_string(), "".to_string());
 
     // If the input is empty, just push and return the empty string
     if message == "" {
-        content.push(message.to_string());
-        return content;
+        return (command, argument, comment);
     }
 
     // Then, split along spaces
-    let arguments = message.split_whitespace();
+    let mut chunks = message.split_whitespace();
 
-    // Holding string for leftover comment text
+    // First element, if present, is the command. This can never be None, but if it is, that's an empty string
+    command = match chunks.next() {
+        Some(c) => c.to_lowercase(),
+        None => "".to_string()
+    };
+
+    // Second element, if present, is the argument
+    argument = match chunks.next() {
+        Some(c) => c.to_lowercase(),
+        None => "".to_string()
+    };
+
+    // Anything that's left should be collected into a single string and become the comment
     let mut leftover_text = "".to_string();
 
     // Loop over the first two chunks and push to content
-    for (i, chunk) in arguments.enumerate() {
-        if i < 2 {
-            content.push(chunk.to_string().to_lowercase());
-        } else {
-            leftover_text = leftover_text + chunk;
-        }
+    for chunk in chunks {
+        leftover_text = format!("{} {}", leftover_text, chunk);
     }
 
     // Push leftovers to content as a single string, if not empty
-    if leftover_text != "" { content.push(leftover_text) };
+    comment = leftover_text.trim().to_string();
     
     // return content
-    content
+    (command, argument, comment)
 }
 
 fn interpret_channel_mention(mention: String) -> Result<u64, ErrorKind> {
+    if mention == "".to_string() { return Err(ErrorKind::Other) }
     match mention.strip_prefix("<#") {
         Some(ention) => {                       // Get it? "mention" with the prefix removed
             match ention.strip_suffix(">") {
@@ -175,29 +203,31 @@ mod tests {
             "ping",
             "roll apple",
             "roll 2d6 asdf",
-            "roll! 2d6 asdfdsa!",
+            "roll! 2d6 Never Gonna Give You Up",
             "RoLl 2D6",
             "",
             "log <#654644643515>"
         ];
         
-        assert_eq!(split_message(&input[0]), ["roll", "2d6"]);
-        assert_eq!(split_message(&input[1]), ["ping"]);
-        assert_eq!(split_message(&input[2]), ["roll", "apple"]);
-        assert_eq!(split_message(&input[3]), ["roll", "2d6", "asdf"]);
-        assert_eq!(split_message(&input[4]), ["roll!", "2d6", "asdfdsa!"]);
-        assert_eq!(split_message(&input[5]), ["roll", "2d6"]);
-        assert_eq!(split_message(&input[6]), [""]);
-        assert_eq!(split_message(&input[7]), ["log", "<#654644643515>"]);
+        assert_eq!(split_message(&input[0]), ("roll".to_string(), "2d6".to_string(), "".to_string()));
+        assert_eq!(split_message(&input[1]), ("ping".to_string(), "".to_string(), "".to_string()));
+        assert_eq!(split_message(&input[2]), ("roll".to_string(), "apple".to_string(), "".to_string()));
+        assert_eq!(split_message(&input[3]), ("roll".to_string(), "2d6".to_string(), "asdf".to_string()));
+        assert_eq!(split_message(&input[4]), ("roll!".to_string(), "2d6".to_string(), "Never Gonna Give You Up".to_string()));
+        assert_eq!(split_message(&input[5]), ("roll".to_string(), "2d6".to_string(), "".to_string()));
+        assert_eq!(split_message(&input[6]), ("".to_string(), "".to_string(), "".to_string()));
+        assert_eq!(split_message(&input[7]), ("log".to_string(), "<#654644643515>".to_string(), "".to_string()));
     }
 
     #[test]
     fn channel_id_test() {
-        let id: u64 = 654644643515;
-        let channel_mention = "<#654644643515>".to_string();
-        let bad_mention = "654644643515".to_string();
+        let id: u64 = 4646516846168;
+        let channel_mention = "<#4646516846168>".to_string();
+        let bad_mention = "apple".to_string();
+        let no_mention = "".to_string();
 
         assert_eq!(interpret_channel_mention(channel_mention), Ok(id));
         assert_eq!(interpret_channel_mention(bad_mention), Err(ErrorKind::InvalidInput));
+        assert_eq!(interpret_channel_mention(no_mention), Err(ErrorKind::Other));
     }
 }
