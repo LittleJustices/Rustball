@@ -1,7 +1,7 @@
-use serenity::model::channel::Message;
-
 use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
+
+use serenity::model::channel::Message;
 
 #[derive(Debug)]
 pub struct Logger {
