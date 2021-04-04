@@ -6,7 +6,7 @@ use serenity::{
     model::{
         channel::Message, 
         gateway::Ready,
-        id::ChannelId,
+        id::{ChannelId}
     },
     prelude::*,
     // utils::MessageBuilder,
@@ -52,15 +52,25 @@ impl EventHandler for Handler {
             },
             // Start logging a channel
             "log" => {
-                let chan = match interpret_channel_mention(argument) {
-                    Ok(c) => c,
-                    Err(ErrorKind::Other) => msg.channel_id.0,
-                    Err(_) => 0,
+                let chan;
+                match interpret_channel_mention(argument) {
+                    Ok(c) => chan = c,
+                    Err(ErrorKind::Other) => chan = msg.channel_id.0,
+                    Err(_) => {
+                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                        self.call_and_response(&ctx, msg, chan_error).await;
+                        return;
+                    },
+                };
+                if !Logger::check_logging_permission(chan, msg.channel_id, &ctx).await {
+                    let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
+                    self.call_and_response(&ctx, msg, perm_error).await;
+                    return;
                 };
                 match self.log.log_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Logging <#{}> now! ❤", c);
-                        self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
+                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
                     },
                     Err(ErrorKind::AlreadyExists) => {
                         let log_error = "☢ I'm already logging that channel! ☢".to_string();
@@ -75,15 +85,25 @@ impl EventHandler for Handler {
             },
             // Stop logging a channel
             "unlog" => {
-                let chan = match interpret_channel_mention(argument) {
-                    Ok(c) => c,
-                    Err(ErrorKind::Other) => msg.channel_id.0,
-                    Err(_) => 0,
+                let chan;
+                match interpret_channel_mention(argument) {
+                    Ok(c) => chan = c,
+                    Err(ErrorKind::Other) => chan = msg.channel_id.0,
+                    Err(_) => {
+                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                        self.call_and_response(&ctx, msg, chan_error).await;
+                        return;
+                    },
+                };
+                if !Logger::check_logging_permission(chan, msg.channel_id, &ctx).await {
+                    let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
+                    self.call_and_response(&ctx, msg, perm_error).await;
+                    return;
                 };
                 match self.log.unlog_channel(chan) {
                     Ok(c) => {
                         let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤", c);
-                        self.send_msg(&ctx, ChannelId(chan), log_confirm).await;
+                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
                     },
                     Err(ErrorKind::NotFound) => {
                         let log_error = "☢ I'm not logging that channel yet! ☢".to_string();
@@ -197,6 +217,7 @@ fn split_message<'a>(message: &'a str) -> (String, String, String) {
 }
 
 fn interpret_channel_mention(mention: String) -> Result<u64, ErrorKind> {
+    // If mention is empty (because no argument was supplied), return an error
     if mention == "".to_string() { return Err(ErrorKind::Other) }
     match mention.strip_prefix("<#") {
         Some(ention) => {                       // Get it? "mention" with the prefix removed
@@ -205,7 +226,7 @@ fn interpret_channel_mention(mention: String) -> Result<u64, ErrorKind> {
                     if let Ok(id) = entio.parse::<u64>() {
                         Ok(id)
                     } else {
-                        Err(ErrorKind::InvalidInput)
+                        Err(ErrorKind::InvalidInput)    // If the partsing fails at any point, return another error
                     }
                 },
                 None => Err(ErrorKind::InvalidInput)
