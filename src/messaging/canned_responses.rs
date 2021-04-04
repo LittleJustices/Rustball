@@ -38,7 +38,7 @@ impl Can {
         );
         responses.insert(
             String::from("atom"), 
-            String::from("☢ 😤 ☢ Up and atom! ☢ 😤 ☢")
+            String::from("(●o≧д≦) Up and atom! ☢ 😤 ☢")
         );
 
         // To be removed when !roll works
