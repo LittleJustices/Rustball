@@ -1,4 +1,0 @@
----LOG START---
-2021-04-04 21:03:12.350 UTC Sixball Mk. II: Logging <#826898213889114183> now! ❤
-2021-04-04 21:03:15.014 UTC Jm2c: test
----LOG END---
