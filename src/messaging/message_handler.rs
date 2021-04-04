@@ -137,6 +137,12 @@ impl EventHandler for Handler {
 }
 
 impl Handler {
+    pub fn new() -> Handler {
+        let responses = Can::new();
+        let log = Logger::new();
+        Handler { responses, log }
+    }
+
     async fn send_msg(&self, context: &Context, chan: ChannelId, msg: String) {
         if let Err(why) = chan.say(&context.http, msg).await {
             println!("Error sending message: {:?}", why);
