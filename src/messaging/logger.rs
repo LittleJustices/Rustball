@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::{ File, OpenOptions };
 use std::io::{ ErrorKind, Write };
+use std::path::Path;
 use std::sync::{ Arc, Mutex };
 
 use chrono::prelude::*;
@@ -56,11 +57,11 @@ impl Logger {
         } else {
             // Get current time and date
             let log_start_time = Utc::now().format("%Y-%m-%d-%a_%H:%M:%S");
-            let log_file_path = format!("Sixball_Log_{}.txt", log_start_time);
+            let log_file_path = format!("./Logs/Sixball_Log_{}.txt", log_start_time);
             let log_file_result = OpenOptions::new()
                                     .create_new(true)
                                     .write(true)
-                                    .open(&log_file_path);
+                                    .open(Path::new(&log_file_path));
 
             match log_file_result {
                 Ok(mut file) => {
@@ -104,7 +105,7 @@ impl Logger {
     }
 
     pub fn record(&self, msg: Message) -> Result<(), ErrorKind> {
-        let output = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d_%H:%M:%S"), msg.author.name, msg.content);
+        let output = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d %H:%M:%S"), msg.author.name, msg.content);
         println!("{}", output);
         let channels = Arc::clone(&self.logged_channels);
         let channel_list = channels.lock().unwrap();
