@@ -1,0 +1,5 @@
+Sixball_Log_2021-04-04-Sun_20:32:50.txt
+---LOG START---
+2021-04-04 20:32:50.434 UTC Sixball Mk. II: Logging <#826898213889114183> now! ❤
+2021-04-04 20:32:52.066 UTC Jm2c: hi
+---LOG END---

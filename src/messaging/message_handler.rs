@@ -1,8 +1,12 @@
-use std::io::ErrorKind;
-use std::fs;
+use std::{
+    fs,
+    io::ErrorKind,
+    path::Path,
+};
 
 use serenity::{
     async_trait,
+    http::AttachmentType,
     model::{
         channel::Message, 
         gateway::Ready,
@@ -105,16 +109,25 @@ impl EventHandler for Handler {
                     return;
                 };
                 match self.log.unlog_channel(chan) {
-                    Ok(c) => {
-                        let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤ Here's your log: [Coming soon!]", c);
-                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
+                    Ok(filename) => {
+                        let log_confirm = format!("Okay, I'll stop logging that channel! ❤ Here's your log:");
+                        let message = msg.channel_id.send_message(&ctx.http, |m| {
+                            m.content(log_confirm);
+                            m.add_file(AttachmentType::Path(Path::new(&filename)));
+                            m
+                        }).await;
+                        if let Err(why) = message {
+                            println!("Error sending message: {:?}", why);
+                        }
+                        // self.send_msg(&ctx, msg.channel_id, log_confirm).await;
                     },
                     Err(ErrorKind::NotFound) => {
                         let log_error = "☢ I'm not logging that channel yet! ☢".to_string();
                         self.call_and_response(&ctx, msg, log_error).await;
                     },
-                    Err(_) => {
+                    Err(why) => {
                         let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
+                        println!("Error sending message: {:?}", why);
                         self.call_and_response(&ctx, msg, chan_error).await;
                         return;
                     },

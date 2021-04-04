@@ -18,12 +18,12 @@ use serenity::{
 
 #[derive(Debug)]
 pub struct Logger {
-    logged_channels: Arc<Mutex<HashMap<u64, File>>>
+    logged_channels: Arc<Mutex<HashMap<u64, (File, String)>>>
 }
 
 impl Logger {
     pub fn new() -> Logger {
-        Logger { logged_channels: Arc::new(Mutex::new(HashMap::<u64, File>::new())) }
+        Logger { logged_channels: Arc::new(Mutex::new(HashMap::<u64, (File, String)>::new())) }
     }
 
     pub async fn check_logging_permission(target: u64, source: ChannelId, ctx: &Context) -> bool {
@@ -60,13 +60,14 @@ impl Logger {
             let log_file_result = OpenOptions::new()
                                     .create_new(true)
                                     .write(true)
-                                    .open(log_file_path);
+                                    .read(true)
+                                    .open(&log_file_path);
 
             match log_file_result {
                 Ok(mut file) => {
                     match writeln!(file, "---LOG START---") {
                         Ok(_) => {
-                            channel_list.insert(chan, file);
+                            channel_list.insert(chan, (file, log_file_path));
                             println!("Logging channel {:?}", channel_list.get(&chan));
                             return Ok(chan);
                         },
@@ -78,19 +79,19 @@ impl Logger {
         }
     }
 
-    pub fn unlog_channel(&self, chan: u64) -> Result<u64, ErrorKind> {
+    pub fn unlog_channel(&self, chan: u64) -> Result<String, ErrorKind> {
         let channels = Arc::clone(&self.logged_channels);
         let mut channel_list = channels.lock().unwrap();
         if channel_list.contains_key(&chan) {
-            if let Some((_c, mut file)) = channel_list.remove_entry(&chan) {
+            if let Some((_c, (mut file, path))) = channel_list.remove_entry(&chan) {
                 match writeln!(file, "---LOG END---") {
                     Ok(_) => {
-                        return Ok(chan);
+                        return Ok(path);
                     },
-                    Err(_) => return Err(ErrorKind::Other)
+                    Err(_) => return Err(ErrorKind::PermissionDenied)
                 }
             } else {
-                return Err(ErrorKind::Other);
+                return Err(ErrorKind::TimedOut);
             }
         } else {
             return Err(ErrorKind::NotFound);
@@ -108,15 +109,15 @@ impl Logger {
         println!("{}", output);
         let channels = Arc::clone(&self.logged_channels);
         let channel_list = channels.lock().unwrap();
+        let mut record;
         match channel_list.get(&msg.channel_id.0) {
-            Some(mut file) => {
-                match writeln!(file, "{}", output) {
-                    Ok(_) => return Ok(()),
-                    Err(_) => return Err(ErrorKind::Other)
-                };
-            }
+            Some((file, _path)) => record = file,
             None => return Err(ErrorKind::NotFound)
-        }
+        };
+        match writeln!(record, "{}", output) {
+            Ok(_) => return Ok(()),
+            Err(_) => return Err(ErrorKind::Other)
+        };
     }
 }
 
