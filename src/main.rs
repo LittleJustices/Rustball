@@ -2,8 +2,6 @@ use std::fs;
 
 use serenity::{
     prelude::*,
-    // model::channel::Message,
-    // async_trait,
 };
 
 mod messaging;

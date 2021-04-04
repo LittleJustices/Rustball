@@ -52,5 +52,21 @@ mod tests {
         let chan_id: u64 = 1;
         let logged = logger.log_channel(chan_id);
         assert_eq!(logged, Ok(1));
+        assert!(logger.logging(1));
+        let _other_logged = logger.log_channel(2);
+        assert!(logger.logging(1));
+        assert!(logger.logging(2));
+    }
+
+    #[test]
+    fn unlogging_test() {
+        let logger = Logger::new();
+        let _logged = logger.log_channel(1);
+        let _other_logged = logger.log_channel(2);
+        assert!(logger.logging(2));
+        assert!(logger.logging(1));
+        let _unlogged = logger.unlog_channel(1);
+        assert!(logger.logging(2));
+        assert!(!logger.logging(1));
     }
 }

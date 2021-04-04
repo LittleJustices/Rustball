@@ -134,7 +134,7 @@ impl EventHandler for Handler {
                 }
             }
         }
-    }   
+    }
 }
 
 impl Handler {
