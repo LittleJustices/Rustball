@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 
@@ -14,12 +15,12 @@ use serenity::{
 
 #[derive(Debug)]
 pub struct Logger {
-    logged_channels: Arc<Mutex<Vec<u64>>>
+    logged_channels: Arc<Mutex<HashMap<u64, String>>>
 }
 
 impl Logger {
     pub fn new() -> Logger {
-        Logger { logged_channels: Arc::new(Mutex::new(Vec::<u64>::new())) }
+        Logger { logged_channels: Arc::new(Mutex::new(HashMap::<u64, String>::new())) }
     }
 
     pub async fn check_logging_permission(target: u64, source: ChannelId, ctx: &Context) -> bool {
@@ -47,11 +48,11 @@ impl Logger {
     pub fn log_channel(&self, chan: u64) -> Result<u64, ErrorKind> {
         let channels = Arc::clone(&self.logged_channels);
         let mut channel_list = channels.lock().unwrap();
-        if channel_list.contains(&chan) {
+        if channel_list.contains_key(&chan) {
             return Err(ErrorKind::AlreadyExists)
         } else {
-            channel_list.push(chan);
-            println!("Logging channel {}", chan);
+            channel_list.insert(chan, "log file name".to_string());
+            println!("Logging channel {:?}", channel_list.get(&chan));
             return Ok(chan);
         }
     }
@@ -59,8 +60,8 @@ impl Logger {
     pub fn unlog_channel(&self, chan: u64) -> Result<u64, ErrorKind> {
         let channels = Arc::clone(&self.logged_channels);
         let mut channel_list = channels.lock().unwrap();
-        if channel_list.contains(&chan) {
-            channel_list.retain(|x| x != &chan);
+        if channel_list.contains_key(&chan) {
+            channel_list.remove_entry(&chan);
             return Ok(chan);
         } else {
             return Err(ErrorKind::NotFound);
@@ -70,7 +71,7 @@ impl Logger {
     pub fn logging(&self, chan: u64) -> bool {
         let channels = Arc::clone(&self.logged_channels);
         let channel_list = channels.lock().unwrap();
-        return channel_list.contains(&chan);
+        return channel_list.contains_key(&chan);
     }
 
     pub fn record(&self, msg: Message) {
