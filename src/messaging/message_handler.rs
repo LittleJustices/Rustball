@@ -23,7 +23,6 @@ pub struct Handler {
 }
 
 const PREFIX: char = '!';   // Prefix for messages Sixball will parse
-// const LOGGING: ChannelId = ChannelId(826898213889114183);
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -37,7 +36,7 @@ impl EventHandler for Handler {
             Some(s) => content = s,
             None => {
                 if self.log.logging(msg.channel_id.0) {
-                    println!("{} {}: {}", msg.timestamp, msg.author.name, msg.content);
+                    self.log.record(msg);
                 }
                 return;
             }

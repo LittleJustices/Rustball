@@ -1,3 +1,5 @@
+use serenity::model::channel::Message;
+
 use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 
@@ -39,6 +41,10 @@ impl Logger {
         let channels = Arc::clone(&self.logged_channels);
         let channel_list = channels.lock().unwrap();
         return channel_list.contains(&chan);
+    }
+
+    pub fn record(&self, msg: Message) {
+        println!("{} {}: {}", msg.timestamp, msg.author.name, msg.content);
     }
 }
 

@@ -10,7 +10,6 @@ use messaging::{
     message_handler::Handler,
     logger::Logger,
 };
-mod tests;
 
 #[tokio::main]
 async fn main() {
