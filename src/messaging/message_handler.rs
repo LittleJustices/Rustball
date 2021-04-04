@@ -36,7 +36,11 @@ impl EventHandler for Handler {
             Some(s) => content = s,
             None => {
                 if self.log.logging(msg.channel_id.0) {
-                    self.log.record(msg);
+                    if let Ok(()) = self.log.record(msg) {
+                        return;
+                    } else {
+                        println!("Unexpected error while logging message");
+                    }
                 }
                 return;
             }
