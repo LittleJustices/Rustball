@@ -60,7 +60,6 @@ impl Logger {
             let log_file_result = OpenOptions::new()
                                     .create_new(true)
                                     .write(true)
-                                    .read(true)
                                     .open(&log_file_path);
 
             match log_file_result {
