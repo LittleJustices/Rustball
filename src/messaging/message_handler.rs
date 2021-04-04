@@ -106,7 +106,7 @@ impl EventHandler for Handler {
                 };
                 match self.log.unlog_channel(chan) {
                     Ok(c) => {
-                        let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤", c);
+                        let log_confirm = format!("Okay, I'll stop logging <#{}>! ❤ Here's your log: [Coming soon!]", c);
                         self.send_msg(&ctx, msg.channel_id, log_confirm).await;
                     },
                     Err(ErrorKind::NotFound) => {
