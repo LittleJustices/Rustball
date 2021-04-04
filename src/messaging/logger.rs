@@ -106,7 +106,6 @@ impl Logger {
 
     pub fn record(&self, msg: Message) -> Result<(), ErrorKind> {
         let output = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d %H:%M:%S"), msg.author.name, msg.content);
-        println!("{}", output);
         let channels = Arc::clone(&self.logged_channels);
         let channel_list = channels.lock().unwrap();
         let mut record;
