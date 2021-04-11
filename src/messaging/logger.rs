@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fs;
 use std::fs::{ File, OpenOptions };
 use std::io::{ ErrorKind, Write };
 use std::path::Path;
@@ -16,6 +17,8 @@ use serenity::{
     },
     prelude::Context,
 };
+
+const PATH: &str = "./Logs";
 
 #[derive(Debug)]
 pub struct Logger {
@@ -55,10 +58,13 @@ impl Logger {
         if channel_list.contains_key(&chan) {
             return Err(ErrorKind::AlreadyExists)
         } else {
-            let log_file_path = format!("./Logs/{}.txt", filename);
+            let log_file_path = format!("{}/{}.txt", PATH, filename);
+            if let Err(_) = fs::create_dir_all(PATH) {
+                return Err(ErrorKind::Other)
+            };
             let log_file_result = OpenOptions::new()
                                     .create_new(true)
-                                    .write(true)
+                                    .append(true)
                                     .open(Path::new(&log_file_path));
 
             match log_file_result {
