@@ -49,15 +49,13 @@ impl Logger {
         allowed
     }
 
-    pub fn log_channel(&self, chan: u64) -> Result<u64, ErrorKind> {
+    pub fn log_channel(&self, chan: u64, filename: String) -> Result<u64, ErrorKind> {
         let channels = Arc::clone(&self.logged_channels);
         let mut channel_list = channels.lock().unwrap();
         if channel_list.contains_key(&chan) {
             return Err(ErrorKind::AlreadyExists)
         } else {
-            // Get current time and date
-            let log_start_time = Utc::now().format("%Y-%m-%d-%a_%H:%M:%S");
-            let log_file_path = format!("./Logs/Sixball_Log_{}.txt", log_start_time);
+            let log_file_path = format!("./Logs/{}.txt", filename);
             let log_file_result = OpenOptions::new()
                                     .create_new(true)
                                     .write(true)
@@ -117,6 +115,26 @@ impl Logger {
             Ok(_) => return Ok(()),
             Err(_) => return Err(ErrorKind::Other)
         };
+    }
+
+    pub async fn construct_log_filename(id: u64, ctx: &Context) -> String {
+        let mut chan_name = "no_chan_name".to_string();
+        let mut guild_name = "".to_string();
+        
+        if let Ok(chan) = ChannelId(id).to_channel(ctx).await {
+            if let Channel::Guild(guild_chan) = chan {
+                chan_name = guild_chan.name().to_string();
+                let guild = guild_chan.guild_id;
+                guild_name = match guild.name(ctx).await {
+                    Some(name) => format!("_{}", name),
+                    None => "".to_string()
+                }
+            }
+        }
+        
+        let log_start_time = Utc::now().format("%Y-%m-%d-%a_%H:%M:%S");
+        let log_file_name = format!("Sixball_Log{}_{}_{}", guild_name, chan_name, log_start_time);
+        return log_file_name;
     }
 }
 

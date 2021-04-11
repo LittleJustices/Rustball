@@ -75,7 +75,8 @@ impl EventHandler for Handler {
                     self.call_and_response(&ctx, msg, perm_error).await;
                     return;
                 };
-                match self.log.log_channel(chan) {
+                let log_filename = Logger::construct_log_filename(chan, &ctx).await;
+                match self.log.log_channel(chan, log_filename) {
                     Ok(c) => {
                         let log_confirm = format!("Logging <#{}> now! ❤", c);
                         self.send_msg(&ctx, msg.channel_id, log_confirm).await;

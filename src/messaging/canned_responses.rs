@@ -40,6 +40,10 @@ impl Can {
             String::from("atom"), 
             String::from("(●o≧д≦) Up and atom! ☢ 😤 ☢")
         );
+        responses.insert(
+            String::from("yuru"),
+            String::from("https://tenor.com/view/yuru-camp-shima-rin-gif-19870064")
+        );
 
         // To be removed when !roll works
         responses.insert(String::from("roll"), String::from("I don't know how to roll dice yet!"));
