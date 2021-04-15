@@ -36,3 +36,21 @@ async fn l5r(ctx: &Context, msg: &Message) -> CommandResult {
 
     Ok(())
 }
+
+#[command]
+#[aliases("sr")]
+async fn sroll(ctx: &Context, msg: &Message) -> CommandResult {
+    let roll = format!("{} I'm not shady enough for that yet!", msg.author);
+    msg.channel_id.say(&ctx.http, roll).await?;
+
+    Ok(())
+}
+
+#[command]
+#[aliases("ex")]
+async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
+    let roll = format!("{} I'm not epic enough for that yet!", msg.author);
+    msg.channel_id.say(&ctx.http, roll).await?;
+
+    Ok(())
+}

@@ -27,16 +27,21 @@ use messaging::{
 mod commands;
 use commands::{
     general::*,
+    logging::*,
     rolling::*,
 };
 
 #[group]
-#[commands(ping, hello, squid, shadow, unyu, atom, yuru)]
+#[commands(ping, hello, squid, shadow, unyu, atom, yuru, pfp, bye)]
 struct General;
 
 #[group]
-#[commands(roll, wod, l5r)]
+#[commands(roll, wod, l5r, sroll, exroll)]
 struct Roll;
+
+#[group]
+#[commands(log, unlog, logging)]
+struct Logging;
 
 #[tokio::main]
 async fn main() {
@@ -61,7 +66,8 @@ async fn main() {
             .prefix("!")
         )
         .group(&GENERAL_GROUP)
-        .group(&ROLL_GROUP);
+        .group(&ROLL_GROUP)
+        .group(&LOGGING_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)

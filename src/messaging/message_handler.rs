@@ -1,5 +1,4 @@
 use std::{
-    fs,
     io::ErrorKind,
     path::Path,
 };
@@ -51,13 +50,6 @@ impl EventHandler for Handler {
         }
         let (command, argument, _comment) = split_message(content);
         match &command[..] {
-            // Shutdown order
-            "bye" => {
-                let bye = "Bye~! ❤".to_string();
-
-                self.send_msg(&ctx, msg.channel_id, bye).await;
-                std::process::exit(0);
-            },
             // Start logging a channel
             "log" => {
                 let chan;
@@ -148,20 +140,6 @@ impl EventHandler for Handler {
                     let no = format!("I'm not logging <#{}> right now!", chan);
                     self.call_and_response(&ctx, msg, no).await;
                 }
-            },
-            // Source for profile pic
-            "pfp" => {
-                let sauce = fs::read_to_string("PFP_Source.txt");
-
-                let answer = match sauce {
-                    Ok(s) => format!("My profile picture is sourced from: {}", s),
-                    Err(e) => {
-                        println!("Failed to read PFP source file: {:?}", e);
-                        "☢ I'm sorry, I lost the source! ☢".to_string()
-                    }
-                };
-
-                self.call_and_response(&ctx, msg, answer).await;
             },
             // Any other order, check if it's a canned response, otherwise do nothing
             _ => {

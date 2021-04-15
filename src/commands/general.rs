@@ -12,7 +12,10 @@ use serenity::{
     prelude::*,
 };
 
-use std::path::Path;
+use std::{
+    fs,
+    path::Path,
+};
 
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
@@ -67,6 +70,30 @@ async fn atom(ctx: &Context, msg: &Message) -> CommandResult {
 async fn yuru(ctx: &Context, msg: &Message) -> CommandResult {
     let sway = String::from("https://tenor.com/view/yuru-camp-shima-rin-gif-19870064");
     msg.channel_id.say(&ctx.http, sway).await?;
+
+    Ok(())
+}
+
+#[command]
+async fn bye(ctx: &Context, msg: &Message) -> CommandResult {
+    let bye = String::from("Bye~! ❤");
+    msg.channel_id.say(&ctx.http, bye).await?;
+
+    std::process::exit(0);
+}
+
+#[command]
+async fn pfp(ctx: &Context, msg: &Message) -> CommandResult {
+    let link = fs::read_to_string("PFP_Source.txt");
+
+    let sauce = match link {
+        Ok(s) => format!("{} My profile picture is sourced from: {}", msg.author, s),
+        Err(e) => {
+            println!("Failed to read PFP source file: {:?}", e);
+            "☢ I'm sorry, I lost the source! ☢".to_string()
+        }
+    };
+    msg.channel_id.say(&ctx.http, sauce).await?;
 
     Ok(())
 }
