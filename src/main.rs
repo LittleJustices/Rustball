@@ -7,15 +7,15 @@ use serenity::{
     framework::{
         StandardFramework,
         standard::{
-            CommandResult,
+            // CommandResult,
             macros::{
-                command,
+                // command,
                 group,
             },
         },
     },
     http::Http,
-    model::channel::Message,
+    // model::channel::Message,
     prelude::*,
 };
 
@@ -24,16 +24,19 @@ use messaging::{
     message_handler::Handler,
 };
 
+mod commands;
+use commands::{
+    general::*,
+    rolling::*,
+};
+
 #[group]
-#[commands(ping)]
+#[commands(ping, hello, squid, shadow, unyu, atom, yuru)]
 struct General;
 
-#[command]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.channel_id.say(&ctx.http, "Pong!").await?;
-
-    Ok(())
-}
+#[group]
+#[commands(roll, wod, l5r)]
+struct Roll;
 
 #[tokio::main]
 async fn main() {
@@ -57,7 +60,8 @@ async fn main() {
             .owners(owners)
             .prefix("!")
         )
-        .group(&GENERAL_GROUP);
+        .group(&GENERAL_GROUP)
+        .group(&ROLL_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
