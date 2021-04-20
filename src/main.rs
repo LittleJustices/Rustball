@@ -42,19 +42,19 @@ impl TypeMapKey for LogsKey {
 
 #[group]
 #[description = "General commands related to bot operation."]
-#[commands(ping, hello, pfp, bye)]
+#[commands(bye, hello, pfp, ping)]
 struct General;
 
 #[group]
 #[description = "Miscellaneous call and response commands for fun.\n\n
 Feel free to try them out, but don't spam! ❤"]
-#[commands(squid, shadow, unyu, atom, yuru)]
+#[commands(atom, shadow, squid, unyu, yuru)]
 struct Funsies;
 
 #[group]
 #[description = "Commands related to rolling dice.\n\n
 Use !roll for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
-#[commands(roll, wod, l5r, sroll, exroll)]
+#[commands(roll, exroll, l5r, sroll, wod)]
 struct Roll;
 
 #[group]
@@ -62,13 +62,13 @@ struct Roll;
 Use !log to start logging, !unlog to stop logging, and !logging to check whether I'm already logging.\n
 For all of these commands, the command used without an argument (e.g. `!log`) will apply to the channel the command is used in, but you can give me a channel mention as an argument (e.g. `!logging #general`) to target a specific other channel."]
 #[only_in(guilds)]
-#[commands(log, unlog, logging)]
+#[commands(log, logging, unlog)]
 struct Logging;
 
 #[help]
 #[individual_command_tip =
 "Hi~! ❤\n\n\
-If you want more information about a specific command, just pass the command as argument."]
+If you want more information about a specific command, just pass the command as argument. For info about groups, pass the group as an argument!"]
 #[command_not_found_text = "Could not find: `{}`."]
 #[max_levenshtein_distance(2)]
 #[lacking_permissions = "Hide"]
