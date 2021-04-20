@@ -117,6 +117,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "command_attr"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8fe1f0b69fde68f40ea2ee6ca8db23bc40d2e593db884659a65d8486032cc65b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "cpuid-bool"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -737,7 +748,7 @@ dependencies = [
 
 [[package]]
 name = "rustball"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "serenity",
@@ -818,9 +829,9 @@ dependencies = [
 
 [[package]]
 name = "serenity"
-version = "0.10.4"
+version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86e9dc74c89931fe12f3af64ae484268c0a4864a90fb2b7d2e867a301f173c4"
+checksum = "deead3f7ecbbbe4c249e07af17686937ccb9d7fa24ca3accd1d223e369a75272"
 dependencies = [
  "async-trait",
  "async-tungstenite",
@@ -828,16 +839,19 @@ dependencies = [
  "bitflags",
  "bytes 1.0.1",
  "chrono",
+ "command_attr",
  "flate2",
  "futures",
  "percent-encoding",
  "reqwest",
  "serde",
  "serde_json",
+ "static_assertions",
  "tokio",
  "tracing",
  "typemap_rev",
  "url",
+ "uwl",
 ]
 
 [[package]]
@@ -875,6 +889,12 @@ name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
+
+[[package]]
+name = "static_assertions"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 
 [[package]]
 name = "syn"
@@ -1097,6 +1117,12 @@ name = "utf-8"
 version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05e42f7c18b8f902290b009cde6d651262f956c98bc51bca4cd1d511c9cd85c7"
+
+[[package]]
+name = "uwl"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4bf03e0ca70d626ecc4ba6b0763b934b6f2976e8c744088bb3c1d646fbb1ad0"
 
 [[package]]
 name = "version_check"
