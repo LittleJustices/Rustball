@@ -29,7 +29,7 @@ impl Logger {
         Ok(Logger{ log_path, log_file })
     }
 
-    pub fn record(&self, msg: Message) -> io::Result<()> {
+    pub fn record(&self, msg: &Message) -> io::Result<()> {
         let mut log = &self.log_file;
         let log_entry = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d %H:%M:%S"), msg.author.name, msg.content);
 

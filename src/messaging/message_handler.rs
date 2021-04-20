@@ -1,42 +1,17 @@
 use serenity::{
     async_trait,
     model::{
-        channel::Message, 
         gateway::Ready,
     },
     prelude::*,
-    // utils::MessageBuilder,
 };
 
 pub struct Handler;
-
-const PREFIX: char = '!';   // Prefix for messages Sixball will parse
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, _: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
-    }
-
-    async fn message(&self, ctx: Context, msg: Message) {
-        match msg.content.trim().strip_prefix(PREFIX) {
-            Some(_) => return,
-            None => {
-                let mut log_data = ctx.data.write().await;
-                let log_map = log_data
-                                .get_mut::<crate::LogsKey>()
-                                .expect("Failed to retrieve logs map!")
-                                .lock().await;
-
-                if let Some(log) = log_map.get(&msg.channel_id) {
-                    match log.record(msg) {
-                        Ok(_) => return,
-                        Err(why) => println!("{}", why)
-                    }
-                }
-                return;
-            }
-        }
     }
 }
 

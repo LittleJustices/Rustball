@@ -12,6 +12,7 @@ use serenity::{
             macros::{
                 group,
                 help,
+                hook,
             },
         },
     },
@@ -86,6 +87,23 @@ async fn my_help(
     Ok(())
 }
 
+#[hook]
+async fn normal_message(ctx: &Context, msg: &Message) {
+    let mut log_data = ctx.data.write().await;
+    let log_map = log_data
+                    .get_mut::<LogsKey>()
+                    .expect("Failed to retrieve logs map!")
+                    .lock().await;
+
+    if let Some(log) = log_map.get(&msg.channel_id) {
+        match log.record(msg) {
+            Ok(_) => return,
+            Err(why) => println!("Error recording log message: {}", why)
+        }
+    }
+    return;
+}
+
 #[tokio::main]
 async fn main() {
     let token = fs::read_to_string("DISCORD_TOKEN")
@@ -108,6 +126,7 @@ async fn main() {
             .owners(owners)
             .prefix("!")
         )
+        .normal_message(normal_message)
         .help(&MY_HELP)
         // .group(&ROLL_GROUP)
         .group(&GENERAL_GROUP)
