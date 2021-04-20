@@ -8,13 +8,7 @@ use serenity::{
     // utils::MessageBuilder,
 };
 
-use super::{
-    canned_responses::Can,
-};
-
-pub struct Handler {
-    pub responses: Can,
-}
+pub struct Handler;
 
 const PREFIX: char = '!';   // Prefix for messages Sixball will parse
 
@@ -25,9 +19,8 @@ impl EventHandler for Handler {
     }
 
     async fn message(&self, ctx: Context, msg: Message) {
-        let content;
         match msg.content.trim().strip_prefix(PREFIX) {
-            Some(s) => content = s,
+            Some(_) => return,
             None => {
                 let mut log_data = ctx.data.write().await;
                 let log_map = log_data
@@ -44,33 +37,16 @@ impl EventHandler for Handler {
                 return;
             }
         }
-        let (command, _argument, _comment) = split_message(content);
-        match &command[..] {
-            // Any other order, check if it's a canned response, otherwise do nothing
-            _ => {
-                // If find_in_can returns a result (not error), send the response to channel, otherwise ignore
-                if let Ok(ans) = self.responses.find_in_can(&command) {
-                    self.call_and_response(&ctx, msg, ans).await;
-                }
-            }
-        }
     }
 }
 
 impl Handler {
     pub fn new() -> Handler {
-        let responses = Can::new();
-        Handler { responses }
-    }
-
-    async fn call_and_response(&self, context: &Context, call: Message, response: String) {
-        let msg = format!("{} {}", call.author, response);
-        if let Err(why) = call.channel_id.say(&context.http, msg).await {
-            println!("Error sending message: {:?}", why);
-        }
+        Handler
     }
 }
 
+/*
 fn split_message<'a>(message: &'a str) -> (String, String, String) {
     // Create string vector to hold the content
     let (mut command, mut argument, mut comment) = ("".to_string(), "".to_string(), "".to_string());
@@ -137,3 +113,4 @@ mod tests {
         assert_eq!(split_message(&input[7]), ("log".to_string(), "<#654644643515>".to_string(), "".to_string()));
     }
 }
+*/

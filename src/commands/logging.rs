@@ -30,6 +30,9 @@ use crate::messaging::logger::Logger;
 pub type LogsMap = HashMap<ChannelId, Logger>;
 
 #[command]
+#[description = "Start logging a channel.\n\n
+I'll keep logging until someone tells me to stop with !unlog.\n
+!log without an argument will log the channel the command was used in. To log a different channel, pass a mention to that channel as a command: `!log #general`."]
 async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let target;
 
@@ -93,6 +96,9 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
+#[description = "Stop logging a channel.\n\n
+Once I stop logging, I'll post the log file in the channel the command was used in.\n
+!unlog without an argument will unlog the channel the command was used in. To unlog a different channel, pass a mention to that channel as a command: `!unlog #general`."]
 async fn unlog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let target;
 
@@ -151,6 +157,8 @@ async fn unlog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
+#[description = "Check if a channel is being logged.\n\n
+!logging without an argument will check the channel the command was used in. To check a different channel, pass a mention to that channel as a command: `!logging #general`."]
 async fn logging(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let target;
 
