@@ -1,15 +1,8 @@
-use std::{
-    io::ErrorKind,
-    path::Path,
-};
-
 use serenity::{
     async_trait,
-    http::AttachmentType,
     model::{
         channel::Message, 
         gateway::Ready,
-        id::{ChannelId}
     },
     prelude::*,
     // utils::MessageBuilder,
@@ -17,12 +10,10 @@ use serenity::{
 
 use super::{
     canned_responses::Can,
-    logger::Logger,
 };
 
 pub struct Handler {
     pub responses: Can,
-    pub log: Logger,
 }
 
 const PREFIX: char = '!';   // Prefix for messages Sixball will parse
@@ -38,109 +29,23 @@ impl EventHandler for Handler {
         match msg.content.trim().strip_prefix(PREFIX) {
             Some(s) => content = s,
             None => {
-                if self.log.logging(msg.channel_id.0) {
-                    if let Ok(()) = self.log.record(msg) {
-                        return;
-                    } else {
-                        println!("Unexpected error while logging message");
+                let mut log_data = ctx.data.write().await;
+                let log_map = log_data
+                                .get_mut::<crate::LogsKey>()
+                                .expect("Failed to retrieve logs map!")
+                                .lock().await;
+
+                if let Some(log) = log_map.get(&msg.channel_id) {
+                    match log.record(msg) {
+                        Ok(_) => return,
+                        Err(why) => println!("{}", why)
                     }
                 }
                 return;
             }
         }
-        let (command, argument, _comment) = split_message(content);
+        let (command, _argument, _comment) = split_message(content);
         match &command[..] {
-            // Start logging a channel
-            "log" => {
-                let chan;
-                match interpret_channel_mention(argument) {
-                    Ok(c) => chan = c,
-                    Err(ErrorKind::Other) => chan = msg.channel_id.0,
-                    Err(_) => {
-                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
-                        self.call_and_response(&ctx, msg, chan_error).await;
-                        return;
-                    },
-                };
-                if !Logger::check_logging_permission(chan, msg.channel_id, &ctx).await {
-                    let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
-                    self.call_and_response(&ctx, msg, perm_error).await;
-                    return;
-                };
-                let log_filename = Logger::construct_log_filename(chan, &ctx).await;
-                match self.log.log_channel(chan, log_filename) {
-                    Ok(c) => {
-                        let log_confirm = format!("Logging <#{}> now! ❤", c);
-                        self.send_msg(&ctx, msg.channel_id, log_confirm).await;
-                    },
-                    Err(ErrorKind::AlreadyExists) => {
-                        let log_error = "☢ I'm already logging that channel! ☢".to_string();
-                        self.call_and_response(&ctx, msg, log_error).await;
-                    },
-                    Err(_) => {
-                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
-                        self.call_and_response(&ctx, msg, chan_error).await;
-                        return;
-                    },
-                }
-            },
-            // Stop logging a channel
-            "unlog" => {
-                let chan;
-                match interpret_channel_mention(argument) {
-                    Ok(c) => chan = c,
-                    Err(ErrorKind::Other) => chan = msg.channel_id.0,
-                    Err(_) => {
-                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
-                        self.call_and_response(&ctx, msg, chan_error).await;
-                        return;
-                    },
-                };
-                if !Logger::check_logging_permission(chan, msg.channel_id, &ctx).await {
-                    let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
-                    self.call_and_response(&ctx, msg, perm_error).await;
-                    return;
-                };
-                match self.log.unlog_channel(chan) {
-                    Ok(filename) => {
-                        let log_confirm = format!("Okay, I'll stop logging that channel! ❤ Here's your log:");
-                        let message = msg.channel_id.send_message(&ctx.http, |m| {
-                            m.content(log_confirm);
-                            m.add_file(AttachmentType::Path(Path::new(&filename)));
-                            m
-                        }).await;
-                        if let Err(why) = message {
-                            println!("Error sending message: {:?}", why);
-                        }
-                        // self.send_msg(&ctx, msg.channel_id, log_confirm).await;
-                    },
-                    Err(ErrorKind::NotFound) => {
-                        let log_error = "☢ I'm not logging that channel yet! ☢".to_string();
-                        self.call_and_response(&ctx, msg, log_error).await;
-                    },
-                    Err(why) => {
-                        let chan_error = "☢ That's not a channel I recognize! ☢".to_string();
-                        println!("Error sending message: {:?}", why);
-                        self.call_and_response(&ctx, msg, chan_error).await;
-                        return;
-                    },
-                }
-            },
-            // Check if a channel is currently being logged
-            "logging" => {
-                let chan = match interpret_channel_mention(argument) {
-                    Ok(c) => c,
-                    Err(ErrorKind::Other) => msg.channel_id.0,
-                    Err(_) => 0,
-                };
-                if self.log.logging(chan) {
-                    let yes = format!("I'm logging <#{}> right now!", chan);
-                    self.call_and_response(&ctx, msg, yes).await;
-                } else {
-                    let no = format!("I'm not logging <#{}> right now!", chan);
-                    self.call_and_response(&ctx, msg, no).await;
-                }
-            },
             // Any other order, check if it's a canned response, otherwise do nothing
             _ => {
                 // If find_in_can returns a result (not error), send the response to channel, otherwise ignore
@@ -155,14 +60,7 @@ impl EventHandler for Handler {
 impl Handler {
     pub fn new() -> Handler {
         let responses = Can::new();
-        let log = Logger::new();
-        Handler { responses, log }
-    }
-
-    async fn send_msg(&self, context: &Context, chan: ChannelId, msg: String) {
-        if let Err(why) = chan.say(&context.http, msg).await {
-            println!("Error sending message: {:?}", why);
-        }
+        Handler { responses }
     }
 
     async fn call_and_response(&self, context: &Context, call: Message, response: String) {
@@ -212,26 +110,6 @@ fn split_message<'a>(message: &'a str) -> (String, String, String) {
     (command, argument, comment)
 }
 
-fn interpret_channel_mention(mention: String) -> Result<u64, ErrorKind> {
-    // If mention is empty (because no argument was supplied), return an error
-    if mention == "".to_string() { return Err(ErrorKind::Other) }
-    match mention.strip_prefix("<#") {
-        Some(ention) => {                       // Get it? "mention" with the prefix removed
-            match ention.strip_suffix(">") {
-                Some(entio) => {                // And then with the suffix removed
-                    if let Ok(id) = entio.parse::<u64>() {
-                        Ok(id)
-                    } else {
-                        Err(ErrorKind::InvalidInput)    // If the partsing fails at any point, return another error
-                    }
-                },
-                None => Err(ErrorKind::InvalidInput)
-            }
-        },
-        None => Err(ErrorKind::InvalidInput)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -257,17 +135,5 @@ mod tests {
         assert_eq!(split_message(&input[5]), ("roll".to_string(), "2d6".to_string(), "".to_string()));
         assert_eq!(split_message(&input[6]), ("".to_string(), "".to_string(), "".to_string()));
         assert_eq!(split_message(&input[7]), ("log".to_string(), "<#654644643515>".to_string(), "".to_string()));
-    }
-
-    #[test]
-    fn channel_id_test() {
-        let id: u64 = 4646516846168;
-        let channel_mention = "<#4646516846168>".to_string();
-        let bad_mention = "apple".to_string();
-        let no_mention = "".to_string();
-
-        assert_eq!(interpret_channel_mention(channel_mention), Ok(id));
-        assert_eq!(interpret_channel_mention(bad_mention), Err(ErrorKind::InvalidInput));
-        assert_eq!(interpret_channel_mention(no_mention), Err(ErrorKind::Other));
     }
 }

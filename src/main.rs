@@ -1,6 +1,7 @@
 use std::{
-    fs,
     collections::HashSet,
+    fs,
+    sync::Arc,
 };
 
 use serenity::{
@@ -30,6 +31,12 @@ use commands::{
     logging::*,
     rolling::*,
 };
+
+struct LogsKey;
+
+impl TypeMapKey for LogsKey {
+    type Value = Arc<Mutex<commands::logging::LogsMap>>;
+}
 
 #[group]
 #[commands(ping, hello, squid, shadow, unyu, atom, yuru, pfp, bye)]
@@ -65,13 +72,14 @@ async fn main() {
             .owners(owners)
             .prefix("!")
         )
-        .group(&GENERAL_GROUP)
-        .group(&ROLL_GROUP)
-        .group(&LOGGING_GROUP);
+        // .group(&ROLL_GROUP)
+        .group(&LOGGING_GROUP)
+        .group(&GENERAL_GROUP);
 
     let mut client = Client::builder(&token)
         .framework(framework)
         .event_handler(Handler::new())
+        .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
         .await
         .expect("Error creating client");
 
