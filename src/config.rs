@@ -5,7 +5,7 @@ use std::fs;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub discord_token: String,
-    pub prefix: char,
+    pub prefix: String,
     pub log_folder_path: String,
     pub pfp_source: String,
 }

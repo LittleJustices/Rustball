@@ -1,6 +1,5 @@
 use std::{
     collections::HashSet,
-    fs,
     sync::Arc,
 };
 
@@ -110,10 +109,8 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 #[tokio::main]
 async fn main() {
     let config = Config::new();
-    println!("{:?}", config);
 
-    let token = fs::read_to_string("DISCORD_TOKEN")
-        .expect("Expected a token in the root folder");
+    let token = config.discord_token;
 
     let http = Http::new_with_token(&token);
 
@@ -127,10 +124,12 @@ async fn main() {
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
 
+    let prefix = config.prefix;
+
     let framework = StandardFramework::new()
         .configure(|c| c
             .owners(owners)
-            .prefix("!")
+            .prefix(&prefix)
         )
         .normal_message(normal_message)
         .help(&MY_HELP)
