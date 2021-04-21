@@ -22,6 +22,9 @@ use serenity::{
     prelude::*,
 };
 
+mod config;
+use config::Config;
+
 mod messaging;
 use messaging::{
     message_handler::Handler,
@@ -106,6 +109,9 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 
 #[tokio::main]
 async fn main() {
+    let config = Config::new();
+    println!("{:?}", config);
+
     let token = fs::read_to_string("DISCORD_TOKEN")
         .expect("Expected a token in the root folder");
 
