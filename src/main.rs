@@ -110,9 +110,9 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 async fn main() {
     let config = Config::new();
 
-    let token = config.discord_token;
+    let Config { discord_token, prefix, log_folder_path: _, pfp_source: _} = config;
 
-    let http = Http::new_with_token(&token);
+    let http = Http::new_with_token(&discord_token);
 
     let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
@@ -123,8 +123,6 @@ async fn main() {
         },
         Err(why) => panic!("Could not access application info: {:?}", why),
     };
-
-    let prefix = config.prefix;
 
     let framework = StandardFramework::new()
         .configure(|c| c
@@ -138,7 +136,7 @@ async fn main() {
         .group(&LOGGING_GROUP)
         .group(&FUNSIES_GROUP);
 
-    let mut client = Client::builder(&token)
+    let mut client = Client::builder(&discord_token)
         .framework(framework)
         .event_handler(Handler::new())
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
