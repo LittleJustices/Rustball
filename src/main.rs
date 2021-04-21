@@ -134,6 +134,8 @@ async fn main() {
         .configure(|c| c
             .owners(owners)
             .prefix(prefix)
+            .case_insensitivity(true)
+            .with_whitespace(true)
         )
         .normal_message(normal_message)
         .help(&MY_HELP)
