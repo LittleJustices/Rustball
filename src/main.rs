@@ -1,6 +1,5 @@
 use std::{
     collections::HashSet,
-    fs,
     sync::Arc,
 };
 
@@ -22,6 +21,9 @@ use serenity::{
     prelude::*,
 };
 
+mod config;
+use config::Config;
+
 mod messaging;
 use messaging::{
     message_handler::Handler,
@@ -39,6 +41,12 @@ struct LogsKey;
 
 impl TypeMapKey for LogsKey {
     type Value = Arc<Mutex<commands::logging::LogsMap>>;
+}
+
+struct ConfigKey;
+
+impl TypeMapKey for ConfigKey {
+    type Value = Config;
 }
 
 #[group]
@@ -106,10 +114,11 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 
 #[tokio::main]
 async fn main() {
-    let token = fs::read_to_string("DISCORD_TOKEN")
-        .expect("Expected a token in the root folder");
+    let config = Config::new();
 
-    let http = Http::new_with_token(&token);
+    let Config { discord_token, prefix, log_folder_path: _, pfp_source: _} = &config;
+
+    let http = Http::new_with_token(discord_token);
 
     let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
@@ -124,7 +133,9 @@ async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c
             .owners(owners)
-            .prefix("!")
+            .prefix(prefix)
+            .case_insensitivity(true)
+            .with_whitespace(true)
         )
         .normal_message(normal_message)
         .help(&MY_HELP)
@@ -133,10 +144,11 @@ async fn main() {
         .group(&LOGGING_GROUP)
         .group(&FUNSIES_GROUP);
 
-    let mut client = Client::builder(&token)
+    let mut client = Client::builder(&discord_token)
         .framework(framework)
         .event_handler(Handler::new())
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
+        .type_map_insert::<ConfigKey>(config)
         .await
         .expect("Error creating client");
 

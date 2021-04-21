@@ -6,8 +6,6 @@ use std::path::Path;
 
 use serenity::model::channel::Message;
 
-const PATH: &str = "./Logs";
-
 #[derive(Debug)]
 pub struct Logger {
     pub log_path: String,
@@ -15,9 +13,9 @@ pub struct Logger {
 }
 
 impl Logger {
-    pub fn new(filename: String) -> io::Result<Logger> {
-        let log_path = format!("{}/{}.txt", PATH, filename);
-        fs::create_dir_all(PATH)?;
+    pub fn new(folder: &String, filename: &String) -> io::Result<Logger> {
+        let log_path = format!("{}/{}.txt", folder, filename);
+        fs::create_dir_all(folder)?;
 
         let mut log_file = OpenOptions::new()
                         .create_new(true)

@@ -72,12 +72,16 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }
 
     let log;
-    match Logger::new(filename) {
-        Ok(logger) => log = logger,
-        Err(why) => {
-            let log_error = format!("☢ Something went wrong! ☢\n Error creating log file: {}", why);
-            msg.channel_id.say(&ctx.http, log_error).await?;
-            return Ok(());
+    {
+        let config_data = ctx.data.read().await;
+        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+        match Logger::new(&cfg.log_folder_path, &filename) {
+            Ok(logger) => log = logger,
+            Err(why) => {
+                let log_error = format!("☢ Something went wrong! ☢\n Error creating log file: {}", why);
+                msg.channel_id.say(&ctx.http, log_error).await?;
+                return Ok(());
+            }
         }
     }
 
