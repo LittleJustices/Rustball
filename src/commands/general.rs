@@ -13,7 +13,6 @@ use serenity::{
 };
 
 use std::{
-    fs,
     path::Path,
 };
 
@@ -38,21 +37,18 @@ async fn bye(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[description = "Gives the source for my profile picture."]
 async fn pfp(ctx: &Context, msg: &Message) -> CommandResult {
-    let link = fs::read_to_string("PFP_Source.txt");
-
-    let sauce = match link {
-        Ok(s) => format!("{} My profile picture is sourced from: {}", msg.author, s),
-        Err(e) => {
-            format!("☢ I'm sorry, I lost the source! ☢\nError reading PFP source file: {}", e)
-        }
-    };
+    let config_data = ctx.data.read().await;
+    let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+    let sauce = format!("{} My profile picture is sourced from: {}", msg.author, cfg.pfp_source);
+    
     msg.channel_id.say(&ctx.http, sauce).await?;
 
     Ok(())
 }
 
 #[command]
-#[description = "A more detailed hello-world command to test sending complicated messages."]
+#[description = "A more detailed hello-world command to test sending complicated messages.\n
+Honestly, this is mostly in the code for future reference fur building messages."]
 async fn hello(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.send_message(&ctx.http, |m| {
         m.content("Hello, World!");

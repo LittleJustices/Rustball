@@ -43,6 +43,12 @@ impl TypeMapKey for LogsKey {
     type Value = Arc<Mutex<commands::logging::LogsMap>>;
 }
 
+struct ConfigKey;
+
+impl TypeMapKey for ConfigKey {
+    type Value = Config;
+}
+
 #[group]
 #[description = "General commands related to bot operation."]
 #[commands(bye, hello, pfp, ping)]
@@ -110,9 +116,9 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 async fn main() {
     let config = Config::new();
 
-    let Config { discord_token, prefix, log_folder_path: _, pfp_source: _} = config;
+    let Config { discord_token, prefix, log_folder_path: _, pfp_source: _} = &config;
 
-    let http = Http::new_with_token(&discord_token);
+    let http = Http::new_with_token(discord_token);
 
     let (owners, _bot_id) = match http.get_current_application_info().await {
         Ok(info) => {
@@ -127,7 +133,7 @@ async fn main() {
     let framework = StandardFramework::new()
         .configure(|c| c
             .owners(owners)
-            .prefix(&prefix)
+            .prefix(prefix)
         )
         .normal_message(normal_message)
         .help(&MY_HELP)
@@ -140,6 +146,7 @@ async fn main() {
         .framework(framework)
         .event_handler(Handler::new())
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
+        .type_map_insert::<ConfigKey>(config)
         .await
         .expect("Error creating client");
 
