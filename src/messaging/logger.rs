@@ -29,7 +29,17 @@ impl Logger {
 
     pub fn record(&self, msg: &Message) -> io::Result<()> {
         let mut log = &self.log_file;
-        let log_entry = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d %H:%M:%S"), msg.author.name, msg.content);
+        let sender_name = match &msg.member {
+            Some(m) => {
+                if let Some(name) = &m.nick {
+                    name
+                } else {
+                    &msg.author.name
+                }
+            },
+            None => &msg.author.name
+        };
+        let log_entry = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d %H:%M:%S"), sender_name, msg.content);
 
         writeln!(log, "{}", log_entry)?;
 
