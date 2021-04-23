@@ -45,12 +45,13 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if verbose {
         let result = "RESULT GOES HERE";
-        let message = format!("{} rolled {}:", msg.author, roll);
+        let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
+        let message = format!("{} rolled {}: **{}**", msg.author, roll, result);
         msg.channel_id.send_message(&ctx.http, |m| {
             m.content(message);
             m.embed(|e| {
                 e.title(comment);
-                e.description(result);
+                e.description(breakdown);
     
                 e
             });
@@ -59,7 +60,8 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     } else {
         if comment != "" {comment = format!(" ({})", comment)}
         let result = "RESULT GOES HERE";
-        let message = format!("{} rolled {}{}: {}", msg.author, roll, comment, result);
+        let breakdown = "COMPACT ROLL BREAKDOWN GOES HERE";
+        let message = format!("{} rolled {}{}: **{}** ({})", msg.author, roll, comment, result, breakdown);
         msg.channel_id.say(&ctx.http, message).await?;
     }
 
