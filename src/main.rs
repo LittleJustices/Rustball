@@ -37,6 +37,8 @@ use commands::{
     rolling::*,
 };
 
+mod dice;
+
 struct LogsKey;
 
 impl TypeMapKey for LogsKey {
