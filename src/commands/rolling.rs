@@ -17,31 +17,30 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut roll = "".to_owned();
     let mut part_of_roll = true;
     let mut verbose = false;
-    let mut comment = "".to_owned();
-    for arg in args.iter::<String>() {
-        match arg {
+
+    while part_of_roll {
+        match args.single::<String>() {
             Err(why) => {
                 let arg_error = format!("☢ I don't know how to roll that! ☢\nError parsing argument: {}", why);
                 msg.channel_id.say(&ctx.http, arg_error).await?;
                 return Ok(());
             }
-            Ok(arg_string) => {
-                if arg_string == "!" {
-                    part_of_roll = false;
-                    continue
-                }
-                if arg_string == "-verbose" && part_of_roll {
-                    verbose = true;
-                    part_of_roll = false;
-                    continue
-                }
-                match part_of_roll {
-                    true => roll += &arg_string,
-                    false => comment += &arg_string
+            Ok(arg) => {
+                match &arg[..] {
+                    "!" => part_of_roll = false,
+                    "-verbose" => {
+                        verbose = true;
+                        part_of_roll = false;
+                    },
+                    _ => roll += &arg,
                 }
             }
         }
+
+        if args.is_empty() { break }
     }
+
+    let mut comment = args.rest().to_owned();
 
     if verbose {
         let result = "RESULT GOES HERE";
