@@ -1,3 +1,6 @@
+use crate::dice::roll::Roll;
+use std::str::FromStr;
+
 use serenity::{
     framework::{
         standard::{
@@ -14,7 +17,13 @@ use serenity::{
 
 #[command]
 async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let mut roll = "".to_owned();
+    if args.len() == 0 {
+        let no_args_error = format!("{} What do you want me to roll?", msg.author);
+        msg.channel_id.say(&ctx.http, no_args_error).await?;
+        return Ok(());
+    }
+
+    let mut roll_command = "".to_owned();
     let mut part_of_roll = true;
     let mut verbose = false;
 
@@ -32,7 +41,7 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                         verbose = true;
                         part_of_roll = false;
                     },
-                    _ => roll += &arg,
+                    _ => roll_command += &arg,
                 }
             }
         }
@@ -40,12 +49,14 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         if args.is_empty() { break }
     }
 
+    let roll = Roll::from_str(&roll_command);
+
     let mut comment = args.rest().to_owned();
 
     if verbose {
-        let result = "RESULT GOES HERE";
+        let result = format!("{:?}", roll);
         let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}: **{}**", msg.author, roll, result);
+        let message = format!("{} rolled {}: **{}**", msg.author, roll_command, result);
         msg.channel_id.send_message(&ctx.http, |m| {
             m.content(message);
             m.embed(|e| {
@@ -58,9 +69,9 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }).await?;
     } else {
         if comment != "" {comment = format!(" ({})", comment)}
-        let result = "RESULT GOES HERE";
+        let result = format!("{:?}", roll);
         let breakdown = "COMPACT ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}{}: **{}** ({})", msg.author, roll, comment, result, breakdown);
+        let message = format!("{} rolled {}{}: **{}** ({})", msg.author, roll_command, comment, result, breakdown);
         msg.channel_id.say(&ctx.http, message).await?;
     }
 
