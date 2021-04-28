@@ -1,9 +1,10 @@
 use rand::{thread_rng, Rng};
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub struct Die {
-    sides: u8,
-    result: u8,
+    pub sides: u8,
+    pub result: u8,
 }
 
 impl Die {
@@ -40,6 +41,12 @@ impl Die {
 
     pub fn count_successes(&self, tns: &[u8]) -> u8 {
         tns[(self.result-1) as usize]
+    }
+}
+
+impl fmt::Display for Die {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "d{} -> {}", self.sides, self.result)
     }
 }
 

@@ -53,10 +53,14 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     let mut comment = args.rest().to_owned();
 
+    let result = match roll {
+        Ok(res) => format!("{}", res),
+        Err(why) => format!("{}", why),
+    };
+
     if verbose {
-        let result = format!("{:?}", roll);
         let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}: **{}**", msg.author, roll_command, result);
+        let message = format!("{} rolled {}: {}", msg.author, roll_command, result);
         msg.channel_id.send_message(&ctx.http, |m| {
             m.content(message);
             m.embed(|e| {
@@ -69,9 +73,8 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }).await?;
     } else {
         if comment != "" {comment = format!(" ({})", comment)}
-        let result = format!("{:?}", roll);
         let breakdown = "COMPACT ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}{}: **{}** ({})", msg.author, roll_command, comment, result, breakdown);
+        let message = format!("{} rolled {}{}: {} ({})", msg.author, roll_command, comment, result, breakdown);
         msg.channel_id.say(&ctx.http, message).await?;
     }
 

@@ -1,4 +1,5 @@
 use super::die::Die;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct Pool {
@@ -15,5 +16,15 @@ impl Pool {
         }
 
         Pool { dice }
+    }
+}
+
+impl fmt::Display for Pool {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut results = format!("{}", self.dice[0].result);
+        for i in 1..self.dice.len() {
+            results = format!("{}, {}", results, self.dice[i].result)
+        }
+        write!(f, "[{}]", results)
     }
 }
