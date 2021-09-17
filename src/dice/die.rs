@@ -46,7 +46,7 @@ impl Die {
 
 impl fmt::Display for Die {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "d{} -> {}", self.sides, self.result)
+        write!(f, "{}", self.result)
     }
 }
 
