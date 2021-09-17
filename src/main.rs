@@ -37,6 +37,8 @@ use commands::{
     rolling::*,
 };
 
+mod dice;
+
 struct LogsKey;
 
 impl TypeMapKey for LogsKey {
@@ -63,7 +65,7 @@ struct Funsies;
 #[group]
 #[description = "Commands related to rolling dice.\n\n
 Use !roll for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
-#[commands(roll, exroll, l5r, sroll, wod)]
+#[commands(roll, exroll, l5r, sr, wod)]
 struct Roll;
 
 #[group]
@@ -132,14 +134,14 @@ async fn main() {
 
     let framework = StandardFramework::new()
         .configure(|c| c
+            .case_insensitivity(true)
             .owners(owners)
             .prefix(prefix)
-            .case_insensitivity(true)
             .with_whitespace(true)
         )
         .normal_message(normal_message)
         .help(&MY_HELP)
-        // .group(&ROLL_GROUP)
+        .group(&ROLL_GROUP)
         .group(&GENERAL_GROUP)
         .group(&LOGGING_GROUP)
         .group(&FUNSIES_GROUP);
