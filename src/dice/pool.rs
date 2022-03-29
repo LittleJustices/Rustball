@@ -17,6 +17,14 @@ impl Pool {
 
         Pool { dice }
     }
+
+    pub fn sum_sides(&self) -> u16 {
+        let mut total = 0;
+        for die in &self.dice {
+            total += die.result as u16;
+        }
+        total
+    }
 }
 
 impl fmt::Display for Pool {
@@ -25,6 +33,6 @@ impl fmt::Display for Pool {
         for i in 1..self.dice.len() {
             results = format!("{}, {}", results, self.dice[i].result)
         }
-        write!(f, "[{}]", results)
+        write!(f, "**{}**: [{}]", self.sum_sides(), results)
     }
 }
