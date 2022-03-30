@@ -35,6 +35,7 @@ use commands::{
     general::*,
     logging::*,
     rolling::*,
+    math::*,
 };
 
 mod dice;
@@ -67,6 +68,11 @@ struct Funsies;
 Use !roll for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
 #[commands(roll, exroll, l5r, sr, wod)]
 struct Roll;
+
+#[group]
+#[description = "Commands that make me do math. Currently under construction!"]
+#[commands(math)]
+struct Math;
 
 #[group]
 #[description = "Commands for logging channels. Servers only (not available in DMs)!\n\n
@@ -142,6 +148,7 @@ async fn main() {
         .normal_message(normal_message)
         .help(&MY_HELP)
         .group(&ROLL_GROUP)
+        .group(&MATH_GROUP)
         .group(&GENERAL_GROUP)
         .group(&LOGGING_GROUP)
         .group(&FUNSIES_GROUP);
