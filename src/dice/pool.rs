@@ -18,7 +18,7 @@ impl Pool {
         Pool { dice }
     }
 
-    pub fn sum_sides(&self) -> u16 {
+    fn sum_sides(&self) -> u16 {
         let mut total = 0;
         for die in &self.dice {
             total += die.result as u16;
