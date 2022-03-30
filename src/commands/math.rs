@@ -13,8 +13,8 @@ use serenity::{
 
 #[command]
 async fn math(ctx: &Context, msg: &Message) -> CommandResult {
-    let no_math = format!("{} I don't know math yet!", msg.author);
-    msg.channel_id.say(&ctx.http, no_math).await?;
+    let math = format!("https://xkcd.com/2034/");
+    msg.channel_id.say(&ctx.http, math).await?;
 
     Ok(())
 }
