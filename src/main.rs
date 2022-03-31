@@ -71,7 +71,7 @@ struct Roll;
 
 #[group]
 #[description = "Commands that make me do math. Currently under construction!"]
-#[commands(math)]
+#[commands(calc)]
 struct Math;
 
 #[group]

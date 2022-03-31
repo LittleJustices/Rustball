@@ -12,7 +12,7 @@ use serenity::{
 };
 
 #[command]
-async fn math(ctx: &Context, msg: &Message) -> CommandResult {
+async fn calc(ctx: &Context, msg: &Message) -> CommandResult {
     let math = format!("https://xkcd.com/2034/");
     msg.channel_id.say(&ctx.http, math).await?;
 
