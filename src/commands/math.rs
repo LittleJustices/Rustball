@@ -1,6 +1,9 @@
+use crate::math::calculator;
+
 use serenity::{
     framework::{
         standard::{
+            Args,
             CommandResult,
             macros::{
                 command,
@@ -12,8 +15,8 @@ use serenity::{
 };
 
 #[command]
-async fn calc(ctx: &Context, msg: &Message) -> CommandResult {
-    let math = format!("https://xkcd.com/2034/");
+async fn calc(ctx: &Context, msg: &Message, _args: Args) -> CommandResult {
+    let math = calculator::evaluate("".to_owned());
     msg.channel_id.say(&ctx.http, math).await?;
 
     Ok(())

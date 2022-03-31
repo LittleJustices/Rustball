@@ -40,6 +40,8 @@ use commands::{
 
 mod dice;
 
+mod math;
+
 struct LogsKey;
 
 impl TypeMapKey for LogsKey {
