@@ -67,7 +67,7 @@ struct Funsies;
 #[description = "Commands related to rolling dice.\n\n
 Use !roll for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
 #[commands(roll, exroll, l5r, sr, wod)]
-struct Roll;
+struct Dice;
 
 #[group]
 #[description = "Commands that make me do math. Currently under construction!"]
@@ -147,7 +147,7 @@ async fn main() {
         )
         .normal_message(normal_message)
         .help(&MY_HELP)
-        .group(&ROLL_GROUP)
+        .group(&DICE_GROUP)
         .group(&MATH_GROUP)
         .group(&GENERAL_GROUP)
         .group(&LOGGING_GROUP)
