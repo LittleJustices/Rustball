@@ -4,16 +4,16 @@ use std::{
 };
 
 #[derive(Debug)]
-pub enum MathParseError {
+pub enum MathError {
     PlaceholderError,
 }
 
-impl Error for MathParseError {}
+impl Error for MathError {}
 
-impl fmt::Display for MathParseError {
+impl fmt::Display for MathError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            MathParseError::PlaceholderError => write!(f, "Error handling TBA"),
+            MathError::PlaceholderError => write!(f, "Error handling TBA"),
         }
     }
 }
