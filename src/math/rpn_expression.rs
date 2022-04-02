@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{ HashMap, VecDeque },
     str::FromStr,
 };
 use lazy_static::lazy_static;
@@ -22,11 +22,80 @@ lazy_static! {
 #[derive(Debug)]
 pub struct RpnExpression {
     infix_expression: String,
+    postfix_expression: VecDeque<String>,
+}
+
+impl RpnExpression {
+    fn shunting_yard_conversion(&mut self) -> Result<(), MathParseError> {
+        let infix_vector = self.expression_to_vec();
+        let mut operator_stack: Vec<char> = vec![];
+
+        for item in infix_vector {
+            if let Ok(_number) = item.parse::<f64>() {
+                self.postfix_expression.push_back(item);
+            } else if let Ok(operator) = item.parse::<char>() {
+                if operator == '(' {
+                    operator_stack.push(operator);
+                } else if operator == ')' {
+                    let mut operator_in_parens = ' ';
+                    while operator_in_parens != '(' {
+                        if let Some(op) = operator_stack.pop() {
+                            operator_in_parens = op;
+                            if operator_in_parens != '(' {
+                                self.postfix_expression.push_back(operator_in_parens.to_string())
+                            }
+                        } else { return Err(MathParseError::PlaceholderError) /* malformed expression error (no matching close paren) */ }
+                    }
+                } else if let Some(priority_right) = PRECEDENCE.get(&operator) {
+                    while operator_stack.len() > 0 {
+                        if let Some(priority_left) = PRECEDENCE.get(&operator_stack[operator_stack.len()-1]) {
+                            if priority_left >= priority_right {
+                                if let Some(op) = operator_stack.pop() {
+                                    self.postfix_expression.push_back(op.to_string());
+                                }
+                            } else {
+                                break;
+                            }
+                        } else { return Err(MathParseError::PlaceholderError) /* should be impossible to actually reach */ }
+                    }
+                    operator_stack.push(operator);
+                }
+            } else { return Err(MathParseError::PlaceholderError) /* illegal input error (not a number or an operator) */ }
+        }
+
+        while operator_stack.len() > 0 {
+            if let Some(item) = operator_stack.pop() {
+                if item == '(' { return Err(MathParseError::PlaceholderError) /* malformed expression error (no matching close paren) */ }
+                self.postfix_expression.push_back(item.to_string());
+            }
+        }
+
+        Ok(())
+    }
+
+    fn expression_to_vec(&self) -> Vec<String> {
+        let mut infix_processed = self.infix_expression.replace(" ", "");
+        for key in PRECEDENCE.keys() {
+            infix_processed = infix_processed.replace(*key, &format!(" {} ", key));
+        }
+
+        let mut infix_vector = vec![];
+        for symbol in infix_processed.split(' ') {
+            infix_vector.push(symbol.to_owned());
+        }
+
+        infix_vector
+    }
 }
 
 impl FromStr for RpnExpression {
     type Err = MathParseError;
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(RpnExpression { infix_expression: s.to_owned() })
+        let mut rpn_expression = RpnExpression { infix_expression: s.to_owned(), postfix_expression: VecDeque::new() };
+
+        rpn_expression.shunting_yard_conversion()?;
+
+        Ok(rpn_expression)
     }
 }
