@@ -80,7 +80,7 @@ impl RpnExpression {
         }
 
         let mut infix_vector = vec![];
-        for symbol in infix_processed.split(' ') {
+        for symbol in infix_processed.split_whitespace() {
             infix_vector.push(symbol.to_owned());
         }
 
