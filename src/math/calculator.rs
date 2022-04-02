@@ -20,7 +20,7 @@ fn resolve_rpn(rpn_expression: RpnExpression) -> Result<f64, MathError> {
             if let Ok(number) = item.parse::<f64>() {
                 stack.push(number);
             } else {
-                if stack.len() > 2 {
+                if stack.len() >= 2 {
                     let right = stack.pop().unwrap_or_default();
                     let left = stack.pop().unwrap_or_default();
                     let value;
