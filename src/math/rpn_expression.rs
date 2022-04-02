@@ -44,7 +44,7 @@ impl RpnExpression {
                             if operator_in_parens != '(' {
                                 self.postfix_expression.push_back(operator_in_parens.to_string())
                             }
-                        } else { return Err(MathError::PlaceholderError) /* malformed expression error (no matching close paren) */ }
+                        } else { return Err(MathError::ExpressionError("I think you're missing a parenthesis somewhere!".to_owned())) /* malformed expression error (no matching close paren) */ }
                     }
                 } else if let Some(priority_right) = PRECEDENCE.get(&operator) {
                     while operator_stack.len() > 0 {
@@ -60,12 +60,12 @@ impl RpnExpression {
                     }
                     operator_stack.push(operator);
                 }
-            } else { return Err(MathError::PlaceholderError) /* illegal input error (not a number or an operator) */ }
+            } else { return Err(MathError::SymbolError(item)) /* illegal input error (not a number or an operator) */ }
         }
 
         while operator_stack.len() > 0 {
             if let Some(item) = operator_stack.pop() {
-                if item == '(' { return Err(MathError::PlaceholderError) /* malformed expression error (no matching close paren) */ }
+                if item == '(' { return Err(MathError::ExpressionError("I think you're missing a parenthesis somewhere!".to_owned())) /* malformed expression error (no matching close paren) */ }
                 self.postfix_expression.push_back(item.to_string());
             }
         }

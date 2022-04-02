@@ -33,19 +33,19 @@ fn resolve_rpn(rpn_expression: RpnExpression) -> Result<f64, MathError> {
                         "-" => { value = left - right },
                         "%" => { value = left % right },
                         "^" => { value = left.powf(right) },
-                        _ => { return Err(MathError::PlaceholderError) /* Operator not found error */ }
+                        _ => { return Err(MathError::SymbolError(item)) /* Operator not found error */ }
                     }
                     stack.push(value);
                 }
                 else {
-                    return Err(MathError::PlaceholderError) /* not enough operands error */
+                    return Err(MathError::ExpressionError("I'm running out of operands here!".to_owned())) /* not enough operands error */
                 }
             }
         }
     }
 
     if stack.len() != 1 {
-        return Err(MathError::PlaceholderError) /* Mismatched operators and operands error */
+        return Err(MathError::ExpressionError("I don't think the operands and operators match up right...".to_owned())) /* Mismatched operators and operands error */
     } else {
         return Ok(stack.pop().unwrap_or_default())
     }
