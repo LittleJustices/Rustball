@@ -1,5 +1,23 @@
-use std::str::FromStr;
+use std::{
+    collections::HashMap,
+    str::FromStr,
+};
+use lazy_static::lazy_static;
 use super::math_errors::MathParseError;
+
+lazy_static! { 
+    static ref PRECEDENCE: HashMap<char, u8> = HashMap::from([
+        ('^', 6),
+        ('%', 6),
+        ('*', 5),
+        ('x', 5),
+        ('/', 5),
+        ('+', 4),
+        ('-', 4),
+        ('(', 0),
+        (')', 0),
+        ]);
+}
 
 #[derive(Debug)]
 pub struct RpnExpression {
