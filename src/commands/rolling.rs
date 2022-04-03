@@ -30,7 +30,7 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     while part_of_roll {
         match args.single::<String>() {
             Err(why) => {
-                let arg_error = format!("☢ I don't know how to roll that! ☢\nError parsing argument: {}", why);
+                let arg_error = format!("{} ☢ I don't know how to roll that! ☢\nError parsing argument: {}", msg.author, why);
                 msg.channel_id.say(&ctx.http, arg_error).await?;
                 return Ok(());
             }
