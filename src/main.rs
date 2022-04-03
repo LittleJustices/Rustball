@@ -38,7 +38,6 @@ use commands::{
     math::*,
 };
 
-mod parsing;
 mod dice;
 mod math;
 

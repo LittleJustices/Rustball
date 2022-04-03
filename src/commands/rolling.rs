@@ -16,42 +16,22 @@ use serenity::{
 };
 
 #[command]
-async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    if args.len() == 0 {
+async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let config_data = ctx.data.read().await;
+    let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+    let (roll_command, comment) = match args.message().split_once(&cfg.comment_separator) {
+        Some(res) => res,
+        None => (args.message(), "")
+    };
+    if roll_command == "" {
         let no_args_error = format!("{} What do you want me to roll?", msg.author);
         msg.channel_id.say(&ctx.http, no_args_error).await?;
         return Ok(());
     }
 
-    let mut roll_command = "".to_owned();
-    let mut part_of_roll = true;
-    let mut verbose = false;
+    let verbose = false; // to be set inside the roll
 
-    while part_of_roll {
-        match args.single::<String>() {
-            Err(why) => {
-                let arg_error = format!("{} ☢ I don't know how to roll that! ☢\nError parsing argument: {}", msg.author, why);
-                msg.channel_id.say(&ctx.http, arg_error).await?;
-                return Ok(());
-            }
-            Ok(arg) => {
-                match &arg[..] {
-                    "!" => part_of_roll = false,
-                    "-verbose" => {
-                        verbose = true;
-                        part_of_roll = false;
-                    },
-                    _ => roll_command += &arg,
-                }
-            }
-        }
-
-        if args.is_empty() { break }
-    }
-
-    let roll = Roll::from_str(&roll_command);
-
-    let mut comment = args.rest().to_owned();
+    let roll = Roll::from_str(roll_command);
 
     let result = match roll {
         Ok(res) => format!("{}", res),
@@ -72,9 +52,12 @@ async fn roll(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             m
         }).await?;
     } else {
-        if comment != "" {comment = format!(" ({})", comment)}
+        let annotation = match comment {
+            "" => "".to_owned(),
+            _ => format!(" ({})", comment)
+        };
         let breakdown = "COMPACT ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}{}: {} ({})", msg.author, roll_command, comment, result, breakdown);
+        let message = format!("{} rolled {}{}: {} ({})", msg.author, roll_command, annotation, result, breakdown);
         msg.channel_id.say(&ctx.http, message).await?;
     }
 
