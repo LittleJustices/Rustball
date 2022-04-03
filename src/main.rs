@@ -39,6 +39,8 @@ use commands::{
 };
 
 mod dice;
+use dice::tray::Tray;
+
 mod math;
 
 struct LogsKey;
@@ -51,6 +53,12 @@ struct ConfigKey;
 
 impl TypeMapKey for ConfigKey {
     type Value = Config;
+}
+
+struct TrayKey;
+
+impl TypeMapKey for TrayKey {
+    type Value = Tray;
 }
 
 #[group]
@@ -159,6 +167,7 @@ async fn main() {
         .event_handler(Handler::new())
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
         .type_map_insert::<ConfigKey>(config)
+        .type_map_insert::<TrayKey>(Tray::new())
         .await
         .expect("Error creating client");
 
