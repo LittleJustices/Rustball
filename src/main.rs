@@ -38,8 +38,8 @@ use commands::{
     math::*,
 };
 
+mod parsing;
 mod dice;
-
 mod math;
 
 struct LogsKey;
@@ -126,7 +126,7 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 async fn main() {
     let config = Config::new();
 
-    let Config { discord_token, prefix, log_folder_path: _, pfp_source: _} = &config;
+    let Config { discord_token, prefix, comment_separator: _, log_folder_path: _, pfp_source: _} = &config;
 
     let http = Http::new_with_token(discord_token);
 

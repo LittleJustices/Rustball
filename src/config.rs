@@ -6,6 +6,7 @@ use std::fs;
 pub struct Config {
     pub discord_token: String,
     pub prefix: String,
+    pub comment_separator: String,
     pub log_folder_path: String,
     pub pfp_source: String,
 }
