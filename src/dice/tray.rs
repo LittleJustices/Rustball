@@ -1,7 +1,10 @@
 use regex::Regex;
 use std::collections::VecDeque;
 use std::str::FromStr;
-use super::dice_errors::RollParseError;
+use super::dice_errors::{
+    RollParseError,
+    RollResultError,
+};
 use super::roll::Roll;
 
 const DICE_MATCH_STRING: &str = r"\d+d\d+";
@@ -39,7 +42,12 @@ impl Tray {
         add_to_tray_result
     }
 
-    pub fn get_newest_roll(&self) -> Option<&Roll> {
-        self.rolls.back()
+    pub fn get_newest_roll(&self) -> Result<&Roll, RollResultError> {
+        let get_roll_result = match self.rolls.back() {
+            Some(roll) => Ok(roll),
+            None => Err(RollResultError::RetrieveError("Error retrieving latest roll from tray: Roll queue is empty".to_owned()))
+        };
+
+        get_roll_result
     }
 }

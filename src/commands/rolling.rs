@@ -1,6 +1,3 @@
-use crate::dice::roll::Roll;
-use std::str::FromStr;
-
 use serenity::{
     framework::{
         standard::{
@@ -49,8 +46,8 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let result = match roll {
         Ok(_) => match tray.lock().await.get_newest_roll() {
-            Some(res) => format!("{}", res),
-            None => format!("Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… (Error retrieving latest roll from tray: Roll queue is empty)")
+            Ok(res) => format!("{}", res),
+            Err(why) => format!("Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… ({})", why)
         },
         Err(why) => format!("{}", why),
     };
