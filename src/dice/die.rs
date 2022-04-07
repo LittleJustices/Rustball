@@ -14,31 +14,38 @@ impl Die {
         Die { sides, result }
     }
 
+    #[allow(dead_code)]
     pub fn reroll(&mut self) {
         let mut rng = thread_rng();
         self.result = rng.gen_range(1..=self.sides);
     }
 
+    #[allow(dead_code)]
     pub fn set(&mut self, value: u8) {
         self.result = value
     }
 
+    #[allow(dead_code)]
     pub fn explode(&self) -> Die {
         Die::roll(self.sides)
     }
 
+    #[allow(dead_code)]
     pub fn equals(&self, value: u8) -> bool {
         self.result == value
     }
 
+    #[allow(dead_code)]
     pub fn equal_or_greater(&self, target: u8) -> bool {
         self.result >= target
     }
 
+    #[allow(dead_code)]
     pub fn equal_or_less(&self, target: u8) -> bool {
         self.result <= target
     }
 
+    #[allow(dead_code)]
     pub fn count_successes(&self, tns: &[u8]) -> u8 {
         tns[(self.result-1) as usize]
     }

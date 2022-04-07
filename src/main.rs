@@ -39,6 +39,7 @@ use commands::{
 };
 
 mod dice;
+use dice::tray::Tray;
 
 mod math;
 
@@ -52,6 +53,12 @@ struct ConfigKey;
 
 impl TypeMapKey for ConfigKey {
     type Value = Config;
+}
+
+struct TrayKey;
+
+impl TypeMapKey for TrayKey {
+    type Value = Arc<Mutex<Tray>>;
 }
 
 #[group]
@@ -126,7 +133,7 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 async fn main() {
     let config = Config::new();
 
-    let Config { discord_token, prefix, log_folder_path: _, pfp_source: _} = &config;
+    let Config { discord_token, prefix, comment_separator: _, log_folder_path: _, pfp_source: _} = &config;
 
     let http = Http::new_with_token(discord_token);
 
@@ -160,6 +167,7 @@ async fn main() {
         .event_handler(Handler::new())
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
         .type_map_insert::<ConfigKey>(config)
+        .type_map_insert::<TrayKey>(Arc::new(Mutex::new(Tray::new())))
         .await
         .expect("Error creating client");
 

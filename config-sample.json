@@ -1,6 +1,7 @@
 {
     "discord_token": "tokengoeshere",
     "prefix": "!",
+    "comment_separator": ":",
     "log_folder_path": "./Logs",
     "pfp_source": "https://foo.bar/"
 }

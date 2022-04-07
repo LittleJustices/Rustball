@@ -30,3 +30,17 @@ impl From<num::ParseIntError> for RollParseError {
     }
 }
 
+#[derive(Debug)]
+pub enum RollResultError {
+    RetrieveError(String),
+}
+
+impl Error for RollResultError {}
+
+impl fmt::Display for RollResultError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            RollResultError::RetrieveError(why) => write!(f, "{}", why),
+        }
+    }
+}
