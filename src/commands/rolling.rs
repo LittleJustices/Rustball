@@ -17,12 +17,19 @@ use serenity::{
 
 #[command]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let config_data = ctx.data.read().await;
-    let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
-    let (roll_command, comment) = match args.message().split_once(&cfg.comment_separator) {
-        Some(res) => res,
-        None => (args.message(), "")
-    };
+    let roll_command;
+    let comment;
+    // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
+    {
+        let config_data = ctx.data.read().await;
+        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+
+        (roll_command, comment) = match args.message().split_once(&cfg.comment_separator) {
+            Some(res) => res,
+            None => (args.message(), "")
+        };
+    }
+
     if roll_command == "" {
         let no_args_error = format!("{} What do you want me to roll?", msg.author);
         msg.channel_id.say(&ctx.http, no_args_error).await?;
@@ -31,10 +38,20 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let verbose = false; // to be set inside the roll
 
-    let roll = Roll::from_str(roll_command);
+    // Get config data with write permission to manipulate the tray
+    let mut config_data = ctx.data.write().await;
+    let tray = config_data
+        .get_mut::<crate::TrayKey>()
+        .expect("Failed to retrieve dice tray!");
+    let roll = tray
+        .lock().await
+        .add_roll_from_string(roll_command);
 
     let result = match roll {
-        Ok(res) => format!("{}", res),
+        Ok(_) => match tray.lock().await.get_newest_roll() {
+            Some(res) => format!("{}", res),
+            None => format!("Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… (Error retrieving latest roll from tray: Roll queue is empty)")
+        },
         Err(why) => format!("{}", why),
     };
 
