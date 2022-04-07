@@ -27,7 +27,7 @@ impl Tray {
     }
 
     pub fn add_roll_from_string(&mut self, roll_command: &str) -> Result<(), RollParseError> {
-        if self.rolls.len() >= CAPACITY { self.rolls.pop_front(); } // If Rolls queue is full, remove the oldest element
+        while self.rolls.len() >= CAPACITY { self.rolls.pop_front(); } // If Rolls queue is full, remove the oldest element
 
         let roll_result = Roll::from_str(roll_command);
 
