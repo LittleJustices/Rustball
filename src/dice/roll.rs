@@ -3,7 +3,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use std::str::FromStr;
 use super::{
-    dice_errors::RollParseError,
+    dice_errors::RollError,
     pool::Pool,
 };
 
@@ -25,10 +25,10 @@ impl fmt::Display for Roll {
 }
 
 impl FromStr for Roll {
-    type Err = RollParseError;
+    type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if !DICE_MATCH_RE.is_match(s) { return Err(RollParseError::InputError("Expected argument of the form XdY".to_owned())) }
+        if !DICE_MATCH_RE.is_match(s) { return Err(RollError::InputError("Expected argument of the form XdY".to_owned())) }
 
         let args: Vec<&str> = DICE_SPLIT_RE.split(s).collect();
         let number = args[0].parse::<u8>()?;
