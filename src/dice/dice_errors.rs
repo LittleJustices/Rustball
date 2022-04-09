@@ -10,6 +10,7 @@ pub struct PlaceholderError;
 #[derive(Debug)]
 pub enum RollError {
     InputError(String),
+    MathError(crate::math::math_errors::MathError),
     ParseError(num::ParseIntError),
     RetrieveError(String),
 }
@@ -20,6 +21,7 @@ impl fmt::Display for RollError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             RollError::InputError(why) => write!(f, "{}", why),
+            RollError::MathError(why) => write!(f, "{}", why),
             RollError::ParseError(why) => write!(f, "{}", why),
             RollError::RetrieveError(why) => write!(f, "{}", why),
         }
