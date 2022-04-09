@@ -40,16 +40,16 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let tray = config_data
         .get_mut::<crate::TrayKey>()
         .expect("Failed to retrieve dice tray!");
-    let roll = tray
-        .lock().await
-        .add_roll_from_string(roll_command);
 
-    let result = match roll {
-        Ok(_) => match tray.lock().await.get_newest_roll() {
-            Ok(res) => format!("{}", res),
-            Err(why) => format!("Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… ({})", why)
-        },
-        Err(why) => format!("{}", why),
+    let result;
+    let compact_breakdown;
+    match tray.lock().await.process_roll_command(roll_command) {
+        Ok(res) => (result, compact_breakdown) = res,
+        Err(why) => {
+            let roll_error = format!("{} {}", msg.author, why);
+            msg.channel_id.say(&ctx.http, roll_error).await?;
+            return Ok(());
+        }
     };
 
     if verbose {
@@ -66,12 +66,11 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             m
         }).await?;
     } else {
-        let annotation = match comment {
+        let annotation = match comment.trim() {
             "" => "".to_owned(),
-            _ => format!(" ({})", comment)
+            _ => format!(" ({})", comment.trim())
         };
-        let breakdown = "COMPACT ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}{}: {} ({})", msg.author, roll_command, annotation, result, breakdown);
+        let message = format!("{} rolled `{}`{}:\n**{}** ({})", msg.author, roll_command.trim(), annotation, result, compact_breakdown);
         msg.channel_id.say(&ctx.http, message).await?;
     }
 
