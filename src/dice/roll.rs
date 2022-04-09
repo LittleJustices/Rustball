@@ -15,12 +15,25 @@ lazy_static! {
 #[derive(Debug)]
 pub struct Roll {
     command: String,
-    dicepool: Pool,
+    dicepools: Vec<Pool>,
+}
+
+impl Roll {
+    pub fn new(command: String) -> Self {
+        Roll { command, dicepools: Vec::new() }
+    }
+
+    pub fn add_pool(&mut self, number: u8, sides: u8) -> u16 {
+        let new_pool = Pool::new(number, sides);
+        let total = new_pool.total();
+        self.dicepools.push(new_pool);
+        total
+    }
 }
 
 impl fmt::Display for Roll {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} -> {}", self.command, self.dicepool)
+        write!(f, "{} -> {:?}", self.command, self.dicepools)
     }
 }
 
@@ -34,7 +47,7 @@ impl FromStr for Roll {
         let number = args[0].parse::<u8>()?;
         let sides = args[1].parse::<u8>()?;
 
-        Ok(Roll { command: s.to_owned(), dicepool: Pool::new(number, sides) })
+        Ok(Roll { command: s.to_owned(), dicepools: vec![Pool::new(number, sides)] })
     }
 }
 
