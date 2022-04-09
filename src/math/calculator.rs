@@ -5,7 +5,7 @@ use std::str::FromStr;
 pub fn evaluate(infix_expression: &str) -> Result<String, MathError> {
     let rpn_expression = RpnExpression::from_str(infix_expression)?;
     let result = match resolve_rpn(rpn_expression) {
-        Ok(res) => Ok(format!("{} = **{}**", infix_expression, res)),
+        Ok(res) => Ok(format!("`{}` = {}", infix_expression, res)),
         Err(why) => Err(why)
     };
     result

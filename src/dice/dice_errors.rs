@@ -8,39 +8,28 @@ use std::{
 pub struct PlaceholderError;
 
 #[derive(Debug)]
-pub enum RollParseError {
+pub enum RollError {
     InputError(String),
+    MathError(crate::math::math_errors::MathError),
     ParseError(num::ParseIntError),
-}
-
-impl Error for RollParseError {}
-
-impl fmt::Display for RollParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            RollParseError::InputError(why) => write!(f, "{}", why),
-            RollParseError::ParseError(why) => write!(f, "{}", why),
-        }
-    }
-}
-
-impl From<num::ParseIntError> for RollParseError {
-    fn from(error: num::ParseIntError) -> Self {
-        RollParseError::ParseError(error)
-    }
-}
-
-#[derive(Debug)]
-pub enum RollResultError {
     RetrieveError(String),
 }
 
-impl Error for RollResultError {}
+impl Error for RollError {}
 
-impl fmt::Display for RollResultError {
+impl fmt::Display for RollError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            RollResultError::RetrieveError(why) => write!(f, "{}", why),
+            RollError::InputError(why) => write!(f, "{}", why),
+            RollError::MathError(why) => write!(f, "{}", why),
+            RollError::ParseError(why) => write!(f, "{}", why),
+            RollError::RetrieveError(why) => write!(f, "{}", why),
         }
+    }
+}
+
+impl From<num::ParseIntError> for RollError {
+    fn from(error: num::ParseIntError) -> Self {
+        RollError::ParseError(error)
     }
 }
