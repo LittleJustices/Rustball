@@ -33,7 +33,11 @@ impl Roll {
 
 impl fmt::Display for Roll {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} -> {:?}", self.command, self.dicepools)
+        let mut pools = format!("{}", self.dicepools[0]);
+        for i in 1..self.dicepools.len() {
+            pools = format!("{}; {}", pools, self.dicepools[i]);
+        }
+        write!(f, "{}", pools)
     }
 }
 
