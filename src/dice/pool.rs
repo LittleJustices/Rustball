@@ -18,6 +18,11 @@ impl Pool {
         Pool { dice }
     }
 
+    pub fn total(&self) -> u16 {
+        // For now, this just returns the sum. In the future it will decide whether to sum, count successes, something else...
+        self.sum_sides()
+    }
+
     fn sum_sides(&self) -> u16 {
         let mut total = 0;
         for die in &self.dice {
