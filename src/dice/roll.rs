@@ -1,16 +1,18 @@
 use std::fmt;
-use lazy_static::lazy_static;
-use regex::Regex;
-use std::str::FromStr;
+// use lazy_static::lazy_static;
+// use regex::Regex;
+// use std::str::FromStr;
 use super::{
-    dice_errors::RollError,
+    // dice_errors::RollError,
     pool::Pool,
 };
 
+/* 
 lazy_static! {
     static ref DICE_MATCH_RE: Regex = Regex::new(r"\d+d\d+").expect("Failed to compile dice matching regex!");
     static ref DICE_SPLIT_RE: Regex = Regex::new(r"d").expect("Failed to compile dice splitting regex!");
 }
+*/
 
 #[derive(Debug)]
 pub struct Roll {
@@ -41,6 +43,7 @@ impl fmt::Display for Roll {
     }
 }
 
+/* 
 impl FromStr for Roll {
     type Err = RollError;
 
@@ -54,6 +57,7 @@ impl FromStr for Roll {
         Ok(Roll { command: s.to_owned(), dicepools: vec![Pool::new(number, sides)] })
     }
 }
+*/
 
 mod tests {
     // use super::*;
