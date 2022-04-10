@@ -80,7 +80,7 @@ struct Dice;
 
 #[group]
 #[description = "Commands that make me do math. Currently under construction!"]
-#[commands(calc)]
+#[commands(calc, eval)]
 struct Math;
 
 #[group]
