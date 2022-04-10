@@ -3,13 +3,13 @@ use super::pool::Pool;
 
 #[derive(Debug)]
 pub struct Roll {
-    command: String,
+    _command: String,
     dicepools: Vec<Pool>,
 }
 
 impl Roll {
-    pub fn new(command: String) -> Self {
-        Roll { command, dicepools: Vec::new() }
+    pub fn new(_command: String) -> Self {
+        Roll { _command, dicepools: Vec::new() }
     }
 
     pub fn add_pool(&mut self, number: u8, sides: u8) -> u16 {
