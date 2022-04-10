@@ -20,8 +20,8 @@ impl fmt::Display for RollError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             RollError::MathError(why) => write!(f, "{}", why),
-            RollError::ParseError(why) => write!(f, "{}", why),
-            RollError::RetrieveError(why) => write!(f, "{}", why),
+            RollError::ParseError(why) => write!(f, "☢ ((((；´ﾟДﾟ))) These dice are too spicy for me! ☢ ({})", why),
+            RollError::RetrieveError(why) => write!(f, "Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… ({})", why),
         }
     }
 }
