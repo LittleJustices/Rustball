@@ -69,7 +69,7 @@ struct General;
 #[group]
 #[description = "Miscellaneous call and response commands for fun.\n\n
 Feel free to try them out, but don't spam! ❤"]
-#[commands(atom, shadow, squid, unyu, yuru)]
+#[commands(atom, shadow, squid, them, unyu, yuru)]
 struct Funsies;
 
 #[group]
