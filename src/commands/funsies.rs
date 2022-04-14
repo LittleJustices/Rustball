@@ -62,7 +62,7 @@ async fn yuru(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[aliases("reiaq", "reiakyu", "brainrot")]
+#[aliases("reiaq", "reiakyu", "brainrot", "dailydose")]
 async fn them(ctx: &Context, msg: &Message) -> CommandResult {
     let links = vec![
         "https://fxtwitter.com/nsl_mgh/status/1367171515154800640",
