@@ -17,6 +17,7 @@ use serenity::{
 Use standard die roll notation of the form `XdY`. I can roll up to 255 dice with up to 255 sides at once!\n
 I can also do math with dice! (　-`ω-)✧ﾄﾞﾔｯ Just plug your dice into any math expression, e.g. `1d20+5`. All die rolls are resolved before any math is handled, so don't try to get cute with nested die rolls or something like `(X+Y)dZ`! Other than that, if the `calc` command can handle it, so can the `roll` command!\n
 Additional dice operations to be added. Please wait warmly!"]
+#[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let roll_command;
     let comment;
