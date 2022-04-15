@@ -4,7 +4,7 @@ use super::dice_errors::RollError;
 use super::roll::Roll;
 use crate::math::calculator;
 
-const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)";
+const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)\s*(?:k?(?P<keep>[l|h]?)(?P<keepamt>\d*))";
 const DICE_SPLIT_STRING: &str = r"d";
 const CAPACITY: usize = 1;
 
