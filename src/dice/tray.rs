@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::VecDeque;
 use super::dice_errors::RollError;
@@ -5,20 +6,19 @@ use super::roll::Roll;
 use crate::math::calculator;
 
 const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)\s*(?:k?(?P<keep>[l|h]?)(?P<keepamt>\d*))";
-const DICE_SPLIT_STRING: &str = r"d";
 const CAPACITY: usize = 1;
 
+lazy_static!{
+    static ref DICE_MATCH_RE: Regex = Regex::new(DICE_MATCH_STRING).expect("Failed to compile dice expression regex!");
+}
+
 pub struct Tray {
-    dice_match_re: Regex,
-    _dice_split_re: Regex,
     rolls: VecDeque<Roll>,
 }
 
 impl Tray {
     pub fn new() -> Self {
         Tray {
-            dice_match_re: Regex::new(DICE_MATCH_STRING).expect("Failed to compile dice matching regex!"),
-            _dice_split_re: Regex::new(DICE_SPLIT_STRING).expect("Failed to compile dice splitting regex!"),
             rolls: VecDeque::new()
         }
     }
@@ -26,7 +26,7 @@ impl Tray {
     // Take a roll command and return the fully formatted result string (or an error)
     pub fn process_roll_command(&mut self, roll_command: &str) -> Result<(String, String), RollError> {
         // Check if there is a dice expression in the command
-        if !self.dice_match_re.is_match(roll_command) {
+        if !DICE_MATCH_RE.is_match(roll_command) {
             // If no dice, treat it as a mathematical expression and toss it to the calculator
             let calc_result = match calculator::evaluate(roll_command) {
                 Ok(res) => res,
@@ -73,12 +73,12 @@ impl Tray {
         let mut new_roll = Roll::new(roll_command.to_owned());
 
         // For each capture in the roll command, add a dicepool constructed from that capture to the roll
-        for captures in self.dice_match_re.captures_iter(roll_command) {
+        for captures in DICE_MATCH_RE.captures_iter(roll_command) {
             let number = &captures["number"].parse::<u8>()?;
             let sides = &captures["sides"].parse::<u8>()?;
             let pool_total = new_roll.add_pool(*number, *sides);
 
-            math_command = self.dice_match_re.replace(&math_command, pool_total.to_string()).to_string();
+            math_command = DICE_MATCH_RE.replace(&math_command, pool_total.to_string()).to_string();
         }
 
         let roll_breakdown = format!("{}", new_roll);
