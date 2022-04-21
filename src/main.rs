@@ -69,24 +69,24 @@ struct General;
 #[group]
 #[description = "Miscellaneous call and response commands for fun.\n\n
 Feel free to try them out, but don't spam! ❤"]
-#[commands(atom, shadow, squid, unyu, yuru)]
+#[commands(atom, shadow, squid, them, unyu, yuru)]
 struct Funsies;
 
 #[group]
 #[description = "Commands related to rolling dice.\n\n
-Use !roll for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
+Use `roll` for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
 #[commands(roll, exroll, l5r, sr, wod)]
 struct Dice;
 
 #[group]
 #[description = "Commands that make me do math. Currently under construction!"]
-#[commands(calc)]
+#[commands(calc, eval)]
 struct Math;
 
 #[group]
 #[description = "Commands for logging channels. Servers only (not available in DMs)!\n\n
-Use !log to start logging, !unlog to stop logging, and !logging to check whether I'm already logging.\n
-For all of these commands, the command used without an argument (e.g. `!log`) will apply to the channel the command is used in, but you can give me a channel mention as an argument (e.g. `!logging #general`) to target a specific other channel."]
+Use `log` to start logging, `unlog` to stop logging, and `logging` to check whether I'm already logging.\n
+For all of these commands, the command used without an argument (e.g. `log`) will apply to the channel the command is used in, but you can give me a channel mention as an argument (e.g. `!logging #general`) to target a specific other channel."]
 #[only_in(guilds)]
 #[commands(log, logging, unlog)]
 struct Logging;

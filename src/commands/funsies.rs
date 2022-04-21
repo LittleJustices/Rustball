@@ -1,3 +1,4 @@
+use rand::Rng;
 use serenity::{
     framework::{
         standard::{
@@ -56,6 +57,21 @@ async fn atom(ctx: &Context, msg: &Message) -> CommandResult {
 async fn yuru(ctx: &Context, msg: &Message) -> CommandResult {
     let sway = String::from("https://tenor.com/view/yuru-camp-shima-rin-gif-19870064");
     msg.channel_id.say(&ctx.http, sway).await?;
+
+    Ok(())
+}
+
+#[command]
+#[aliases("reiaq", "reiakyu", "brainrot", "dailydose")]
+async fn them(ctx: &Context, msg: &Message) -> CommandResult {
+    let links = vec![
+        "https://fxtwitter.com/nsl_mgh/status/1367171515154800640",
+        "https://twitter.com/kyomoneko_2/status/1347468091668762626",
+        "https://twitter.com/yakumosgap/status/1474855343176011779",
+        "https://twitter.com/kyomoneko_2/status/1485186556210163713",
+    ];
+    let random_index = rand::thread_rng().gen_range(0..links.len());
+    msg.channel_id.say(&ctx.http, format!("{}", links[random_index])).await?;
 
     Ok(())
 }
