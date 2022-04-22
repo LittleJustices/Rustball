@@ -1,16 +1,10 @@
-use lazy_static::lazy_static;
-use regex::Regex;
 use std::collections::VecDeque;
 use super::dice_errors::RollError;
+use super::dice_re::DICE_MATCH_RE;
 use super::roll::Roll;
 use crate::math::calculator;
 
-const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)\s*(?:k?(?P<keep>[l|h]?)(?P<keepamt>\d*))";
 const CAPACITY: usize = 1;
-
-lazy_static!{
-    static ref DICE_MATCH_RE: Regex = Regex::new(DICE_MATCH_STRING).expect("Failed to compile dice expression regex!");
-}
 
 pub struct Tray {
     rolls: VecDeque<Roll>,
