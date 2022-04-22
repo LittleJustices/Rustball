@@ -22,8 +22,8 @@ impl Roll {
 
     pub fn math_command(&self) -> String {
         let mut math_command = self.command.clone();
-        for i in 0..DICE_MATCH_RE.captures_iter(&self.command).count() {
-            math_command = DICE_MATCH_RE.replace(&math_command, self.dicepools[i].total().to_string()).to_string();
+        for pool in &self.dicepools {
+            math_command = DICE_MATCH_RE.replace(&math_command, pool.total().to_string()).to_string();
         }
         math_command
     }
