@@ -1,7 +1,7 @@
 use rand::{thread_rng, Rng};
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Die {
     pub sides: u8,
     pub result: u8,
