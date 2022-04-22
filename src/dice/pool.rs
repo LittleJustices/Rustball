@@ -5,11 +5,13 @@ use std::fmt;
 pub struct Pool {
     number: u8,
     sides: u8,
+    keep_low: bool,
+    kept_dice: u8,
     dice: Vec<Die>,
 }
 
 impl Pool {
-    pub fn new(number: u8, sides: u8) -> Self {
+    pub fn new(number: u8, sides: u8, keep_low: bool, keepamt: u8) -> Self {
         let mut dice = Vec::<Die>::new();
 
         for _ in 0..number {
@@ -17,7 +19,14 @@ impl Pool {
             dice.push(die);
         }
 
-        Pool { number, sides, dice }
+        // Constrain number of kept dice to no more than number of rolled dice
+        let kept_dice = if keepamt > number {
+            number
+        } else {
+            keepamt
+        };
+
+        Pool { number, sides, keep_low, kept_dice, dice }
     }
 
     pub fn total(&self) -> u16 {
@@ -27,10 +36,34 @@ impl Pool {
 
     fn sum_sides(&self) -> u16 {
         let mut total = 0;
-        for die in &self.dice {
+        for die in &self.kept_dice() {
             total += die.result as u16;
         }
         total
+    }
+
+    fn kept_dice(&self) -> Vec<Die> {
+        if self.kept_dice == 0 {
+            return self.dice.clone();
+        }
+
+        let mut dice_sorted = self.dice.clone();
+        dice_sorted.sort_unstable();
+        let mut kept_pool = Vec::<Die>::new();
+        match self.keep_low {
+            true => {
+                for die in dice_sorted.iter().take(self.kept_dice.into()) {
+                    kept_pool.push(*die);
+                };
+            },
+            false => {
+                for die in dice_sorted.iter().rev().take(self.kept_dice.into()) {
+                    kept_pool.push(*die);
+                };
+            },
+        };
+
+        kept_pool
     }
 }
 

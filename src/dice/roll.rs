@@ -13,17 +13,27 @@ impl Roll {
     pub fn new(command: String) -> Result<Self, RollError> {
         let mut dicepools = Vec::new();
         for captures in DICE_MATCH_RE.captures_iter(&command) {
-            let number = &captures["number"].parse::<u8>()?;
-            let sides = &captures["sides"].parse::<u8>()?;
-            dicepools.push(Pool::new(*number, *sides));
+            let number = captures["number"].parse::<u8>()?;
+            let sides = captures["sides"].parse::<u8>()?;
+            
+            let keep_low = match &captures["keep"] {
+                "l" => true,
+                _ => false,
+            };
+            let kept_dice;
+            match &captures["keepamt"] {
+                "" => kept_dice = 0,
+                _ => kept_dice = captures["keepamt"].parse::<u8>()?,
+            };
+            dicepools.push(Pool::new(number, sides, keep_low, kept_dice));
         }
         Ok(Roll { command, dicepools })
     }
 
     pub fn math_command(&self) -> String {
         let mut math_command = self.command.clone();
-        for i in 0..DICE_MATCH_RE.captures_iter(&self.command).count() {
-            math_command = DICE_MATCH_RE.replace(&math_command, self.dicepools[i].total().to_string()).to_string();
+        for pool in &self.dicepools {
+            math_command = DICE_MATCH_RE.replace(&math_command, pool.total().to_string()).to_string();
         }
         math_command
     }
