@@ -5,11 +5,13 @@ use std::fmt;
 pub struct Pool {
     number: u8,
     sides: u8,
+    keep_low: bool,
+    kept_dice: u8,
     dice: Vec<Die>,
 }
 
 impl Pool {
-    pub fn new(number: u8, sides: u8) -> Self {
+    pub fn new(number: u8, sides: u8, keep_low: bool, kept_dice: u8) -> Self {
         let mut dice = Vec::<Die>::new();
 
         for _ in 0..number {
@@ -17,7 +19,7 @@ impl Pool {
             dice.push(die);
         }
 
-        Pool { number, sides, dice }
+        Pool { number, sides, keep_low, kept_dice, dice }
     }
 
     pub fn total(&self) -> u16 {

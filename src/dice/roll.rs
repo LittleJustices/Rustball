@@ -15,7 +15,9 @@ impl Roll {
         for captures in DICE_MATCH_RE.captures_iter(&command) {
             let number = &captures["number"].parse::<u8>()?;
             let sides = &captures["sides"].parse::<u8>()?;
-            dicepools.push(Pool::new(*number, *sides));
+            let keep_low = false;
+            let kept_dice = 0;
+            dicepools.push(Pool::new(*number, *sides, keep_low, kept_dice));
         }
         Ok(Roll { command, dicepools })
     }
