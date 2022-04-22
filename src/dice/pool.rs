@@ -11,13 +11,20 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub fn new(number: u8, sides: u8, keep_low: bool, kept_dice: u8) -> Self {
+    pub fn new(number: u8, sides: u8, keep_low: bool, keepamt: u8) -> Self {
         let mut dice = Vec::<Die>::new();
 
         for _ in 0..number {
             let die = Die::roll(sides);
             dice.push(die);
         }
+
+        // Constrain number of kept dice to no more than number of rolled dice
+        let kept_dice = if keepamt > number {
+            number
+        } else {
+            keepamt
+        };
 
         Pool { number, sides, keep_low, kept_dice, dice }
     }
