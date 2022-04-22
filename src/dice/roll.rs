@@ -20,12 +20,12 @@ impl Roll {
                 "l" => true,
                 _ => false,
             };
-            let kept_dice;
+            let keepamt;
             match &captures["keepamt"] {
-                "" => kept_dice = 0,
-                _ => kept_dice = captures["keepamt"].parse::<u8>()?,
+                "" => keepamt = 0,
+                _ => keepamt = captures["keepamt"].parse::<u8>()?,
             };
-            dicepools.push(Pool::new(number, sides, keep_low, kept_dice));
+            dicepools.push(Pool::new(number, sides, keep_low, keepamt));
         }
         Ok(Roll { command, dicepools })
     }
