@@ -1,22 +1,31 @@
 use std::fmt;
+use super::dice_re::DICE_MATCH_RE;
+use super::dice_errors::RollError;
 use super::pool::Pool;
 
 #[derive(Debug)]
 pub struct Roll {
-    _command: String,
+    command: String,
     dicepools: Vec<Pool>,
 }
 
 impl Roll {
-    pub fn new(_command: String) -> Self {
-        Roll { _command, dicepools: Vec::new() }
+    pub fn new(command: String) -> Result<Self, RollError> {
+        let mut dicepools = Vec::new();
+        for captures in DICE_MATCH_RE.captures_iter(&command) {
+            let number = &captures["number"].parse::<u8>()?;
+            let sides = &captures["sides"].parse::<u8>()?;
+            dicepools.push(Pool::new(*number, *sides));
+        }
+        Ok(Roll { command, dicepools })
     }
 
-    pub fn add_pool(&mut self, number: u8, sides: u8) -> u16 {
-        let new_pool = Pool::new(number, sides);
-        let total = new_pool.total();
-        self.dicepools.push(new_pool);
-        total
+    pub fn math_command(&self) -> String {
+        let mut math_command = self.command.clone();
+        for i in 0..DICE_MATCH_RE.captures_iter(&self.command).count() {
+            math_command = DICE_MATCH_RE.replace(&math_command, self.dicepools[i].total().to_string()).to_string();
+        }
+        math_command
     }
 }
 

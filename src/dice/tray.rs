@@ -60,21 +60,10 @@ impl Tray {
          // If Rolls queue is full, remove the oldest element
         while self.rolls.len() >= CAPACITY { self.rolls.pop_front(); }
 
-        // Command to be passed to math
-        let mut math_command = roll_command.to_owned();
-
         // Make a new empty roll
-        let mut new_roll = Roll::new(roll_command.to_owned());
+        let new_roll = Roll::new(roll_command.to_owned())?;
 
-        // For each capture in the roll command, add a dicepool constructed from that capture to the roll
-        for captures in DICE_MATCH_RE.captures_iter(roll_command) {
-            let number = &captures["number"].parse::<u8>()?;
-            let sides = &captures["sides"].parse::<u8>()?;
-            let pool_total = new_roll.add_pool(*number, *sides);
-
-            math_command = DICE_MATCH_RE.replace(&math_command, pool_total.to_string()).to_string();
-        }
-
+        let math_command = new_roll.math_command();
         let roll_breakdown = format!("{}", new_roll);
         // Add new roll to tray
         self.rolls.push_back(new_roll);
