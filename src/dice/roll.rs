@@ -10,9 +10,9 @@ pub struct Roll {
 }
 
 impl Roll {
-    pub fn new(command: String) -> Result<Self, RollError> {
+    pub fn new(command: &str) -> Result<Self, RollError> {
         let mut dicepools = Vec::new();
-        for captures in DICE_MATCH_RE.captures_iter(&command) {
+        for captures in DICE_MATCH_RE.captures_iter(command) {
             let number = captures["number"].parse::<u8>()?;
             let sides = captures["sides"].parse::<u8>()?;
             
@@ -27,7 +27,7 @@ impl Roll {
             };
             dicepools.push(Pool::new(number, sides, keep_low, keepamt));
         }
-        Ok(Roll { command, dicepools })
+        Ok(Roll { command: command.to_string(), dicepools })
     }
 
     pub fn math_command(&self) -> String {
