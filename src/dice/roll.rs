@@ -20,10 +20,9 @@ impl Roll {
                 "l" => true,
                 _ => false,
             };
-            let keepamt;
-            match &captures["keepamt"] {
-                "" => keepamt = 0,
-                _ => keepamt = captures["keepamt"].parse::<u8>()?,
+            let keepamt = match &captures["keepamt"] {
+                "" => 0,
+                _ => captures["keepamt"].parse::<u8>()?,
             };
             dicepools.push(Pool::new(number, sides, keep_low, keepamt));
         }
