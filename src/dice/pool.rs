@@ -42,23 +42,27 @@ impl Pool {
         total
     }
 
-    fn kept_dice(&self) -> Vec<Die> {
-        if self.kept_dice == 0 {
-            return self.dice.clone();
+    fn kept_dice(&self) -> Vec<&Die> {
+        let mut kept_dice = Vec::<&Die>::new();
+        for die in &self.dice {
+            kept_dice.push(die);
         }
 
-        let mut dice_sorted = self.dice.clone();
-        dice_sorted.sort_unstable();
+        if self.kept_dice == 0 {
+            return kept_dice;
+        }
+
+        kept_dice.sort_unstable();
         match self.keep_low {
             true => {
                 let max_index = self.kept_dice as usize;
-                return dice_sorted[..max_index].to_vec();
-            },
+                return kept_dice[..max_index].to_vec();
+            }
             false => {
                 let min_index = (self.number - self.kept_dice) as usize;
-                return dice_sorted[min_index..].to_vec();
-            },
-        };
+                return kept_dice[min_index..].to_vec();
+            }
+        }
     }
 }
 
