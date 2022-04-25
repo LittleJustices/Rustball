@@ -61,7 +61,7 @@ impl Tray {
         while self.rolls.len() >= CAPACITY { self.rolls.pop_front(); }
 
         // Make a new empty roll
-        let new_roll = Roll::new(roll_command.to_owned())?;
+        let new_roll = Roll::new(roll_command)?;
 
         let math_command = new_roll.math_command();
         let roll_breakdown = format!("{}", new_roll);

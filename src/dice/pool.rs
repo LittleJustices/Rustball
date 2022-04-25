@@ -36,34 +36,38 @@ impl Pool {
 
     fn sum_sides(&self) -> u16 {
         let mut total = 0;
-        for die in &self.kept_dice() {
+        for die in self.kept_dice() {
             total += die.result as u16;
         }
         total
     }
 
-    fn kept_dice(&self) -> Vec<Die> {
+    fn dice_as_refs(&self) -> Vec<&Die> {
+        let mut ref_pool = Vec::<&Die>::new();
+        for die in &self.dice {
+            ref_pool.push(die);
+        }
+        ref_pool
+    }
+
+    fn kept_dice(&self) -> Vec<&Die> {
+        let mut kept_dice = self.dice_as_refs();
+
         if self.kept_dice == 0 {
-            return self.dice.clone();
+            return kept_dice;
         }
 
-        let mut dice_sorted = self.dice.clone();
-        dice_sorted.sort_unstable();
-        let mut kept_pool = Vec::<Die>::new();
+        kept_dice.sort_unstable();
         match self.keep_low {
             true => {
-                for die in dice_sorted.iter().take(self.kept_dice.into()) {
-                    kept_pool.push(*die);
-                };
-            },
+                let max_index = self.kept_dice as usize;
+                return kept_dice[..max_index].to_vec();
+            }
             false => {
-                for die in dice_sorted.iter().rev().take(self.kept_dice.into()) {
-                    kept_pool.push(*die);
-                };
-            },
-        };
-
-        kept_pool
+                let min_index = (self.number - self.kept_dice) as usize;
+                return kept_dice[min_index..].to_vec();
+            }
+        }
     }
 }
 
