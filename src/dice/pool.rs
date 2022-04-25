@@ -42,11 +42,16 @@ impl Pool {
         total
     }
 
-    fn kept_dice(&self) -> Vec<&Die> {
-        let mut kept_dice = Vec::<&Die>::new();
+    fn dice_as_refs(&self) -> Vec<&Die> {
+        let mut ref_pool = Vec::<&Die>::new();
         for die in &self.dice {
-            kept_dice.push(die);
+            ref_pool.push(die);
         }
+        ref_pool
+    }
+
+    fn kept_dice(&self) -> Vec<&Die> {
+        let mut kept_dice = self.dice_as_refs();
 
         if self.kept_dice == 0 {
             return kept_dice;
