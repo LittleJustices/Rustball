@@ -35,11 +35,10 @@ impl Pool {
     }
 
     fn sum_sides(&self) -> u16 {
-        let mut total = 0;
-        for die in self.kept_dice() {
-            total += die.result as u16;
+        if self.kept_dice != 0 {
+            return self.kept_dice().iter().fold(0, |sum, die| sum + die.result as u16);
         }
-        total
+        self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
     fn dice_as_refs(&self) -> Vec<&Die> {
