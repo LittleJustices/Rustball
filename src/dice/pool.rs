@@ -42,11 +42,7 @@ impl Pool {
     }
 
     fn dice_as_refs(&self) -> Vec<&Die> {
-        let mut ref_pool = Vec::<&Die>::new();
-        for die in &self.dice {
-            ref_pool.push(die);
-        }
-        ref_pool
+        self.dice.iter().collect()
     }
 
     fn kept_dice(&self) -> Vec<&Die> {
