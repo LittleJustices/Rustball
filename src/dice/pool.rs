@@ -36,30 +36,22 @@ impl Pool {
 
     fn sum_sides(&self) -> u16 {
         if self.kept_dice != 0 {
-            return self.kept_dice().iter().fold(0, |sum, die| sum + die.result as u16);
+            return self.keep_n(self.kept_dice).iter().fold(0, |sum, die| sum + die.result as u16);
         }
         self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
-    fn dice_as_refs(&self) -> Vec<&Die> {
-        self.dice.iter().collect()
-    }
-
-    fn kept_dice(&self) -> Vec<&Die> {
-        let mut kept_dice = self.dice_as_refs();
-
-        if self.kept_dice == 0 {
-            return kept_dice;
-        }
+    fn keep_n(&self, keepamt: u8) -> Vec<&Die> {
+        let mut kept_dice: Vec<&Die> = self.dice.iter().collect();
 
         kept_dice.sort_unstable();
         match self.keep_low {
             true => {
-                let max_index = self.kept_dice as usize;
+                let max_index = keepamt as usize;
                 return kept_dice[..max_index].to_vec();
             }
             false => {
-                let min_index = (self.number - self.kept_dice) as usize;
+                let min_index = (self.number - keepamt) as usize;
                 return kept_dice[min_index..].to_vec();
             }
         }
