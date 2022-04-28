@@ -1,7 +1,7 @@
 use std::fmt;
 use super::dice_re::DICE_MATCH_RE;
 use super::dice_errors::RollError;
-use super::pool::Pool;
+use super::pool::{Keep, Pool};
 
 #[derive(Debug)]
 pub struct Roll {
@@ -15,16 +15,17 @@ impl Roll {
         for captures in DICE_MATCH_RE.captures_iter(command) {
             let number = captures["number"].parse::<u8>()?;
             let sides = captures["sides"].parse::<u8>()?;
-            
-            let keep_low = match &captures["keep"] {
-                "l" => true,
-                _ => false,
+
+            let keep = match &captures["keep"] {
+                "l" => Keep::Low(captures["keepamt"].parse::<u8>()?),
+                _ => {
+                    match &captures["keepamt"] {
+                        "" => Keep::All,
+                        _ => Keep::High(captures["keepamt"].parse::<u8>()?),
+                    }
+                }
             };
-            let keepamt = match &captures["keepamt"] {
-                "" => 0,
-                _ => captures["keepamt"].parse::<u8>()?,
-            };
-            dicepools.push(Pool::new(number, sides, keep_low, keepamt));
+            dicepools.push(Pool::new(number, sides, keep));
         }
         Ok(Roll { command: command.to_string(), dicepools })
     }

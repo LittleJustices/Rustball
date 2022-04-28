@@ -1,17 +1,23 @@
 use super::die::Die;
 use std::fmt;
 
+#[derive(Debug, PartialEq)]
+pub enum Keep {
+    Low(u8),
+    High(u8),
+    All,
+}
+
 #[derive(Debug)]
 pub struct Pool {
     number: u8,
     sides: u8,
-    keep_low: bool,
-    kept_dice: u8,
+    keep: Keep,
     dice: Vec<Die>,
 }
 
 impl Pool {
-    pub fn new(number: u8, sides: u8, keep_low: bool, keepamt: u8) -> Self {
+    pub fn new(number: u8, sides: u8, keep: Keep) -> Self {
         let mut dice = Vec::<Die>::new();
 
         for _ in 0..number {
@@ -19,14 +25,7 @@ impl Pool {
             dice.push(die);
         }
 
-        // Constrain number of kept dice to no more than number of rolled dice
-        let kept_dice = if keepamt > number {
-            number
-        } else {
-            keepamt
-        };
-
-        Pool { number, sides, keep_low, kept_dice, dice }
+        Pool { number, sides, keep, dice }
     }
 
     pub fn total(&self) -> u16 {
@@ -35,25 +34,26 @@ impl Pool {
     }
 
     fn sum_sides(&self) -> u16 {
-        if self.kept_dice != 0 {
-            return self.keep_n(self.kept_dice).iter().fold(0, |sum, die| sum + die.result as u16);
+        if self.keep != Keep::All {
+            return self.keep_dice(&self.keep).iter().fold(0, |sum, die| sum + die.result as u16);
         }
         self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
-    fn keep_n(&self, keepamt: u8) -> Vec<&Die> {
+    fn keep_dice(&self, keep: &Keep) -> Vec<&Die> {
         let mut kept_dice: Vec<&Die> = self.dice.iter().collect();
 
         kept_dice.sort_unstable();
-        match self.keep_low {
-            true => {
-                let max_index = keepamt as usize;
+        match keep {
+            Keep::Low(keepamt) => {
+                let max_index = if keepamt > &self.number { self.number as usize } else { *keepamt as usize };
                 return kept_dice[..max_index].to_vec();
             }
-            false => {
-                let min_index = (self.number - keepamt) as usize;
+            Keep::High(keepamt) => {
+                let min_index = if keepamt > &self.number { 0 } else { (self.number - *keepamt) as usize };
                 return kept_dice[min_index..].to_vec();
-            }
+            },
+            Keep::All => return kept_dice,
         }
     }
 }
