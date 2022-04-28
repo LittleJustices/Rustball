@@ -69,6 +69,7 @@ async fn them(ctx: &Context, msg: &Message) -> CommandResult {
         "https://twitter.com/kyomoneko_2/status/1347468091668762626",
         "https://twitter.com/yakumosgap/status/1474855343176011779",
         "https://twitter.com/kyomoneko_2/status/1485186556210163713",
+        "https://twitter.com/Vtcsku3HJBR2eZw/status/1519303729417097216",
     ];
     let random_index = rand::thread_rng().gen_range(0..links.len());
     msg.channel_id.say(&ctx.http, format!("{}", links[random_index])).await?;
