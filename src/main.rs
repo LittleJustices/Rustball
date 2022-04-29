@@ -29,6 +29,8 @@ use messaging::{
     message_handler::Handler,
 };
 
+mod funsies;
+
 mod commands;
 use commands::{
     funsies::*,
