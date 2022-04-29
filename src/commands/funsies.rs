@@ -11,10 +11,11 @@ use serenity::{
     model::channel::Message,
     prelude::*,
 };
+use crate::funsies::funsies;
 
 #[command]
 async fn squid(ctx: &Context, msg: &Message) -> CommandResult {
-    let squid = format!("{} ＜コ:彡", msg.author);
+    let squid = format!("{} {}", msg.author, funsies::squid());
     msg.channel_id.say(&ctx.http, squid).await?;
 
     Ok(())
