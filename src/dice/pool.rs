@@ -56,6 +56,13 @@ impl Pool {
             Keep::All => return kept_dice,
         }
     }
+
+    #[allow(dead_code)]
+    fn reroll(&mut self) {
+        for die in self.dice.iter_mut() {
+            die.reroll();
+        }
+    }
 }
 
 impl fmt::Display for Pool {
