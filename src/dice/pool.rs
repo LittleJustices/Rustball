@@ -70,6 +70,13 @@ impl Pool {
             die.reroll();
         }
     }
+
+    #[allow(dead_code)]
+    fn reroll_n_or_less(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equal_or_less(n)) {
+            die.reroll();
+        }
+    }
 }
 
 impl fmt::Display for Pool {
