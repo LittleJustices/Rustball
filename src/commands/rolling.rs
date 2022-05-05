@@ -83,6 +83,12 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 }
 
 #[command]
+#[description="Under construction. Please wait warmly!"]
+async fn reroll(_ctx: &Context) -> CommandResult {
+    Ok(())
+}
+
+#[command]
 #[aliases("cod", "cofd")]
 async fn wod(ctx: &Context, msg: &Message) -> CommandResult {
     let roll = format!("{} I'm not edgy enough for that yet!", msg.author);
