@@ -57,8 +57,7 @@ impl Pool {
         }
     }
 
-    #[allow(dead_code)]
-    fn reroll(&mut self) {
+    pub fn reroll(&mut self) {
         for die in self.dice.iter_mut() {
             die.reroll();
         }

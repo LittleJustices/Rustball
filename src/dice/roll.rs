@@ -37,6 +37,13 @@ impl Roll {
         }
         math_command
     }
+
+    #[allow(dead_code)]
+    pub fn reroll_all(&mut self) {
+        for pool in self.dicepools.iter_mut() {
+            pool.reroll();
+        }
+    }
 }
 
 impl fmt::Display for Roll {
