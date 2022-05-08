@@ -84,7 +84,24 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 #[command]
 #[description="Under construction. Please wait warmly!"]
-async fn reroll(_ctx: &Context) -> CommandResult {
+async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
+    // Get config data with write permission to manipulate the tray
+    let mut config_data = ctx.data.write().await;
+    let tray = config_data
+        .get_mut::<crate::TrayKey>()
+        .expect("Failed to retrieve dice tray!");
+    
+    match tray.lock().await.reroll_latest() {
+        Ok(reroll) => {
+            let message = format!("Reroll: {}", reroll);
+            msg.channel_id.say(&ctx.http, message).await?;
+        },
+        Err(why) => {
+            let roll_error = format!("{}", why);
+            msg.channel_id.say(&ctx.http, roll_error).await?;
+        }
+    }
+
     Ok(())
 }
 
