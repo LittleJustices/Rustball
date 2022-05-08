@@ -80,7 +80,6 @@ impl Tray {
         Ok((math_command, roll_breakdown))
     }
 
-    #[allow(dead_code)]
     pub fn reroll_latest(&mut self) -> Result<&Roll, RollError> {
         let latest_roll = self.get_newest_roll_mut()?;
         latest_roll.reroll_all();
