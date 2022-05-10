@@ -41,7 +41,7 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(id) => target = id,
         Err(why) => {
             let chan_error = format!("☢ That's not a channel I recognize! ☢\n Error parsing channel id: {}", why);
-            msg.channel_id.say(&ctx.http, chan_error).await?;
+            msg.reply_ping(&ctx.http, chan_error).await?;
             return Ok(());
         }
     };
@@ -51,14 +51,14 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(perm) => allowed = perm,
         Err(why) => {
             let check_error = format!("☢ I don't know if I'm allowed to do that! ☢\n Error checking logging permission: {}", why);
-            msg.channel_id.say(&ctx.http, check_error).await?;
+            msg.reply_ping(&ctx.http, check_error).await?;
             return Ok(());
         }
     };
 
     if !allowed {
         let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
-        msg.channel_id.say(&ctx.http, perm_error).await?;
+        msg.reply_ping(&ctx.http, perm_error).await?;
         return Ok(());
     }
 
@@ -67,7 +67,7 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(name) => filename = name,
         Err(why) => {
             let name_error = format!("☢ Something went wrong! ☢\n Error constructing log filename: {}", why);
-            msg.channel_id.say(&ctx.http, name_error).await?;
+            msg.reply_ping(&ctx.http, name_error).await?;
             return Ok(());
         }
     }
@@ -80,7 +80,7 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             Ok(logger) => log = logger,
             Err(why) => {
                 let log_error = format!("☢ Something went wrong! ☢\n Error creating log file: {}", why);
-                msg.channel_id.say(&ctx.http, log_error).await?;
+                msg.reply_ping(&ctx.http, log_error).await?;
                 return Ok(());
             }
         }
@@ -95,7 +95,7 @@ async fn log(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         .insert(target, log);
 
     let log_confirm = format!("Logging <#{}> now! ❤", target);
-    msg.channel_id.say(&ctx.http, log_confirm).await?;
+    msg.reply_ping(&ctx.http, log_confirm).await?;
     
     Ok(())
 }
@@ -112,7 +112,7 @@ async fn unlog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(id) => target = id,
         Err(why) => {
             let chan_error = format!("☢ That's not a channel I recognize! ☢\n Error parsing channel id: {}", why);
-            msg.channel_id.say(&ctx.http, chan_error).await?;
+            msg.reply_ping(&ctx.http, chan_error).await?;
             return Ok(());
         }
     };
@@ -122,14 +122,14 @@ async fn unlog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(perm) => allowed = perm,
         Err(why) => {
             let check_error = format!("☢ I don't know if I'm allowed to do that! ☢\n Error checking logging permission: {}", why);
-            msg.channel_id.say(&ctx.http, check_error).await?;
+            msg.reply_ping(&ctx.http, check_error).await?;
             return Ok(());
         }
     };
 
     if !allowed {
         let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
-        msg.channel_id.say(&ctx.http, perm_error).await?;
+        msg.reply_ping(&ctx.http, perm_error).await?;
         return Ok(());
     }
 
@@ -153,7 +153,7 @@ async fn unlog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             },
             Err(why) => {
                 let check_error = format!("☢ Something went wrong! ☢\n Error closing log: {}", why);
-                msg.channel_id.say(&ctx.http, check_error).await?;
+                msg.reply_ping(&ctx.http, check_error).await?;
                 return Ok(());
             },
         }
@@ -173,7 +173,7 @@ async fn logging(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(id) => target = id,
         Err(why) => {
             let chan_error = format!("☢ That's not a channel I recognize! ☢\n Error parsing channel id: {}", why);
-            msg.channel_id.say(&ctx.http, chan_error).await?;
+            msg.reply_ping(&ctx.http, chan_error).await?;
             return Ok(());
         }
     };
@@ -183,14 +183,14 @@ async fn logging(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(perm) => allowed = perm,
         Err(why) => {
             let check_error = format!("☢ I don't know if I'm allowed to do that! ☢\n Error checking logging permission: {}", why);
-            msg.channel_id.say(&ctx.http, check_error).await?;
+            msg.reply_ping(&ctx.http, check_error).await?;
             return Ok(());
         }
     };
 
     if !allowed {
         let perm_error = "☢ I'm not allowed to log that channel! ☢\nI can only start or stop logging a channel from within the same server.".to_string();
-        msg.channel_id.say(&ctx.http, perm_error).await?;
+        msg.reply_ping(&ctx.http, perm_error).await?;
         return Ok(());
     }
 
@@ -206,7 +206,7 @@ async fn logging(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     } else {
         logging = format!("{} I'm not logging <#{}> yet!", msg.author, target);
     }
-    msg.channel_id.say(&ctx.http, logging).await?;
+    msg.reply_ping(&ctx.http, logging).await?;
     
     Ok(())
 }
