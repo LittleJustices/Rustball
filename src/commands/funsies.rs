@@ -14,8 +14,8 @@ use crate::funsies::funsies;
 
 #[command]
 async fn squid(ctx: &Context, msg: &Message) -> CommandResult {
-    let squid = format!("{} {}", msg.author, funsies::squid());
-    msg.channel_id.say(&ctx.http, squid).await?;
+    let squid = funsies::squid();
+    msg.reply_ping(&ctx.http, squid).await?;
 
     Ok(())
 }
@@ -31,8 +31,8 @@ async fn shadow(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn unyu(ctx: &Context, msg: &Message) -> CommandResult {
-    let unyu = format!("{} {}", msg.author, funsies::unyu());
-    msg.channel_id.say(&ctx.http, unyu).await?;
+    let unyu =funsies::unyu();
+    msg.reply_ping(&ctx.http, unyu).await?;
 
     Ok(())
 }
@@ -49,7 +49,7 @@ async fn atom(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("sway", "shimarin", "shima")]
 async fn yuru(ctx: &Context, msg: &Message) -> CommandResult {
     let sway = funsies::yuru();
-    msg.channel_id.say(&ctx.http, sway).await?;
+    msg.reply_ping(&ctx.http, sway).await?;
 
     Ok(())
 }
@@ -58,7 +58,7 @@ async fn yuru(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("reiaq", "reiakyu", "brainrot", "dailydose")]
 async fn them(ctx: &Context, msg: &Message) -> CommandResult {
     let dose = funsies::dailydose();
-    msg.channel_id.say(&ctx.http, dose).await?;
+    msg.reply_ping(&ctx.http, dose).await?;
 
     Ok(())
 }
