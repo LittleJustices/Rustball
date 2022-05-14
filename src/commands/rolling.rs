@@ -33,8 +33,8 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }
 
     if roll_command == "" {
-        let no_args_error = format!("{} What do you want me to roll?", msg.author);
-        msg.channel_id.say(&ctx.http, no_args_error).await?;
+        let no_args_error = "What do you want me to roll?";
+        msg.reply_ping(&ctx.http, no_args_error).await?;
         return Ok(());
     }
 
@@ -51,8 +51,8 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     match tray.lock().await.process_roll_command(roll_command) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
-            let roll_error = format!("{} {}", msg.author, why);
-            msg.channel_id.say(&ctx.http, roll_error).await?;
+            let roll_error = format!("{}", why);
+            msg.reply_ping(&ctx.http, roll_error).await?;
             return Ok(());
         }
     };
@@ -75,8 +75,31 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             "" => "".to_owned(),
             _ => format!(" ({})", comment.trim())
         };
-        let message = format!("{} rolled `{}`{}:\n**{}** ({})", msg.author, roll_command.trim(), annotation, result, compact_breakdown);
-        msg.channel_id.say(&ctx.http, message).await?;
+        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, result, compact_breakdown);
+        msg.reply_ping(&ctx.http, message).await?;
+    }
+
+    Ok(())
+}
+
+#[command]
+#[description="Under construction. Please wait warmly!"]
+async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
+    // Get config data with write permission to manipulate the tray
+    let mut config_data = ctx.data.write().await;
+    let tray = config_data
+        .get_mut::<crate::TrayKey>()
+        .expect("Failed to retrieve dice tray!");
+    
+    match tray.lock().await.reroll_latest() {
+        Ok(reroll) => {
+            let message = format!("Reroll: {}", reroll);
+            msg.reply_ping(&ctx.http, message).await?;
+        },
+        Err(why) => {
+            let roll_error = format!("{}", why);
+            msg.reply_ping(&ctx.http, roll_error).await?;
+        }
     }
 
     Ok(())

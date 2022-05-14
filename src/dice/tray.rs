@@ -31,7 +31,7 @@ impl Tray {
 
         let interim_result; // Interim because it might be a math expression that we have to resolve
         let compact_breakdown;
-        match self.add_roll_fom_command(roll_command) {
+        match self.add_roll_from_command(roll_command) {
             Ok(res) => (interim_result, compact_breakdown) = res,
             Err(why) => return Err(why)
         };
@@ -55,8 +55,17 @@ impl Tray {
         get_roll_result
     }
 
+    pub fn get_newest_roll_mut(&mut self) -> Result<&mut Roll, RollError> {
+        let get_roll_result = match self.rolls.back_mut() {
+            Some(roll) => Ok(roll),
+            None => Err(RollError::RetrieveError("Error retrieving latest roll from tray: Roll queue is empty".to_owned()))
+        };
+
+        get_roll_result
+    }
+
     // Take the command, turn it into a roll, add that to the tray, and return the infix expression that should be passed to the calculator
-    fn add_roll_fom_command(&mut self, roll_command: &str) -> Result<(String, String), RollError> {
+    fn add_roll_from_command(&mut self, roll_command: &str) -> Result<(String, String), RollError> {
          // If Rolls queue is full, remove the oldest element
         while self.rolls.len() >= CAPACITY { self.rolls.pop_front(); }
 
@@ -69,5 +78,11 @@ impl Tray {
         self.rolls.push_back(new_roll);
 
         Ok((math_command, roll_breakdown))
+    }
+
+    pub fn reroll_latest(&mut self) -> Result<&Roll, RollError> {
+        let latest_roll = self.get_newest_roll_mut()?;
+        latest_roll.reroll_all();
+        Ok(latest_roll)
     }
 }

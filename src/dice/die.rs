@@ -14,7 +14,6 @@ impl Die {
         Die { sides, result }
     }
 
-    #[allow(dead_code)]
     pub fn reroll(&mut self) {
         let mut rng = thread_rng();
         self.result = rng.gen_range(1..=self.sides);

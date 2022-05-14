@@ -56,6 +56,33 @@ impl Pool {
             Keep::All => return kept_dice,
         }
     }
+
+    pub fn reroll(&mut self) {
+        for die in self.dice.iter_mut() {
+            die.reroll();
+        }
+    }
+
+    #[allow(dead_code)]
+    fn reroll_n(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
+            die.reroll();
+        }
+    }
+
+    #[allow(dead_code)]
+    fn reroll_n_or_less(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equal_or_less(n)) {
+            die.reroll();
+        }
+    }
+
+    #[allow(dead_code)]
+    fn reroll_n_or_higher(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equal_or_greater(n)) {
+            die.reroll();
+        }
+    }
 }
 
 impl fmt::Display for Pool {

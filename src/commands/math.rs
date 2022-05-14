@@ -19,9 +19,9 @@ async fn calc(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let infix_expression = args.message();
     let result = match calculator::evaluate(infix_expression) {
         Ok(res) => res,
-        Err(why) => format!("{} ☢ I don't know how to calculate that! ☢ {}", msg.author, why)
+        Err(why) => format!("☢ I don't know how to calculate that! ☢ {}", why)
     };
-    msg.channel_id.say(&ctx.http, format!("{} {}", msg.author, result)).await?;
+    msg.reply_ping(&ctx.http, result).await?;
 
     Ok(())
 }
@@ -30,7 +30,7 @@ async fn calc(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[description="Lets me execute an arbitrary expression, even really complicated ones that ~calc can't handle, including actual code! Just pass the code you want me to run as an argument in a code block under the command and whatever happens, happens!\n
 Careful with this one! (*＞ωб)ﾊﾞﾁｺｰﾝ"]
 async fn eval(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    msg.channel_id.say(&ctx.http, format!("{} Executing... <(\\`∨´+.)>ﾄﾞﾔｯ! I am a genius! {}", msg.author, args.message())).await?;
+    msg.reply_ping(&ctx.http, format!("{} Executing... <(\\`∨´+.)>ﾄﾞﾔｯ! I am a genius! {}", msg.author, args.message())).await?;
     msg.channel_id.say(&ctx.http, format!("Executing...")).await?;
     msg.channel_id.say(&ctx.http, format!("Executing...")).await?;
     msg.channel_id.say(&ctx.http, format!("Executing...")).await?;
