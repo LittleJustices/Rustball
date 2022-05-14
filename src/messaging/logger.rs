@@ -2,25 +2,29 @@ use std::fs;
 use std::fs::{ File, OpenOptions };
 use std::io;
 use std::io::Write;
-use std::path::Path;
+use std::path::{PathBuf};
 
 use serenity::model::channel::Message;
 
 #[derive(Debug)]
 pub struct Logger {
-    pub log_path: String,
+    pub log_path: PathBuf,
     log_file: File,
 }
 
 impl Logger {
     pub fn new(folder: &String, filename: &String) -> io::Result<Logger> {
-        let log_path = format!("{}/{}.txt", folder, filename);
-        fs::create_dir_all(folder)?;
+        let mut log_path = PathBuf::from(folder);
+        fs::create_dir_all(&log_path)?;
+
+        log_path.push(filename);
+        log_path.set_extension("txt");
+        println!("{:?}", log_path);
 
         let mut log_file = OpenOptions::new()
                         .create_new(true)
                         .append(true)
-                        .open(Path::new(&log_path))?;
+                        .open(&log_path)?;
 
         writeln!(log_file, "---LOG START---")?;
 
@@ -49,7 +53,7 @@ impl Logger {
     pub fn end_log(&self) -> io::Result<String> {
         let mut file = &self.log_file;
         writeln!(file, "---LOG END---")?;
-        let path = format!("{}", self.log_path);
+        let path = format!("{}", self.log_path.display());
         Ok(path)
     }
 }

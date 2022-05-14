@@ -23,7 +23,6 @@ use serenity::{
 };
 use std::{
     collections::HashMap,
-    path::Path,
 };
 use crate::messaging::logger::Logger;
 
@@ -144,7 +143,7 @@ async fn unlog(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 let unlog_confirm = format!("Okay, I'll stop logging <#{}>! ❤ Here's your log:", target);
                 let message = msg.channel_id.send_message(&ctx.http, |m| {
                     m.content(unlog_confirm);
-                    m.add_file(AttachmentType::Path(Path::new(&logger.log_path)));
+                    m.add_file(AttachmentType::Path(&logger.log_path));
                     m
                 }).await;
                 if let Err(why) = message {
@@ -241,7 +240,7 @@ async fn construct_log_filename(id: ChannelId, ctx: &Context) -> Result<String, 
         }
     }
         
-    let log_start_time = Utc::now().format("%Y-%m-%d-%a_%H:%M:%S");
+    let log_start_time = Utc::now().format("%Y-%m-%d-%a_%H-%M-%S");
     let log_file_name = format!("Sixball_Log{}_{}_{}", guild_name, chan_name, log_start_time);
     Ok(log_file_name)
 }
