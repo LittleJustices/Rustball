@@ -38,12 +38,15 @@ use commands::{
     logging::*,
     rolling::*,
     math::*,
+    scryfall::*,
 };
 
 mod dice;
 use dice::tray::Tray;
 
 mod math;
+
+mod scryfall;
 
 struct LogsKey;
 
@@ -84,6 +87,11 @@ struct Dice;
 #[description = "Commands that make me do math. Currently under construction!"]
 #[commands(calc, eval)]
 struct Math;
+
+#[group]
+#[description = "Scryfall commands under construction. Please wait warmly! ❤"]
+#[commands(card)]
+struct Scryfall;
 
 #[group]
 #[description = "Commands for logging channels. Servers only (not available in DMs)!\n\n
@@ -162,6 +170,7 @@ async fn main() {
         .group(&MATH_GROUP)
         .group(&GENERAL_GROUP)
         .group(&LOGGING_GROUP)
+        .group(&SCRYFALL_GROUP)
         .group(&FUNSIES_GROUP);
 
     let mut client = Client::builder(&discord_token)

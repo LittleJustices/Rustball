@@ -3,7 +3,10 @@ use std::{
     str::FromStr,
 };
 use lazy_static::lazy_static;
-use super::math_errors::MathError;
+use super::{
+    math_errors::MathError,
+    rpn_token::Token,
+};
 
 lazy_static! { 
     static ref PRECEDENCE: HashMap<char, u8> = HashMap::from([
@@ -87,6 +90,21 @@ impl RpnExpression {
         infix_vector
     }
 
+    #[allow(dead_code)]
+    fn tokenize_expression(infix_expression: &str) -> Result<Vec<Token>, MathError> {
+        let mut infix_processed = infix_expression.replace(" ", "");
+        for key in PRECEDENCE.keys() {
+            infix_processed = infix_processed.replace(*key, &format!(" {} ", key));
+        }
+
+        let mut infix_vector = vec![];
+        for symbol in infix_processed.split_whitespace() {
+            infix_vector.push(symbol.parse()?);
+        }
+
+        Ok(infix_vector)
+    }
+
     pub fn get_rpn_expression(&self) -> &VecDeque<String> {
         &self.postfix_expression
     }
@@ -101,5 +119,36 @@ impl FromStr for RpnExpression {
         rpn_expression.shunting_yard_conversion()?;
 
         Ok(rpn_expression)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::rpn_token::Token;
+
+    #[test]
+    fn test_tokenize() {
+        let expression = "(1+2)-3*(4/5)^6";
+        let token_vector = vec![
+            Token::LParen,
+            Token::Number(1.0),
+            Token::Add,
+            Token::Number(2.0),
+            Token::RParen,
+            Token::Sub,
+            Token::Number(3.0),
+            Token::Mul,
+            Token::LParen,
+            Token::Number(4.0),
+            Token::Div,
+            Token::Number(5.0),
+            Token::RParen,
+            Token::Pow,
+            Token::Number(6.0)
+        ];
+
+        assert_eq!(RpnExpression::tokenize_expression(expression).unwrap(), token_vector);
+        // TODO more tests
     }
 }
