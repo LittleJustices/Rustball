@@ -45,6 +45,8 @@ use dice::tray::Tray;
 
 mod math;
 
+mod scryfall;
+
 struct LogsKey;
 
 impl TypeMapKey for LogsKey {
