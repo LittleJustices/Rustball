@@ -20,7 +20,7 @@ pub async fn get_scryfall_text(request_vector: Vec<ReqToken>) -> Result<String, 
 }
 
 pub async fn get_scryfall_random_text() -> Result<String, reqwest::Error> {
-    let request_url = "https://api.scryfall.com/cards/random";
+    let request_url = "https://api.scryfall.com/cards/random?format=text";
 
     reqwest::get(request_url).await?.text().await
 }
