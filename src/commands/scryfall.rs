@@ -18,6 +18,17 @@ use crate::scryfall::{
 
 #[command]
 async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    if args.current() == Some("random") {
+        let output = match requests::get_scryfall_random_text().await {
+            Ok(text) => text,
+            Err(why) => format!("{}", why)
+        };
+    
+        msg.reply_ping(&ctx.http, format!("```{}```", output)).await?;
+
+        return Ok(());
+    }
+
     let request_vector = request_from_args(args);
     let output = match requests::get_scryfall_text(request_vector).await {
         Ok(text) => text,
