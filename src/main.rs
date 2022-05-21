@@ -69,7 +69,7 @@ impl TypeMapKey for TrayKey {
 struct ClientHandlerKey;
 
 impl TypeMapKey for ClientHandlerKey {
-    type Value = ClientHandler;
+    type Value = Arc<Mutex<ClientHandler>>;
 }
 
 #[group]
@@ -185,7 +185,7 @@ async fn main() {
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
         .type_map_insert::<ConfigKey>(config)
         .type_map_insert::<TrayKey>(Arc::new(Mutex::new(Tray::new())))
-        .type_map_insert::<ClientHandlerKey>(ClientHandler::new())
+        .type_map_insert::<ClientHandlerKey>(Arc::new(Mutex::new(ClientHandler::new())))
         .await
         .expect("Error creating client");
 
