@@ -20,13 +20,11 @@ impl FromStr for Token {
         let token: Result<Token, MathError> = match s.trim() {
             "+" => Ok(Token::Add),
             "-" => Ok(Token::Sub),
-            "*" => Ok(Token::Mul),
-            "x" => Ok(Token::Mul),
+            "*" | "x" => Ok(Token::Mul),
             "/" => Ok(Token::Div),
-            "^" => Ok(Token::Pow),
-            "**" => Ok(Token::Pow),
-            ")" => Ok(Token::RParen),
-            "(" => Ok(Token::LParen),
+            "^" | "**" => Ok(Token::Pow),
+            ")" | "]" | "}" => Ok(Token::RParen),
+            "(" | "[" | "{" => Ok(Token::LParen),
             other => {
                 if let Ok(num) = other.parse() {
                     return Ok(Token::Number(num));
