@@ -20,6 +20,8 @@ use serenity::{
     prelude::*,
 };
 
+mod sixball_errors;
+
 mod config;
 use config::Config;
 
