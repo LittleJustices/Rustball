@@ -1,11 +1,12 @@
 use super::{
-    req_token::ReqToken,
     card::Card,
+    req_token::ReqToken,
+    scryfall_errors::ScryfallError,
 };
 use reqwest::Client;
 
 #[allow(dead_code)]
-pub async fn get_scryfall_text(client: &Client, request_vector: Vec<ReqToken>) -> Result<String, reqwest::Error> {
+pub async fn get_scryfall_text(client: &Client, request_vector: Vec<ReqToken>) -> Result<String, ScryfallError> {
     let mut request_url = String::from("https://api.scryfall.com/cards/named?format=text&");
     for token in request_vector.iter() {
         match token {
@@ -20,10 +21,10 @@ pub async fn get_scryfall_text(client: &Client, request_vector: Vec<ReqToken>) -
         }
     }
 
-    client.get(request_url).send().await?.text().await
+    Ok(client.get(request_url).send().await?.text().await?)
 }
 
-pub async fn get_scryfall_json(client: &Client, request_vector: Vec<ReqToken>) -> Result<Card, reqwest::Error> {
+pub async fn get_scryfall_json(client: &Client, request_vector: Vec<ReqToken>) -> Result<Card, ScryfallError> {
     let mut request_url = String::from("https://api.scryfall.com/cards/named?");
     for token in request_vector.iter() {
         match token {
@@ -38,18 +39,18 @@ pub async fn get_scryfall_json(client: &Client, request_vector: Vec<ReqToken>) -
         }
     }
 
-    client.get(request_url).send().await?.json::<Card>().await
+    Ok(client.get(request_url).send().await?.json::<Card>().await?)
 }
 
 #[allow(dead_code)]
-pub async fn get_scryfall_random_text(client: &Client) -> Result<String, reqwest::Error> {
+pub async fn get_scryfall_random_text(client: &Client) -> Result<String, ScryfallError> {
     let request_url = "https://api.scryfall.com/cards/random?format=text";
 
-    client.get(request_url).send().await?.text().await
+    Ok(client.get(request_url).send().await?.text().await?)
 }
 
-pub async fn get_scryfall_random_json(client: &Client) -> Result<Card, reqwest::Error> {
+pub async fn get_scryfall_random_json(client: &Client) -> Result<Card, ScryfallError> {
     let request_url = "https://api.scryfall.com/cards/random";
 
-    client.get(request_url).send().await?.json::<Card>().await
+    Ok(client.get(request_url).send().await?.json::<Card>().await?)
 }
