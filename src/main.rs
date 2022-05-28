@@ -148,11 +148,16 @@ async fn normal_message(ctx: &Context, msg: &Message) {
 }
 
 #[hook]
-async fn after(_ctx: &Context, _msg: &Message, command_name: &str, command_result: CommandResult) {
+async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result: CommandResult) {
     match command_result {
         Ok(()) => println!("Processed command '{}'", command_name),
-        Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
-    }
+        Err(why) => {
+            let error_message = format!("☢ Command Error! ((ﾟДﾟ；))ｶﾞﾀｶﾞﾀ ☢\n {}", why);
+            if let Err(send_err) = msg.reply_ping(&ctx.http, error_message).await {
+                println!("Command '{}' returned error {}\nFailed to send error message: {}", command_name, why, send_err);
+            }
+        },
+    };
 }
 
 #[tokio::main]
