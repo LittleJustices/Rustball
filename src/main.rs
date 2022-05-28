@@ -147,6 +147,14 @@ async fn normal_message(ctx: &Context, msg: &Message) {
     return;
 }
 
+#[hook]
+async fn after(_ctx: &Context, _msg: &Message, command_name: &str, command_result: CommandResult) {
+    match command_result {
+        Ok(()) => println!("Processed command '{}'", command_name),
+        Err(why) => println!("Command '{}' returned error {:?}", command_name, why),
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let config = Config::new();
@@ -173,6 +181,7 @@ async fn main() {
             .with_whitespace(true)
         )
         .normal_message(normal_message)
+        .after(after)
         .help(&MY_HELP)
         .group(&DICE_GROUP)
         .group(&MATH_GROUP)
