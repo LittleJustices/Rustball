@@ -48,7 +48,7 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 m.embed(|e| {
                     e.title(c.name);
                     e.url(c.scryfall_uri);
-                    e.field("", c.type_line, false);
+                    e.description(c.type_line);
                     e
                 });
                 m
