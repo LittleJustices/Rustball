@@ -47,6 +47,15 @@ pub struct RelatedCard {
     pub uri: String,
 }
 
+impl Card {
+    #[allow(dead_code)]
+    pub fn build_description(&self) -> String {
+        let mut description = String::new();
+
+        description
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
