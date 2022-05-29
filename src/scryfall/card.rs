@@ -57,6 +57,12 @@ impl Card {
 
         description
     }
+
+    #[allow(dead_code)]
+    pub fn get_uri(&self) -> String {
+        let uri = String::from(&self.scryfall_uri);
+        uri
+    }
 }
 
 #[cfg(test)]
@@ -70,5 +76,7 @@ mod tests {
         let card_from_str = serde_json::from_str::<Card>(card_data).unwrap();
 
         println!("{:?}", &card_from_str);
+        assert_eq!(card_from_str.get_uri(), "https://scryfall.com/card/ori/60/jace-vryns-prodigy-jace-telepath-unbound?utm_source=api".to_owned());
+        assert_eq!(card_from_str.build_description(), "Legendary Creature — Human Wizard // Legendary Planeswalker — Jace\n".to_owned())
     }
 }
