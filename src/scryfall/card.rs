@@ -52,6 +52,9 @@ impl Card {
     pub fn build_description(&self) -> String {
         let mut description = String::new();
 
+        description.push_str(&self.type_line);
+        description.push('\n');
+
         description
     }
 }
