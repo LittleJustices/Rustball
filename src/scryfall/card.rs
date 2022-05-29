@@ -48,7 +48,6 @@ pub struct RelatedCard {
 }
 
 impl Card {
-    #[allow(dead_code)]
     pub fn build_description(&self) -> String {
         let mut description = String::new();
 
@@ -58,7 +57,11 @@ impl Card {
         description
     }
 
-    #[allow(dead_code)]
+    pub fn get_name(&self) -> String {
+        let name = String::from(&self.name);
+        name
+    }
+
     pub fn get_uri(&self) -> String {
         let uri = String::from(&self.scryfall_uri);
         uri
@@ -77,6 +80,7 @@ mod tests {
 
         println!("{:?}", &card_from_str);
         assert_eq!(card_from_str.get_uri(), "https://scryfall.com/card/ori/60/jace-vryns-prodigy-jace-telepath-unbound?utm_source=api".to_owned());
-        assert_eq!(card_from_str.build_description(), "Legendary Creature — Human Wizard // Legendary Planeswalker — Jace\n".to_owned())
+        assert_eq!(card_from_str.build_description(), "Legendary Creature — Human Wizard // Legendary Planeswalker — Jace\n".to_owned());
+        assert_eq!(card_from_str.get_name(), "Jace, Vryn's Prodigy // Jace, Telepath Unbound".to_owned());
     }
 }

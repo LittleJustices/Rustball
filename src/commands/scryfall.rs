@@ -46,9 +46,9 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         Ok(c) => {
             msg.channel_id.send_message(&ctx.http, |m| {
                 m.embed(|e| {
-                    e.title(c.name);
-                    e.url(c.scryfall_uri);
-                    e.description(c.type_line);
+                    e.title(c.get_name());
+                    e.url(c.get_uri());
+                    e.description(c.build_description());
                     e
                 });
                 m
