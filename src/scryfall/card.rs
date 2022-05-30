@@ -116,6 +116,6 @@ mod tests {
         println!("{:?}", &card_from_str);
         assert_eq!(card_from_str.get_uri(), "https://scryfall.com/card/ori/60/jace-vryns-prodigy-jace-telepath-unbound?utm_source=api".to_owned());
         assert_eq!(card_from_str.build_description(), "Legendary Creature — Human Wizard // Legendary Planeswalker — Jace\n".to_owned());
-        assert_eq!(card_from_str.get_name(), "Jace, Vryn's Prodigy // Jace, Telepath Unbound".to_owned());
+        assert_eq!(card_from_str.get_name(), "Jace, Vryn's Prodigy // Jace, Telepath Unbound\t{1}{U}".to_owned());
     }
 }
