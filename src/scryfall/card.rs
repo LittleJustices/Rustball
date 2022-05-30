@@ -58,7 +58,42 @@ impl Card {
     }
 
     pub fn get_name(&self) -> String {
-        let name = String::from(&self.name);
+        let mut name = String::from(&self.name);
+        if let Some(mc) = &self.mana_cost {
+            name.push('\t');
+            name.push_str(mc);
+        } else {
+            match self.layout.as_str() {
+                "transform" => {
+                    if let Some(faces) = &self.card_faces {
+                        let front_side = &faces[0];
+                        if let Some(mana_cost) = &front_side.mana_cost {
+                            name.push('\t');
+                            name.push_str(mana_cost);
+                        }
+                    }
+                },
+                "modal_dfc" => {
+                    if let Some(faces) = &self.card_faces {
+                        name.push('\t');
+                        let mut faces_iter = faces.iter();
+                        if let Some(face) = faces_iter.next() {
+                            if let Some(face_cost) = &face.mana_cost {
+                                name.push_str(face_cost);
+                            }
+                        }
+                        for face in faces_iter {
+                            if let Some(face_cost) = &face.mana_cost {
+                                name.push_str(" // ");
+                                name.push_str(face_cost);
+                            }
+                        }
+                    }
+                },
+                _ => {}
+            }
+        }
+
         name
     }
 
