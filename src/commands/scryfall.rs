@@ -48,6 +48,7 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                 m.embed(|e| {
                     e.title(c.get_name());
                     e.url(c.get_uri());
+                    e.thumbnail(c.get_image());
                     e.description(c.build_description());
                     e
                 });

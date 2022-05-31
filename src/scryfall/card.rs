@@ -57,6 +57,15 @@ impl Card {
         description
     }
 
+    pub fn get_image(&self) -> String {
+        let mut uri = String::new();
+        if let Some(image_uris) = &self.image_uris {
+            uri.push_str(&image_uris.normal);
+        }
+
+        uri
+    }
+
     pub fn get_name(&self) -> String {
         let mut name = String::from(&self.name);
         if let Some(mc) = &self.mana_cost {
