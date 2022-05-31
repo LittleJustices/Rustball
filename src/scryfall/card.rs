@@ -61,6 +61,10 @@ impl Card {
         let mut uri = String::new();
         if let Some(image_uris) = &self.image_uris {
             uri.push_str(&image_uris.normal);
+        } else {
+            if let Some(faces) = &self.card_faces {
+                uri.push_str(&faces[0].image_uris.normal);
+            }
         }
 
         uri
