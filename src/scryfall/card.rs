@@ -52,7 +52,11 @@ impl Card {
         let mut description = String::new();
 
         description.push_str(&self.type_line);
-        description.push('\n');
+
+        if let Some(text) = &self.oracle_text {
+            description.push('\n');
+            description.push_str(text);
+        }
 
         description
     }
