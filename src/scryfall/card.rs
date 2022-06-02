@@ -56,6 +56,24 @@ impl Card {
         if let Some(text) = &self.oracle_text {
             description.push('\n');
             description.push_str(text);
+        } else {
+            if let Some(faces) = &self.card_faces {
+                description.push('\n');
+                let mut faces_iter = faces.iter();
+                if let Some(face) = faces_iter.next() {
+                    if let Some(face_text) = &face.oracle_text {
+                        description.push_str(face_text);
+                    }
+                }
+                for face in faces_iter {
+                    if let Some(face_text) = &face.oracle_text {
+                        description.push_str("\n//\n");
+                        description.push_str(face_text);
+                    } else {
+                        description.push_str("\n//\n \n");
+                    }
+                }
+            }
         }
 
         description
