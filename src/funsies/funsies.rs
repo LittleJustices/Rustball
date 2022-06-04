@@ -27,7 +27,7 @@ pub fn yuru() -> &'static str {
 
 pub fn dailydose() -> &'static str {
     let links = vec![
-        "https://fxtwitter.com/nsl_mgh/status/1367171515154800640",
+        "https://twitter.com/nsl_mgh/status/1367171515154800640",
         "https://twitter.com/kyomoneko_2/status/1347468091668762626",
         "https://twitter.com/yakumosgap/status/1474855343176011779",
         "https://twitter.com/kyomoneko_2/status/1485186556210163713",
