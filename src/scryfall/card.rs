@@ -51,29 +51,31 @@ impl Card {
     pub fn build_description(&self) -> String {
         let mut description = String::new();
 
-        description.push_str(&self.type_line);
-
-        if let Some(text) = &self.oracle_text {
-            description.push('\n');
-            description.push_str(text);
-        } else {
-            if let Some(faces) = &self.card_faces {
+        match self.layout.as_str() {
+            "normal" | "meld" | "leveler" | "class" | "saga" | "planar" | "scheme" | "token" | "emblem" | "augment" | "host" => {
+                description.push_str(&self.type_line);
                 description.push('\n');
-                let mut faces_iter = faces.iter();
-                if let Some(face) = faces_iter.next() {
-                    if let Some(face_text) = &face.oracle_text {
-                        description.push_str(face_text);
-                    }
+                if let Some(text) = &self.oracle_text {
+                    description.push_str(text);
                 }
-                for face in faces_iter {
-                    if let Some(face_text) = &face.oracle_text {
-                        description.push_str("\n//\n");
-                        description.push_str(face_text);
-                    } else {
-                        description.push_str("\n//\n \n");
-                    }
+                description.push('\n');
+                if let (Some(power), Some(toughness)) = (&self.power, &self.toughness) {
+                    description.push_str(&format!("{}/{}", power, toughness));
                 }
-            }
+                if let Some(loyalty) = &self.loyalty {
+                    description.push_str(&format!("Loyalty: {}", loyalty));
+                }
+            },
+            "split" | "flip" | "transform" | "modal_dfc" | "adventure" | "double_faced_token" | "art_series" | "reversible_card" => {
+                if let Some(faces) = &self.card_faces {
+                    description.push_str(&faces[0].build_description());
+                    description.push('\n');
+                    description.push_str("---------");
+                    description.push('\n');
+                    description.push_str(&faces[1].build_description());
+                }
+            },
+            _ => description.push_str(&format!(" （　ＴДＴ） Description for this layout ({}) not implemented yet!", &self.layout))
         }
 
         description
@@ -135,6 +137,33 @@ impl Card {
     pub fn get_uri(&self) -> String {
         let uri = String::from(&self.scryfall_uri);
         uri
+    }
+}
+
+impl CardFace {
+    pub fn build_description(&self) -> String {
+        let mut description = String::new();
+
+        description.push_str(&self.name);
+        if let Some(mc) = &self.mana_cost {
+            description.push('\t');
+            description.push_str(mc);
+        }
+        description.push('\n');
+        description.push_str(&self.type_line);
+        description.push('\n');
+        if let Some(text) = &self.oracle_text {
+            description.push_str(text);
+        }
+        description.push('\n');
+        if let (Some(power), Some(toughness)) = (&self.power, &self.toughness) {
+            description.push_str(&format!("{}/{}", power, toughness));
+        }
+        if let Some(loyalty) = &self.loyalty {
+            description.push_str(&format!("Loyalty: {}", loyalty));
+        }
+
+        description
     }
 }
 
