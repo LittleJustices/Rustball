@@ -51,7 +51,8 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     e.thumbnail(c.get_image());
                     e.description(c.build_description());
 
-                    if let Some(related_cards) = c.build_related() {
+                    if let Some(mut related_cards) = c.build_related() {
+                        related_cards.truncate(1024);
                         e.field("Related Cards", related_cards, false);
                     }
 
