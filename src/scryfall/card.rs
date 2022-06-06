@@ -20,7 +20,7 @@ pub struct Card {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct CardFace {
-    pub image_uris: ImageUris,
+    pub image_uris: Option<ImageUris>,
     pub layout: Option<String>,
     pub loyalty: Option<String>,
     pub mana_cost: Option<String>,
@@ -87,7 +87,9 @@ impl Card {
             uri.push_str(&image_uris.normal);
         } else {
             if let Some(faces) = &self.card_faces {
-                uri.push_str(&faces[0].image_uris.normal);
+                if let Some(uris) = &faces[0].image_uris {
+                    uri.push_str(&uris.normal);
+                }
             }
         }
 
