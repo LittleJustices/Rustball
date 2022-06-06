@@ -33,24 +33,32 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Ok(());
     }
 
-    if args.current() == Some("random") {
-        let output = match requests::get_scryfall_random_text(client).await {
-            Ok(text) => text,
-            Err(why) => format!("{}", why)
-        };
-    
-        msg.reply_ping(&ctx.http, format!("```{}```", output)).await?;
+    let card_info;
 
-        return Ok(());
+    if args.current() == Some("random") {
+        card_info = requests::get_scryfall_random_json(client).await;
+    } else {
+        let request_vector = request_from_args(args);
+        card_info = requests::get_scryfall_json(client, request_vector).await;
     }
 
-    let request_vector = request_from_args(args);
-    let output = match requests::get_scryfall_text(client, request_vector).await {
-        Ok(text) => text,
-        Err(why) => format!("{}", why)
-    };
-
-    msg.reply_ping(&ctx.http, format!("```{}```", output)).await?;
+    match card_info {
+        Ok(c) => {
+            msg.channel_id.send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title(c.get_name());
+                    e.url(c.get_uri());
+                    e.thumbnail(c.get_image());
+                    e.description(c.build_description());
+                    e
+                });
+                m
+            }).await?;
+        },
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("```{}```", why)).await?;
+        }
+    }
     
     Ok(())
 }

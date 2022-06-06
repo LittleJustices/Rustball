@@ -20,6 +20,8 @@ use serenity::{
     prelude::*,
 };
 
+mod sixball_errors;
+
 mod config;
 use config::Config;
 
@@ -145,6 +147,19 @@ async fn normal_message(ctx: &Context, msg: &Message) {
     return;
 }
 
+#[hook]
+async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result: CommandResult) {
+    match command_result {
+        Ok(()) => println!("Processed command '{}'", command_name),
+        Err(why) => {
+            let error_message = format!("☢ Command Error! ((ﾟДﾟ；))ｶﾞﾀｶﾞﾀ ☢\n {}", why);
+            if let Err(send_err) = msg.reply_ping(&ctx.http, error_message).await {
+                println!("Command '{}' returned error {}\nFailed to send error message: {}", command_name, why, send_err);
+            }
+        },
+    };
+}
+
 #[tokio::main]
 async fn main() {
     let config = Config::new();
@@ -171,6 +186,7 @@ async fn main() {
             .with_whitespace(true)
         )
         .normal_message(normal_message)
+        .after(after)
         .help(&MY_HELP)
         .group(&DICE_GROUP)
         .group(&MATH_GROUP)
