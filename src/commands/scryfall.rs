@@ -50,6 +50,11 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     e.url(c.get_uri());
                     e.thumbnail(c.get_image());
                     e.description(c.build_description());
+
+                    if let Some(related_cards) = c.build_related() {
+                        e.field("Related Cards", related_cards, false);
+                    }
+
                     e
                 });
                 m

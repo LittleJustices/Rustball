@@ -45,8 +45,8 @@ pub struct ImageUris {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct RelatedCard {
+    pub id: String,
     pub name: String,
-    pub uri: String,
 }
 
 impl Card {
@@ -88,6 +88,24 @@ impl Card {
         }
 
         description
+    }
+
+    pub fn build_related(&self) -> Option<String> {
+        let related_string;
+
+        if let Some(related_cards) = &self.all_parts {
+            let mut parts = String::new();
+
+            for card in related_cards {
+                parts.push_str(&format!("[{}](https://scryfall.com/card/{})\n", card.name, card.id));
+            }
+
+            related_string = Some(parts.trim_end().to_owned());
+        } else {
+            related_string = None;
+        }
+
+        related_string
     }
 
     pub fn get_image(&self) -> String {
