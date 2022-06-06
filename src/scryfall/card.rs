@@ -5,8 +5,10 @@ pub struct Card {
     pub all_parts: Option<Vec<RelatedCard>>,
     pub card_faces: Option<Vec<CardFace>>,
     pub content_warning: Option<bool>,
+    pub hand_modifier: Option<String>,
     pub image_uris: Option<ImageUris>,
     pub layout: String,
+    pub life_modifier: Option<String>,
     pub loyalty: Option<String>,
     pub mana_cost: Option<String>,
     pub name: String,
@@ -52,7 +54,7 @@ impl Card {
         let mut description = String::new();
 
         match self.layout.as_str() {
-            "normal" | "meld" | "leveler" | "class" | "saga" | "planar" | "scheme" | "token" | "emblem" | "augment" | "host" => {
+            "normal" | "meld" | "leveler" | "class" | "saga" | "planar" | "scheme" | "vanguard" | "token" | "emblem" | "augment" | "host" => {
                 description.push_str(&self.type_line);
                 description.push('\n');
                 if let Some(text) = &self.oracle_text {
@@ -64,6 +66,13 @@ impl Card {
                 }
                 if let Some(loyalty) = &self.loyalty {
                     description.push_str(&format!("Loyalty: {}", loyalty));
+                }
+                if let Some(hand_size) = &self.hand_modifier {
+                    description.push_str(&format!("Hand Size: {}", hand_size));
+                }
+                if let Some(starting_life) = &self.life_modifier {
+                    description.push('\n');
+                    description.push_str(&format!("Starting Life: {}", starting_life));
                 }
             },
             "split" | "flip" | "transform" | "modal_dfc" | "adventure" | "double_faced_token" | "art_series" | "reversible_card" => {
