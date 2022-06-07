@@ -17,7 +17,7 @@ pub struct Card {
     pub rulings_uri: String,
     pub scryfall_uri: String,
     pub toughness: Option<String>,
-    pub type_line: String,
+    pub type_line: Option<String>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -55,7 +55,9 @@ impl Card {
 
         match self.layout.as_str() {
             "normal" | "meld" | "leveler" | "class" | "saga" | "planar" | "scheme" | "vanguard" | "token" | "emblem" | "augment" | "host" => {
-                description.push_str(&self.type_line);
+                if let Some(t_line) = &self.type_line {
+                    description.push_str(&t_line);
+                }
                 description.push('\n');
                 if let Some(text) = &self.oracle_text {
                     description.push_str(text);
