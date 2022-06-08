@@ -49,6 +49,13 @@ pub struct RelatedCard {
     pub name: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ErrorObject {
+    pub status: String,
+    pub details: String,
+    pub warnings: Option<Vec<String>>,
+}
+
 impl Card {
     pub fn build_description(&self) -> String {
         let mut description = String::new();
