@@ -205,6 +205,19 @@ impl CardFace {
     }
 }
 
+impl std::fmt::Display for ErrorObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut warnings_string = String::new();
+        if let Some(warnings_vec) = &self.warnings {
+            for warning in warnings_vec {
+                warnings_string.push('\n');
+                warnings_string.push_str(warning);
+            }
+        }
+        write!(f, "{}: {}{}", self.status, self.details, warnings_string)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
