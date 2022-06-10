@@ -51,7 +51,7 @@ pub struct RelatedCard {
 
 #[derive(Debug, Deserialize)]
 pub struct ErrorObject {
-    pub status: String,
+    pub status: u16,
     pub details: String,
     pub warnings: Option<Vec<String>>,
 }
