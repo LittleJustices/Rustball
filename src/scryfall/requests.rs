@@ -1,5 +1,8 @@
 use super::{
-    card::Card,
+    card::{
+        Card,
+        ErrorObject,
+    },
     req_token::ReqToken,
     scryfall_errors::ScryfallError,
 };
@@ -39,7 +42,13 @@ pub async fn get_scryfall_json(client: &Client, request_vector: Vec<ReqToken>) -
         }
     }
 
-    Ok(client.get(request_url).send().await?.json::<Card>().await?)
+    match client.get(&request_url).send().await?.json::<Card>().await {
+        Ok(card) => Ok(card),
+        Err(_) => {
+            let why = client.get(&request_url).send().await?.json::<ErrorObject>().await?;
+            Err(ScryfallError::ApiError(why))
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -52,5 +61,11 @@ pub async fn get_scryfall_random_text(client: &Client) -> Result<String, Scryfal
 pub async fn get_scryfall_random_json(client: &Client) -> Result<Card, ScryfallError> {
     let request_url = "https://api.scryfall.com/cards/random";
 
-    Ok(client.get(request_url).send().await?.json::<Card>().await?)
+    match client.get(request_url).send().await?.json::<Card>().await {
+        Ok(card) => Ok(card),
+        Err(_) => {
+            let why = client.get(request_url).send().await?.json::<ErrorObject>().await?;
+            Err(ScryfallError::ApiError(why))
+        }
+    }
 }
