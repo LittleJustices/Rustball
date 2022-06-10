@@ -62,7 +62,7 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             }).await?;
         },
         Err(why) => {
-            msg.reply_ping(&ctx.http, format!("```{}```", why)).await?;
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
         }
     }
     
