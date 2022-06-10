@@ -50,13 +50,19 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
                     e.url(c.get_uri());
                     e.thumbnail(c.get_image());
                     e.description(c.build_description());
+
+                    if let Some(mut related_cards) = c.build_related() {
+                        related_cards.truncate(1024);
+                        e.field("Related Cards", related_cards, false);
+                    }
+
                     e
                 });
                 m
             }).await?;
         },
         Err(why) => {
-            msg.reply_ping(&ctx.http, format!("```{}```", why)).await?;
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
         }
     }
     

@@ -17,7 +17,7 @@ pub struct Card {
     pub rulings_uri: String,
     pub scryfall_uri: String,
     pub toughness: Option<String>,
-    pub type_line: String,
+    pub type_line: Option<String>,
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
@@ -45,8 +45,15 @@ pub struct ImageUris {
 
 #[derive(Debug, Deserialize, PartialEq)]
 pub struct RelatedCard {
+    pub id: String,
     pub name: String,
-    pub uri: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ErrorObject {
+    pub status: u16,
+    pub details: String,
+    pub warnings: Option<Vec<String>>,
 }
 
 impl Card {
@@ -55,7 +62,9 @@ impl Card {
 
         match self.layout.as_str() {
             "normal" | "meld" | "leveler" | "class" | "saga" | "planar" | "scheme" | "vanguard" | "token" | "emblem" | "augment" | "host" => {
-                description.push_str(&self.type_line);
+                if let Some(t_line) = &self.type_line {
+                    description.push_str(&t_line);
+                }
                 description.push('\n');
                 if let Some(text) = &self.oracle_text {
                     description.push_str(text);
@@ -88,6 +97,24 @@ impl Card {
         }
 
         description
+    }
+
+    pub fn build_related(&self) -> Option<String> {
+        let related_string;
+
+        if let Some(related_cards) = &self.all_parts {
+            let mut parts = String::new();
+
+            for card in related_cards {
+                parts.push_str(&format!("[{}](https://scryfall.com/card/{})\n", card.name, card.id));
+            }
+
+            related_string = Some(parts.trim_end().to_owned());
+        } else {
+            related_string = None;
+        }
+
+        related_string
     }
 
     pub fn get_image(&self) -> String {
@@ -175,6 +202,19 @@ impl CardFace {
         }
 
         description
+    }
+}
+
+impl std::fmt::Display for ErrorObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut warnings_string = String::new();
+        if let Some(warnings_vec) = &self.warnings {
+            for warning in warnings_vec {
+                warnings_string.push('\n');
+                warnings_string.push_str(warning);
+            }
+        }
+        write!(f, "{}: {}{}", self.status, self.details, warnings_string)
     }
 }
 
