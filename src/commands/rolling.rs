@@ -8,9 +8,20 @@ use serenity::{
             },
         },
     },
-    model::channel::Message,
+    model::{
+        channel::Message, 
+        id::{
+            GuildId, 
+            ChannelId
+        }
+    },
     prelude::*,
 };
+use std::collections::HashMap;
+use crate::dice::tray::Tray;
+
+pub type GuildTrayMap = HashMap<GuildId, Tray>;
+pub type PrivateTrayMap = HashMap<ChannelId, Tray>;
 
 #[command]
 #[description="The basic roll command! Currently under construction.\n
