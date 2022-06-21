@@ -8,9 +8,25 @@ use serenity::{
             },
         },
     },
-    model::channel::Message,
+    model::{
+        channel::Message, 
+        id::{
+            GuildId, 
+            ChannelId
+        }
+    },
     prelude::*,
 };
+use std::collections::HashMap;
+use crate::dice::tray::Tray;
+
+pub type TrayMap = HashMap<TrayId, Tray>;
+
+#[derive(Debug, Hash, PartialEq, Eq)]
+pub enum TrayId {
+    Private(ChannelId),
+    Guild(Option<GuildId>),
+}
 
 #[command]
 #[description="The basic roll command! Currently under construction.\n
@@ -41,14 +57,24 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let verbose = false; // to be set inside the roll
 
     // Get config data with write permission to manipulate the tray
-    let mut config_data = ctx.data.write().await;
-    let tray = config_data
+    let mut tray_data = ctx.data.write().await;
+    let mut tray_map = tray_data
         .get_mut::<crate::TrayKey>()
-        .expect("Failed to retrieve dice tray!");
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+    
+    let tray = match tray_map.get_mut(&make_tray_id(msg)) {
+        Some(extant_tray) => extant_tray,
+        None => {
+            let new_tray = Tray::new();
+            tray_map.insert(make_tray_id(msg), new_tray);
+            tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
+        }
+    };
 
     let result;
     let compact_breakdown;
-    match tray.lock().await.process_roll_command(roll_command) {
+    match tray.process_roll_command(roll_command) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
             let roll_error = format!("{}", why);
@@ -86,20 +112,25 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[description="Under construction. Please wait warmly!"]
 async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
     // Get config data with write permission to manipulate the tray
-    let mut config_data = ctx.data.write().await;
-    let tray = config_data
+    let mut tray_data = ctx.data.write().await;
+    let mut tray_map = tray_data
         .get_mut::<crate::TrayKey>()
-        .expect("Failed to retrieve dice tray!");
-    
-    match tray.lock().await.reroll_latest() {
-        Ok(reroll) => {
-            let message = format!("Reroll: {}", reroll);
-            msg.reply_ping(&ctx.http, message).await?;
-        },
-        Err(why) => {
-            let roll_error = format!("{}", why);
-            msg.reply_ping(&ctx.http, roll_error).await?;
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+
+    if let Some(tray) = tray_map.get_mut(&make_tray_id(msg)) {
+        match tray.reroll_latest() {
+            Ok(reroll) => {
+                let message = format!("Reroll: {}", reroll);
+                msg.reply_ping(&ctx.http, message).await?;
+            },
+            Err(why) => {
+                let roll_error = format!("{}", why);
+                msg.reply_ping(&ctx.http, roll_error).await?;
+            }
         }
+    } else {
+        msg.reply_ping(&ctx.http, "There's nothing to reroll!").await?;
     }
 
     Ok(())
@@ -139,4 +170,15 @@ async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, roll).await?;
 
     Ok(())
+}
+
+fn make_tray_id(msg: &Message) -> TrayId {
+    let tray_id;
+    if msg.is_private() {
+        tray_id = TrayId::Private(msg.channel_id);
+    } else {
+        tray_id = TrayId::Guild(msg.guild_id);
+    }
+
+    tray_id
 }
