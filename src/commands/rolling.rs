@@ -56,8 +56,8 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let verbose = false; // to be set inside the roll
 
     // Get config data with write permission to manipulate the tray
-    let mut config_data = ctx.data.write().await;
-    let tray = config_data
+    let mut tray_data = ctx.data.write().await;
+    let tray = tray_data
         .get_mut::<crate::TrayKey>()
         .expect("Failed to retrieve dice tray!");
 
