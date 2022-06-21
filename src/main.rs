@@ -43,7 +43,6 @@ use commands::{
 };
 
 mod dice;
-use dice::tray::Tray;
 
 mod math;
 
@@ -65,19 +64,7 @@ impl TypeMapKey for ConfigKey {
 struct TrayKey;
 
 impl TypeMapKey for TrayKey {
-    type Value = Arc<Mutex<Tray>>;
-}
-
-struct GuildTrayKey;
-
-impl TypeMapKey for GuildTrayKey {
-    type Value = Arc<Mutex<commands::rolling::GuildTrayMap>>;
-}
-
-struct PrivateTrayKey;
-
-impl TypeMapKey for PrivateTrayKey {
-    type Value = Arc<Mutex<commands::rolling::PrivateTrayMap>>;
+    type Value = Arc<Mutex<commands::rolling::TrayMap>>;
 }
 
 struct ClientHandlerKey;
@@ -212,9 +199,7 @@ async fn main() {
         .event_handler(Handler::new())
         .type_map_insert::<LogsKey>(Arc::new(Mutex::new(commands::logging::LogsMap::new())))
         .type_map_insert::<ConfigKey>(config)
-        .type_map_insert::<TrayKey>(Arc::new(Mutex::new(Tray::new())))
-        .type_map_insert::<GuildTrayKey>(Arc::new(Mutex::new(commands::rolling::GuildTrayMap::new())))
-        .type_map_insert::<PrivateTrayKey>(Arc::new(Mutex::new(commands::rolling::PrivateTrayMap::new())))
+        .type_map_insert::<TrayKey>(Arc::new(Mutex::new(commands::rolling::TrayMap::new())))
         .type_map_insert::<ClientHandlerKey>(Arc::new(Mutex::new(ClientHandler::new())))
         .await
         .expect("Error creating client");

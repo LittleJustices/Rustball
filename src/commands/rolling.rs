@@ -20,11 +20,10 @@ use serenity::{
 use std::collections::HashMap;
 use crate::dice::tray::Tray;
 
-pub type GuildTrayMap = HashMap<GuildId, Tray>;
-pub type PrivateTrayMap = HashMap<ChannelId, Tray>;
+pub type TrayMap = HashMap<TrayId, Tray>;
 
-#[derive(Debug, PartialEq, Eq)]
-enum TrayId {
+#[derive(Debug, Hash, PartialEq, Eq)]
+pub enum TrayId {
     Private(ChannelId),
     Guild(Option<GuildId>),
 }
@@ -36,10 +35,6 @@ I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice in
 Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    if !check_for_tray(ctx, msg).await {
-        insert_new_tray(ctx, msg).await;
-    }
-
     let roll_command;
     let comment;
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
@@ -63,13 +58,23 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     // Get config data with write permission to manipulate the tray
     let mut tray_data = ctx.data.write().await;
-    let tray = tray_data
+    let mut tray_map = tray_data
         .get_mut::<crate::TrayKey>()
-        .expect("Failed to retrieve dice tray!");
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+    
+    let tray = match tray_map.get_mut(&make_tray_id(msg)) {
+        Some(extant_tray) => extant_tray,
+        None => {
+            let new_tray = Tray::new();
+            tray_map.insert(make_tray_id(msg), new_tray);
+            tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
+        }
+    };
 
     let result;
     let compact_breakdown;
-    match tray.lock().await.process_roll_command(roll_command) {
+    match tray.process_roll_command(roll_command) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
             let roll_error = format!("{}", why);
@@ -107,20 +112,25 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[description="Under construction. Please wait warmly!"]
 async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
     // Get config data with write permission to manipulate the tray
-    let mut config_data = ctx.data.write().await;
-    let tray = config_data
+    let mut tray_data = ctx.data.write().await;
+    let mut tray_map = tray_data
         .get_mut::<crate::TrayKey>()
-        .expect("Failed to retrieve dice tray!");
-    
-    match tray.lock().await.reroll_latest() {
-        Ok(reroll) => {
-            let message = format!("Reroll: {}", reroll);
-            msg.reply_ping(&ctx.http, message).await?;
-        },
-        Err(why) => {
-            let roll_error = format!("{}", why);
-            msg.reply_ping(&ctx.http, roll_error).await?;
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+
+    if let Some(tray) = tray_map.get_mut(&make_tray_id(msg)) {
+        match tray.reroll_latest() {
+            Ok(reroll) => {
+                let message = format!("Reroll: {}", reroll);
+                msg.reply_ping(&ctx.http, message).await?;
+            },
+            Err(why) => {
+                let roll_error = format!("{}", why);
+                msg.reply_ping(&ctx.http, roll_error).await?;
+            }
         }
+    } else {
+        msg.reply_ping(&ctx.http, "There's nothing to reroll!").await?;
     }
 
     Ok(())
@@ -171,40 +181,4 @@ fn make_tray_id(msg: &Message) -> TrayId {
     }
 
     tray_id
-}
-
-async fn check_for_tray(ctx: &Context, msg: &Message) -> bool {
-    let tray_data = ctx.data.read().await;
-
-    if msg.is_private() {
-        let tray_map = tray_data
-            .get::<crate::PrivateTrayKey>()
-            .expect("Failed to retrieve tray map!")
-            .lock().await;
-        return tray_map.contains_key(&msg.channel_id);
-    }
-
-    // TODO: Convert this to non-panicking error handling
-    let guild_id = msg.guild_id.expect("Command was not sent from a DM or server channel!");
-    let tray_map = tray_data.get::<crate::GuildTrayKey>().expect("Failed to retrieve tray map!").lock().await;
-
-    tray_map.contains_key(&guild_id)
-}
-
-async fn insert_new_tray(ctx: &Context, msg: &Message) {
-    let tray = Tray::new();
-    let mut tray_data = ctx.data.write().await;
-    if msg.is_private() {
-        let tray_map = tray_data
-            .get_mut::<crate::PrivateTrayKey>()
-            .expect("Failed to retrieve private tray map!");
-
-        tray_map.lock().await.insert(msg.channel_id, tray);
-    } else {
-        let tray_map = tray_data
-            .get_mut::<crate::GuildTrayKey>()
-            .expect("Failed to retrieve private tray map!");
-
-        tray_map.lock().await.insert(msg.guild_id.expect("Command was not sent from a DM or server channel!"), tray);
-    }
 }
