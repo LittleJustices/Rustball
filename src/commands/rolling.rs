@@ -30,7 +30,7 @@ I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice in
 Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    get_tray(ctx, msg).await;
+    println!("{}", check_for_tray(ctx, msg).await);
     let roll_command;
     let comment;
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
@@ -153,26 +153,20 @@ async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
-async fn get_tray(ctx: &Context, msg: &Message) {
+async fn check_for_tray(ctx: &Context, msg: &Message) -> bool {
     let tray_data = ctx.data.read().await;
+
     if msg.is_private() {
         let tray_map = tray_data
             .get::<crate::PrivateTrayKey>()
             .expect("Failed to retrieve tray map!")
             .lock().await;
-        if tray_map.contains_key(&msg.channel_id) {
-            // return reference to the tray
-        } else {
-            // create new tray, insert, return reference
-        }
+        return tray_map.contains_key(&msg.channel_id);
     }
-    
+
     // TODO: Convert this to non-panicking error handling
     let guild_id = msg.guild_id.expect("Command was not sent from a DM or server channel!");
     let tray_map = tray_data.get::<crate::GuildTrayKey>().expect("Failed to retrieve tray map!").lock().await;
-    if tray_map.contains_key(&guild_id) {
-        // return reference to the tray
-    } else {
-        // create new tray, insert, return reference
-    }
+
+    tray_map.contains_key(&guild_id)
 }
