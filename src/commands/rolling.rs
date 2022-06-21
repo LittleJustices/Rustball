@@ -26,7 +26,7 @@ pub type PrivateTrayMap = HashMap<ChannelId, Tray>;
 #[derive(Debug, PartialEq, Eq)]
 enum TrayId {
     Private(ChannelId),
-    Guild(GuildId),
+    Guild(Option<GuildId>),
 }
 
 #[command]
@@ -160,6 +160,17 @@ async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id.say(&ctx.http, roll).await?;
 
     Ok(())
+}
+
+fn make_tray_id(msg: &Message) -> TrayId {
+    let tray_id;
+    if msg.is_private() {
+        tray_id = TrayId::Private(msg.channel_id);
+    } else {
+        tray_id = TrayId::Guild(msg.guild_id);
+    }
+
+    tray_id
 }
 
 async fn check_for_tray(ctx: &Context, msg: &Message) -> bool {
