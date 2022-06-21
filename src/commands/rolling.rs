@@ -23,6 +23,12 @@ use crate::dice::tray::Tray;
 pub type GuildTrayMap = HashMap<GuildId, Tray>;
 pub type PrivateTrayMap = HashMap<ChannelId, Tray>;
 
+#[derive(Debug, PartialEq, Eq)]
+enum TrayId {
+    Private(ChannelId),
+    Guild(GuildId),
+}
+
 #[command]
 #[description="The basic roll command! Currently under construction.\n
 Use standard die roll notation of the form `XdY`. I can roll up to 255 dice with up to 255 sides at once!\n
