@@ -30,7 +30,10 @@ I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice in
 Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    println!("{}", check_for_tray(ctx, msg).await);
+    if !check_for_tray(ctx, msg).await {
+        insert_new_tray(ctx, msg).await;
+    }
+
     let roll_command;
     let comment;
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
@@ -169,4 +172,22 @@ async fn check_for_tray(ctx: &Context, msg: &Message) -> bool {
     let tray_map = tray_data.get::<crate::GuildTrayKey>().expect("Failed to retrieve tray map!").lock().await;
 
     tray_map.contains_key(&guild_id)
+}
+
+async fn insert_new_tray(ctx: &Context, msg: &Message) {
+    let tray = Tray::new();
+    let mut tray_data = ctx.data.write().await;
+    if msg.is_private() {
+        let tray_map = tray_data
+            .get_mut::<crate::PrivateTrayKey>()
+            .expect("Failed to retrieve private tray map!");
+
+        tray_map.lock().await.insert(msg.channel_id, tray);
+    } else {
+        let tray_map = tray_data
+            .get_mut::<crate::GuildTrayKey>()
+            .expect("Failed to retrieve private tray map!");
+
+        tray_map.lock().await.insert(msg.guild_id.expect("Command was not sent from a DM or server channel!"), tray);
+    }
 }
