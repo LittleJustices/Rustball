@@ -4,7 +4,7 @@ use super::dice_re::DICE_MATCH_RE;
 use super::roll::Roll;
 use crate::math::calculator;
 
-const CAPACITY: usize = 1;
+const CAPACITY: usize = 10;
 
 pub struct Tray {
     rolls: VecDeque<Roll>,
@@ -43,6 +43,10 @@ impl Tray {
         };
 
         Ok((final_result, compact_breakdown))
+    }
+
+    pub fn rolls(&self) -> &VecDeque<Roll> {
+        &self.rolls
     }
 
     #[allow(dead_code)]

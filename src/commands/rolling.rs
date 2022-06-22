@@ -137,6 +137,36 @@ async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
+#[aliases("tray")]
+async fn pastrolls(ctx: &Context, msg: &Message) -> CommandResult {
+    let tray_data = ctx.data.read().await;
+    let tray_map = tray_data
+        .get::<crate::TrayKey>()
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+
+        if let Some(tray) = tray_map.get(&make_tray_id(msg)) {
+            msg.channel_id.send_message(&ctx.http, |m| {
+                m.embed(|e| {
+                    e.title("Currently Stored Rolls");
+                    for (i, roll) in tray.rolls().iter().enumerate() {
+                        // Build the title here containing i, person who rolled, and maybe timestamp?
+                        let title = format!("{}", i);
+                        let text = format!("{}", roll);
+                        e.field(title, text, false);
+                    }
+                    e
+                });
+                m
+            }).await?;
+        } else {
+            msg.reply_ping(&ctx.http, "I haven't even set up a tray for this server yet!").await?;
+        }
+
+    Ok(())
+}
+
+#[command]
 #[aliases("cod", "cofd")]
 async fn wod(ctx: &Context, msg: &Message) -> CommandResult {
     let roll = format!("{} I'm not edgy enough for that yet!", msg.author);
