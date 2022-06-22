@@ -45,6 +45,10 @@ impl Tray {
         Ok((final_result, compact_breakdown))
     }
 
+    pub fn rolls(&self) -> &VecDeque<Roll> {
+        &self.rolls
+    }
+
     #[allow(dead_code)]
     pub fn get_newest_roll(&self) -> Result<&Roll, RollError> {
         let get_roll_result = match self.rolls.back() {
