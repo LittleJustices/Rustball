@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use std::fmt;
 use super::dice_re::DICE_MATCH_RE;
 use super::dice_errors::RollError;
@@ -7,10 +8,12 @@ use super::pool::{Keep, Pool};
 pub struct Roll {
     command: String,
     dicepools: Vec<Pool>,
+    timestamp: DateTime<Utc>,
 }
 
 impl Roll {
     pub fn new(command: &str) -> Result<Self, RollError> {
+        let timestamp = Utc::now();
         let mut dicepools = Vec::new();
         for captures in DICE_MATCH_RE.captures_iter(command) {
             let number = captures["number"].parse::<u8>()?;
@@ -27,7 +30,7 @@ impl Roll {
             };
             dicepools.push(Pool::new(number, sides, keep));
         }
-        Ok(Roll { command: command.to_string(), dicepools })
+        Ok(Roll { command: command.to_string(), dicepools, timestamp })
     }
 
     pub fn math_command(&self) -> String {
@@ -43,6 +46,10 @@ impl Roll {
         for pool in self.dicepools.iter_mut() {
             pool.reroll();
         }
+    }
+
+    pub fn timestamp(&self) -> DateTime<Utc> {
+        self.timestamp
     }
 }
 
