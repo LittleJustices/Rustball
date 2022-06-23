@@ -151,7 +151,7 @@ async fn pastrolls(ctx: &Context, msg: &Message) -> CommandResult {
                     e.title("Currently Stored Rolls");
                     for (i, roll) in tray.rolls().iter().enumerate() {
                         // Build the title here containing i, person who rolled, and maybe timestamp?
-                        let title = format!("{}: at {}", i, roll.timestamp().format("%y/%m/%d %H:%M:%S"));
+                        let title = format!("{}: By {} at {}", i, roll.owner(), roll.timestamp().format("%y/%m/%d %H:%M:%S"));
                         let text = format!("{}", roll);
                         e.field(title, text, false);
                     }
