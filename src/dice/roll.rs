@@ -8,13 +8,13 @@ use super::pool::{Keep, Pool};
 pub struct Roll {
     command: String,
     dicepools: Vec<Pool>,
-    owner: String,
+    roller: String,
     timestamp: DateTime<Utc>,
 }
 
 impl Roll {
     pub fn new(command: &str) -> Result<Self, RollError> {
-        let owner = "Placeholder name".to_owned();
+        let roller = "Placeholder name".to_owned();
         let timestamp = Utc::now();
         let mut dicepools = Vec::new();
         for captures in DICE_MATCH_RE.captures_iter(command) {
@@ -32,7 +32,7 @@ impl Roll {
             };
             dicepools.push(Pool::new(number, sides, keep));
         }
-        Ok(Roll { command: command.to_string(), dicepools, owner, timestamp })
+        Ok(Roll { command: command.to_string(), dicepools, roller, timestamp })
     }
 
     pub fn math_command(&self) -> String {
@@ -50,8 +50,8 @@ impl Roll {
         }
     }
 
-    pub fn owner(&self) -> &str {
-        &self.owner
+    pub fn roller(&self) -> &str {
+        &self.roller
     }
 
     pub fn timestamp(&self) -> DateTime<Utc> {
