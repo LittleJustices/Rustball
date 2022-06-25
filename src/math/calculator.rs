@@ -1,14 +1,12 @@
+use crate::sixball_errors::SixballError;
+
 use super::math_errors::MathError;
 use super::rpn_expression::RpnExpression;
 use std::str::FromStr;
 
-pub fn evaluate(infix_expression: &str) -> Result<String, MathError> {
+pub fn evaluate(infix_expression: &str) -> Result<f64, SixballError> {
     let rpn_expression = RpnExpression::from_str(infix_expression)?;
-    let result = match resolve_rpn(rpn_expression) {
-        Ok(res) => Ok(format!("`{}` = {}", infix_expression, res)),
-        Err(why) => Err(why)
-    };
-    result
+    Ok(resolve_rpn(rpn_expression)?)
 }
 
 fn resolve_rpn(rpn_expression: RpnExpression) -> Result<f64, MathError> {

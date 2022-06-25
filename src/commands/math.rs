@@ -18,8 +18,8 @@ use serenity::{
 async fn calc(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let infix_expression = args.message();
     let result = match calculator::evaluate(infix_expression) {
-        Ok(res) => res,
-        Err(why) => format!("☢ I don't know how to calculate that! ☢ {}", why)
+        Ok(res) => format!("`{}` = {}", infix_expression, res),
+        Err(why) => format!("{}", why)
     };
     msg.reply_ping(&ctx.http, result).await?;
 
