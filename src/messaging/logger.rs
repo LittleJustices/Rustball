@@ -4,7 +4,7 @@ use std::io;
 use std::io::Write;
 use std::path::{PathBuf};
 
-use serenity::model::channel::Message;
+use chrono::{DateTime, Utc};
 
 #[derive(Debug)]
 pub struct Logger {
@@ -31,19 +31,9 @@ impl Logger {
         Ok(Logger{ log_path, log_file })
     }
 
-    pub fn record(&self, msg: &Message) -> io::Result<()> {
+    pub fn record(&self, timestamp: DateTime<Utc>, sender_name: &str, content: &str) -> io::Result<()> {
         let mut log = &self.log_file;
-        let sender_name = match &msg.member {
-            Some(m) => {
-                if let Some(name) = &m.nick {
-                    name
-                } else {
-                    &msg.author.name
-                }
-            },
-            None => &msg.author.name
-        };
-        let log_entry = format!("{} {}: {}", msg.timestamp.format("%Y-%m-%d %H:%M:%S"), sender_name, msg.content);
+        let log_entry = format!("{} {}: {}", timestamp.format("%Y-%m-%d %H:%M:%S"), sender_name, content);
 
         writeln!(log, "{}", log_entry)?;
 
