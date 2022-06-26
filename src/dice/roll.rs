@@ -1,8 +1,11 @@
 use chrono::prelude::*;
 use std::fmt;
-use super::dice_re::DICE_MATCH_RE;
-use super::dice_errors::RollError;
-use super::pool::{Keep, Pool};
+use super::{
+    dice_re::DICE_MATCH_RE,
+    dice_errors::RollError,
+    pool::Pool,
+    roll_token::Keep,
+};
 
 #[derive(Debug)]
 pub struct Roll {
