@@ -53,7 +53,7 @@ pub enum Keep {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Reroll {
-    Single(Vec<u8>),
+    Once(Vec<u8>),
     Recursive(Vec<u8>),
     Additive(Vec<u8>),
 }
