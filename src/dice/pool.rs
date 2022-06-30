@@ -1,12 +1,8 @@
-use super::die::Die;
+use super::{
+    die::Die, 
+    roll_token::Keep
+};
 use std::fmt;
-
-#[derive(Debug, PartialEq)]
-pub enum Keep {
-    Low(u8),
-    High(u8),
-    All,
-}
 
 #[derive(Debug)]
 pub struct Pool {

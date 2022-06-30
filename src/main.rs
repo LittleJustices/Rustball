@@ -138,7 +138,20 @@ async fn normal_message(ctx: &Context, msg: &Message) {
                     .lock().await;
 
     if let Some(log) = log_map.get(&msg.channel_id) {
-        match log.record(msg) {
+        let timestamp = msg.timestamp;
+        let sender_name = match &msg.member {
+            Some(m) => {
+                if let Some(name) = &m.nick {
+                    name
+                } else {
+                    &msg.author.name
+                }
+            },
+            None => &msg.author.name
+        };
+        let content = &msg.content;
+        
+        match log.record(timestamp, sender_name, content) {
             Ok(_) => return,
             Err(why) => println!("Error recording log message: {}", why)
         }

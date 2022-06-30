@@ -3,6 +3,7 @@ use super::dice_errors::RollError;
 use super::dice_re::DICE_MATCH_RE;
 use super::roll::Roll;
 use crate::math::calculator;
+use crate::sixball_errors::SixballError;
 
 const CAPACITY: usize = 10;
 
@@ -18,29 +19,18 @@ impl Tray {
     }
 
     // Take a roll command and return the fully formatted result string (or an error)
-    pub fn process_roll_command(&mut self, roll_command: &str) -> Result<(String, String), RollError> {
+    pub fn process_roll_command(&mut self, roll_command: &str) -> Result<(f64, String), SixballError> {
         // Check if there is a dice expression in the command
         if !DICE_MATCH_RE.is_match(roll_command) {
             // If no dice, treat it as a mathematical expression and toss it to the calculator
-            let calc_result = match calculator::evaluate(roll_command) {
-                Ok(res) => res,
-                Err(why) => return Err(RollError::MathError(why))
-            };
+            let calc_result = calculator::evaluate(roll_command)?;
             return Ok((calc_result, "No dice rolled".to_owned()));
         }
 
-        let interim_result; // Interim because it might be a math expression that we have to resolve
-        let compact_breakdown;
-        match self.add_roll_from_command(roll_command) {
-            Ok(res) => (interim_result, compact_breakdown) = res,
-            Err(why) => return Err(why)
-        };
+        // Interim because it might be a math expression that we have to resolve
+        let (interim_result, compact_breakdown) = self.add_roll_from_command(roll_command)?;
 
-        let final_result;
-        match calculator::evaluate(&interim_result.trim()) {
-            Ok(res) => final_result = res,
-            Err(why) => return Err(RollError::MathError(why))
-        };
+        let final_result = calculator::evaluate(&interim_result.trim())?;
 
         Ok((final_result, compact_breakdown))
     }
