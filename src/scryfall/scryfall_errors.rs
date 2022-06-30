@@ -13,6 +13,7 @@ use std::{
 pub enum ScryfallError {
     PlaceholderError,
     ApiError(ErrorObject),
+    ContentWarning,
     RequestError(reqwest::Error),
 }
 
@@ -23,6 +24,7 @@ impl Display for ScryfallError {
         match self {
             ScryfallError::PlaceholderError => write!(f, "Error handling TBA"),
             ScryfallError::ApiError(why) => write!(f, "The Scryfall API gave me an error! (´∩｀。)ｸﾞｽﾝ\n{}", why),
+            ScryfallError::ContentWarning => write!(f, "I'm not really comfortable showing you that card! If you need to look at it, please look it up on the actual scryfall site."),
             ScryfallError::RequestError(why) => write!(f, "Something went wrong with that request! ｺﾞﾒ─･ﾟ･(p´Д`q)･ﾟ･─ﾝ ({})", why)
         }
     }
