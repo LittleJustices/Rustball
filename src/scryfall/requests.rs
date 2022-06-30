@@ -43,7 +43,12 @@ pub async fn get_scryfall_json(client: &Client, request_vector: Vec<ReqToken>) -
     }
 
     match client.get(&request_url).send().await?.json::<Card>().await {
-        Ok(card) => Ok(card),
+        Ok(card) => {
+            if let Some(true) = card.content_warning {
+                return Err(ScryfallError::ContentWarning);
+            }
+            Ok(card)
+        },
         Err(_) => {
             let why = client.get(&request_url).send().await?.json::<ErrorObject>().await?;
             Err(ScryfallError::ApiError(why))
