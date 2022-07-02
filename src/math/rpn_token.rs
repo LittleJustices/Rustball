@@ -25,13 +25,7 @@ impl FromStr for RpnToken {
             "^" | "**" => Ok(RpnToken::Pow),
             ")" | "]" | "}" => Ok(RpnToken::RParen),
             "(" | "[" | "{" => Ok(RpnToken::LParen),
-            other => {
-                if let Ok(num) = other.parse() {
-                    return Ok(RpnToken::Number(num));
-                } else {
-                    return Err(MathError::PlaceholderError);
-                }
-            }
+            other => Ok(RpnToken::Number(other.parse()?))
         };
         
         token

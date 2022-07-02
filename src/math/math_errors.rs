@@ -1,13 +1,12 @@
 use std::{
     error::Error,
-    fmt,
+    fmt, num::ParseFloatError,
 };
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub enum MathError {
     PlaceholderError,           // placeholder
-    TokenError(String),         // Fail to parse RPN token
+    TokenError(ParseFloatError),         // Fail to parse RPN token
     ExpressionError(String),    // Malformed expression
     SymbolError(String),        // Illegal symbols in expression
 }
@@ -22,5 +21,11 @@ impl fmt::Display for MathError {
             MathError::ExpressionError(why) => write!(f, "Something's wrong with that expression ! ∑(✘Д✘๑ ) {}", why),
             MathError::SymbolError(why)     => write!(f, "`{}` Σ(・艸・○) What's this? I can't do math with that!", why)
         }
+    }
+}
+
+impl From<ParseFloatError> for MathError {
+    fn from(why: ParseFloatError) -> Self {
+        MathError::TokenError(why)
     }
 }
