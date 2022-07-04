@@ -25,7 +25,10 @@ impl FromStr for RpnToken {
             "^" | "**" => Ok(RpnToken::Pow),
             ")" | "]" | "}" => Ok(RpnToken::RParen),
             "(" | "[" | "{" => Ok(RpnToken::LParen),
-            other => Ok(RpnToken::Number(other.parse()?))
+            other => match other.parse() {
+                Ok(num) => Ok(RpnToken::Number(num)),
+                Err(_) => Err(MathError::SymbolError(other.to_string()))
+            }
         };
         
         token
