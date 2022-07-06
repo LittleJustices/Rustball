@@ -4,13 +4,13 @@ use crate::math::{
     rpn_token::RpnToken, 
     math_errors::MathError
 };
-use super::die::Die;
+use super::pool::Pool;
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum RollToken {
     Math(RpnToken),
-    Die(Die),
+    Pool(Pool),
     Explode(Explode),
     Keep(Keep),
     Reroll(Reroll),
@@ -30,7 +30,7 @@ impl TryFrom<RollToken> for RpnToken {
     fn try_from(value: RollToken) -> Result<Self, Self::Error> {
         match value {
             RollToken::Math(rpn_token) => Ok(rpn_token),
-            RollToken::Die(die) => Ok(RpnToken::Number(die.result.into())),
+            RollToken::Pool(pool) => Ok(RpnToken::Number(pool.total().into())),
             _ => Err(MathError::PlaceholderError)
         }
     }
