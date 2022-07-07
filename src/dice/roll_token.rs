@@ -1,10 +1,10 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, str::FromStr};
 
 use crate::math::{
     rpn_token::RpnToken, 
     math_errors::MathError
 };
-use super::pool::Pool;
+use super::{pool::Pool, dice_errors::RollError};
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
@@ -33,6 +33,21 @@ impl TryFrom<RollToken> for RpnToken {
             RollToken::Pool(pool) => Ok(RpnToken::Number(pool.total().into())),
             _ => Err(MathError::PlaceholderError)
         }
+    }
+}
+
+impl FromStr for RollToken {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // If it can be parsed into an rpn token, it's an rpn token
+        if let Ok(rpn_token) = s.parse::<RpnToken>() {
+            return Ok(rpn_token.into());
+        }
+
+        // Logic for parsing other strings into roll tokens goes here
+
+        Err(RollError::PlaceholderError)
     }
 }
 
