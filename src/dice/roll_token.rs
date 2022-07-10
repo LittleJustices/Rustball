@@ -46,6 +46,9 @@ impl FromStr for RollToken {
         }
 
         // Logic for parsing other strings into roll tokens goes here
+        if s == "d" {
+            return Ok(RollToken::Pool(Pool::new(0, 0, Keep::All)));
+        }
 
         Err(RollError::PlaceholderError)
     }
