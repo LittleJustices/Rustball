@@ -1,10 +1,17 @@
-use std::{convert::TryFrom, str::FromStr};
+use std::{
+    convert::TryFrom, 
+    str::FromStr
+};
 
 use crate::math::{
     rpn_token::RpnToken, 
     math_errors::MathError
 };
-use super::{pool::Pool, dice_errors::RollError};
+use super::{
+    dice_errors::RollError,
+    dice_re::DICE_MATCH_RE,
+    pool::Pool, 
+};
 
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
@@ -48,6 +55,11 @@ impl FromStr for RollToken {
         // Logic for parsing other strings into roll tokens goes here
         if s == "d" {
             return Ok(RollToken::Pool(Pool::new(0, 0, Keep::All)));
+        }
+        if let Some(captures) = DICE_MATCH_RE.captures(s) {
+            let number = captures["number"].parse()?;
+            let sides = captures["sides"].parse()?;
+            return Ok(RollToken::Pool(Pool::new(number, sides, Keep::All)));
         }
 
         Err(RollError::PlaceholderError)
