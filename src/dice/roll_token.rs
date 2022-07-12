@@ -61,6 +61,15 @@ impl FromStr for RollToken {
             let sides = captures["sides"].parse()?;
             return Ok(RollToken::Pool(Pool::new(number, sides, Keep::All)));
         }
+        if let Some(keep_string) = s.strip_prefix('k') {
+            if let Some(keep_number_str) = keep_string.strip_prefix('l') {
+                return Ok(RollToken::Keep(Keep::Low(keep_number_str.parse()?)));
+            } else if let Some(keep_number_str) = keep_string.strip_prefix('h') {
+                return Ok(RollToken::Keep(Keep::High(keep_number_str.parse()?)));
+            } else {
+                return Ok(RollToken::Keep(Keep::High(keep_string.parse()?)));
+            }
+        }
 
         Err(RollError::PlaceholderError)
     }
