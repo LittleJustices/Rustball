@@ -78,7 +78,7 @@ impl FromStr for RollToken {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Explode {
-    Single(Vec<u8>),
+    Once(Vec<u8>),
     Recursive(Vec<u8>),
 }
 
