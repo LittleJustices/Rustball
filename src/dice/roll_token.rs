@@ -70,6 +70,9 @@ impl FromStr for RollToken {
                 return Ok(RollToken::Keep(Keep::High(keep_string.parse()?)));
             }
         }
+        if let Some(target_string) = s.strip_prefix('t') {
+            return Ok(RollToken::Target(Target::Single(target_string.parse()?)));
+        }
 
         Err(RollError::PlaceholderError)
     }
