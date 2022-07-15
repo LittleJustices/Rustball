@@ -64,13 +64,7 @@ impl FromStr for RollToken {
             return Ok(RollToken::Pool(Pool::new(number, sides, Keep::All)));
         }
         if let Some(keep_string) = s.strip_prefix('k') {
-            if let Some(keep_number_str) = keep_string.strip_prefix('l') {
-                return Ok(RollToken::Keep(Keep::Low(keep_number_str.parse()?)));
-            } else if let Some(keep_number_str) = keep_string.strip_prefix('h') {
-                return Ok(RollToken::Keep(Keep::High(keep_number_str.parse()?)));
-            } else {
-                return Ok(RollToken::Keep(Keep::High(keep_string.parse()?)));
-            }
+            return Ok(RollToken::Keep(keep_string.parse()?));
         }
         if let Some(target_string) = s.strip_prefix('t') {
             if let Some(multi_targets) = target_string.strip_prefix('[') {
@@ -115,7 +109,13 @@ impl FromStr for Keep {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        if let Some(keep_high_number) = s.strip_prefix('h') {
+            return Ok(Keep::High(keep_high_number.parse()?));
+        } else if let Some(keep_low_number) = s.strip_prefix('l') {
+            return Ok(Keep::Low(keep_low_number.parse()?));
+        } else {
+            return Ok(Keep::High(s.parse()?));
+        }
     }
 }
 
