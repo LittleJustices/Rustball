@@ -25,6 +25,8 @@ pub enum RollToken {
     Botch(Target),
 }
 
+// Method for deciding which token to try to parse based on the initial character in a string goes here
+
 impl From<RpnToken> for RollToken {
     fn from(rpn_token: RpnToken) -> Self {
         RollToken::Math(rpn_token)
@@ -114,4 +116,16 @@ pub enum Reroll {
 pub enum Target {
     Single(u8),
     Complex(Vec<u8>)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str() {
+        let strings_to_parse = ["1d20", "k3"];
+
+        assert_eq!(RollToken::Keep(Keep::High(3)), strings_to_parse[1].parse().unwrap());
+    }
 }
