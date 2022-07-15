@@ -71,6 +71,15 @@ impl FromStr for RollToken {
             }
         }
         if let Some(target_string) = s.strip_prefix('t') {
+            if let Some(multi_targets) = target_string.strip_prefix('[') {
+                if let Some(numbers) = multi_targets.strip_suffix(']') {
+                    let mut target_numbers = Vec::<u8>::new();
+                    for number_str in numbers.split_terminator(',') {
+                        target_numbers.push(number_str.parse()?);
+                    }
+                    return Ok(RollToken::Target(Target::Complex(target_numbers)));
+                }
+            }
             return Ok(RollToken::Target(Target::Single(target_string.parse()?)));
         }
 
