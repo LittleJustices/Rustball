@@ -1,8 +1,12 @@
 use super::{
-    die::Die, 
-    roll_token::Keep
+    die::Die,
+    dice_errors::RollError,
+    roll_token::Keep,
 };
-use std::fmt;
+use std::{
+    fmt,
+    str::FromStr,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct Pool {
@@ -88,5 +92,13 @@ impl fmt::Display for Pool {
             results = format!("{}, {}", results, self.dice[i].result)
         }
         write!(f, "{}d{} -> [{}]", self.number, self.sides, results)
+    }
+}
+
+impl FromStr for Pool {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
     }
 }

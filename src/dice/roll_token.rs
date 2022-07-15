@@ -96,11 +96,27 @@ pub enum Explode {
     Recursive(Vec<u8>),
 }
 
+impl FromStr for Explode {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Keep {
     Low(u8),
     High(u8),
     All,
+}
+
+impl FromStr for Keep {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
 }
 
 #[allow(dead_code)]
@@ -111,11 +127,27 @@ pub enum Reroll {
     Additive(Vec<u8>),
 }
 
+impl FromStr for Reroll {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
+}
+
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Target {
     Single(u8),
     Complex(Vec<u8>)
+}
+
+impl FromStr for Target {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
 }
 
 #[cfg(test)]
