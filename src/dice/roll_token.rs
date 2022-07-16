@@ -79,6 +79,7 @@ impl FromStr for RollToken {
 pub enum Explode {
     Once(Vec<u8>),
     Recursive(Vec<u8>),
+    Additive(Vec<u8>),
 }
 
 impl FromStr for Explode {
@@ -115,7 +116,6 @@ impl FromStr for Keep {
 pub enum Reroll {
     Once(Vec<u8>),
     Recursive(Vec<u8>),
-    Additive(Vec<u8>),
 }
 
 impl FromStr for Reroll {
