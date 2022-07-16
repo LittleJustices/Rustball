@@ -98,7 +98,7 @@ impl FromStr for Explode {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Keep {
     Low(u8),
     High(u8),

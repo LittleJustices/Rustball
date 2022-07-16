@@ -8,7 +8,7 @@ use std::{
     str::FromStr,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Pool {
     number: u8,
     sides: u8,
