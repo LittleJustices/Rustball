@@ -72,6 +72,9 @@ impl FromStr for RollToken {
         if let Some(reroll_string) = s.strip_prefix('r') {
             return Ok(RollToken::Reroll(reroll_string.parse()?));
         }
+        if let Some(explode_string) = s.strip_prefix('e') {
+            return Ok(RollToken::Explode(explode_string.parse()?));
+        }
 
         Err(RollError::PlaceholderError)
     }
@@ -89,7 +92,33 @@ impl FromStr for Explode {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        let (mut explosion, argument) = {
+            if let Some(r_arg) = s.strip_prefix('r') {
+                (Explode::Recursive(Vec::<u8>::new()), r_arg)
+            } else if let Some(a_arg) = s.strip_prefix('a') {
+                (Explode::Additive(Vec::<u8>::new()), a_arg)
+            } else {
+                (Explode::Once(Vec::<u8>::new()), s)
+            }
+        };
+
+        if let Some(multi_explosions) = argument.trim().strip_prefix('[').unwrap_or("").strip_suffix(']') {
+            for number_str in multi_explosions.split_terminator(',') {
+                match explosion {
+                    Explode::Once(ref mut explode_numbers) => explode_numbers.push(number_str.trim().parse()?),
+                    Explode::Recursive(ref mut explode_numbers) => explode_numbers.push(number_str.trim().parse()?),
+                    Explode::Additive(ref mut explode_numbers) => explode_numbers.push(number_str.trim().parse()?),
+                }
+            }
+        } else {
+            match explosion {
+                Explode::Once(ref mut explode_numbers) => explode_numbers.push(argument.trim().parse()?),
+                Explode::Recursive(ref mut explode_numbers) => explode_numbers.push(argument.trim().parse()?),
+                Explode::Additive(ref mut explode_numbers) => explode_numbers.push(argument.trim().parse()?),
+            }
+        }
+        
+        Ok(explosion)
     }
 }
 
@@ -175,11 +204,14 @@ mod tests {
 
     #[test]
     fn test_from_str() {
-        let strings_to_parse = ["1d20", "k3", "r1", "r[1, 2]", "rr3"];
+        let strings_to_parse = ["1d20", "k3", "r1", "r[1, 2]", "rr3", "e10", "er[9, 10]", "ea[10]"];
 
         assert_eq!(RollToken::Keep(Keep::High(3)), strings_to_parse[1].parse().unwrap());
         assert_eq!(RollToken::Reroll(Reroll::Once([1].to_vec())), strings_to_parse[2].parse().unwrap());
         assert_eq!(RollToken::Reroll(Reroll::Once([1, 2].to_vec())), strings_to_parse[3].parse().unwrap());
         assert_eq!(RollToken::Reroll(Reroll::Recursive([3].to_vec())), strings_to_parse[4].parse().unwrap());
+        assert_eq!(RollToken::Explode(Explode::Once([10].to_vec())), strings_to_parse[5].parse().unwrap());
+        assert_eq!(RollToken::Explode(Explode::Recursive([9, 10].to_vec())), strings_to_parse[6].parse().unwrap());
+        assert_eq!(RollToken::Explode(Explode::Additive([10].to_vec())), strings_to_parse[7].parse().unwrap());
     }
 }
