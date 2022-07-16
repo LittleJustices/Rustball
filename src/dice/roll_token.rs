@@ -23,13 +23,18 @@ pub enum RollToken {
     Reroll(Reroll),
     Target(Target),
     Botch(Target),
+    Argument(Argument),
 }
 
 // Method for deciding which token to try to parse based on the initial character in a string goes here
 
 impl From<RpnToken> for RollToken {
     fn from(rpn_token: RpnToken) -> Self {
-        RollToken::Math(rpn_token)
+        if let RpnToken::Number(number) = rpn_token {
+            RollToken::Argument(Argument::Single(number as u8))
+        } else {
+            RollToken::Math(rpn_token)
+        }
     }
 }
 
@@ -40,6 +45,12 @@ impl TryFrom<RollToken> for RpnToken {
         match value {
             RollToken::Math(rpn_token) => Ok(rpn_token),
             RollToken::Pool(pool) => Ok(RpnToken::Number(pool.total().into())),
+            RollToken::Argument(argument) => {
+                match argument {
+                    Argument::Array(_) => Err(MathError::PlaceholderError),
+                    Argument::Single(number) => Ok(RpnToken::Number(number.into()))
+                }
+            },
             _ => Err(MathError::PlaceholderError)
         }
     }
@@ -77,6 +88,28 @@ impl FromStr for RollToken {
         }
 
         Err(RollError::PlaceholderError)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Argument {
+    Single(u8),
+    Array(Vec<u8>),
+}
+
+impl FromStr for Argument {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Some(array_string) = s.trim().strip_prefix('[').unwrap_or("").strip_suffix(']') {
+            let mut args_array = Vec::<u8>::new();
+            for number_str in array_string.split_terminator(',') {
+                args_array.push(number_str.trim().parse()?);
+            }
+            Ok(Argument::Array(args_array))
+        } else {
+            Ok(Argument::Single(s.parse()?))
+        }
     }
 }
 
