@@ -137,16 +137,14 @@ impl FromStr for Target {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(multi_targets) = s.strip_prefix('[') {
-            if let Some(numbers) = multi_targets.strip_suffix(']') {
+        if let Some(multi_targets) = s.trim().strip_prefix('[').unwrap_or("").strip_suffix(']') {
                 let mut target_numbers = Vec::<u8>::new();
-                for number_str in numbers.split_terminator(',') {
-                    target_numbers.push(number_str.parse()?);
+            for number_str in multi_targets.split_terminator(',') {
+                target_numbers.push(number_str.trim().parse()?);
                 }
                 return Ok(Target::Complex(target_numbers));
             }
-        }
-        return Ok(Target::Single(s.parse()?));
+        return Ok(Target::Single(s.trim().parse()?));
     }
 }
 
