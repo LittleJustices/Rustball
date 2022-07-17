@@ -22,9 +22,11 @@ lazy_static! {
         ]);
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct RpnExpression {
     infix_expression: String,
+    infix_tokens: Vec<RpnToken>,
     postfix_expression: VecDeque<String>,
 }
 
@@ -90,7 +92,6 @@ impl RpnExpression {
         infix_vector
     }
 
-    #[allow(dead_code)]
     fn tokenize_expression(infix_expression: &str) -> Result<Vec<RpnToken>, MathError> {
         let mut infix_processed = infix_expression.replace(" ", "");
         for key in PRECEDENCE.keys() {
@@ -114,7 +115,9 @@ impl FromStr for RpnExpression {
     type Err = MathError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut rpn_expression = RpnExpression { infix_expression: s.to_owned(), postfix_expression: VecDeque::new() };
+        let infix_tokens = RpnExpression::tokenize_expression(s)?;
+
+        let mut rpn_expression = RpnExpression { infix_expression: s.to_owned(), infix_tokens, postfix_expression: VecDeque::new() };
 
         rpn_expression.shunting_yard_conversion()?;
 
