@@ -29,6 +29,7 @@ pub struct RpnExpression {
     infix_expression: String,
     infix_tokens: Vec<RpnToken>,
     postfix_expression: VecDeque<String>,
+    postfix_tokens: VecDeque<RpnToken>,
 }
 
 impl RpnExpression {
@@ -105,6 +106,50 @@ impl RpnExpression {
         Ok(infix_vector)
     }
 
+    fn shunting_yard(infix_vector: &[RpnToken]) -> Result<VecDeque<RpnToken>, MathError> {
+        let mut postfix_queue = VecDeque::new();
+        let mut token_stack = vec![];
+
+        for token in infix_vector.to_vec() {
+            match token {
+                RpnToken::Number(_) => token_stack.push(token),
+                // When/if functions are implemented: If token is a function, push onto stack
+                RpnToken::Add | RpnToken::Sub | RpnToken::Mul | RpnToken::Div | RpnToken::Pow => {
+                    while let Some(left_operator) = token_stack.last() {
+                        if left_operator == &RpnToken::LParen { break; }
+                        if left_operator.precedence() >= token.precedence() {
+                            postfix_queue.push_back(token_stack.pop().ok_or(MathError::PlaceholderError)?);
+                        } else {
+                            break;
+                        }
+                    }
+                },
+                RpnToken::LParen => token_stack.push(token),
+                RpnToken::RParen => {
+                    while let Some(operator) = token_stack.last() {
+                        if operator == &RpnToken::LParen { break; }
+                        postfix_queue.push_back(token_stack.pop().ok_or(MathError::PlaceholderError)?);
+                    }
+                    if token_stack.last() != Some(&RpnToken::LParen) {
+                        return Err(MathError::PlaceholderError);
+                    } else {
+                        token_stack.pop();
+                    }
+                    // If there is a function token at the top of the stack, pop it onto the queue
+                }
+            }
+        }
+
+        for token in token_stack {
+            match token {
+                RpnToken::LParen | RpnToken::RParen => return Err(MathError::PlaceholderError),
+                _ => postfix_queue.push_back(token)
+            }
+        }
+
+        Ok(postfix_queue)
+    }
+
     pub fn get_rpn_expression(&self) -> &VecDeque<String> {
         &self.postfix_expression
     }
@@ -115,8 +160,9 @@ impl FromStr for RpnExpression {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let infix_tokens = RpnExpression::tokenize_expression(s)?;
+        let postfix_tokens = RpnExpression::shunting_yard(&infix_tokens)?;
 
-        let mut rpn_expression = RpnExpression { infix_expression: s.to_owned(), infix_tokens, postfix_expression: VecDeque::new() };
+        let mut rpn_expression = RpnExpression { infix_expression: s.to_owned(), infix_tokens, postfix_expression: VecDeque::new(), postfix_tokens };
 
         rpn_expression.shunting_yard_conversion()?;
 
