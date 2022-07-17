@@ -9,7 +9,8 @@ use crate::math::{
 };
 use super::{
     dice_errors::RollError,
-    pool::Pool, 
+    pool::Pool,
+    dice_re::DICE_TOKEN_RE, 
 };
 
 #[derive(Debug, PartialEq)]
@@ -21,6 +22,20 @@ pub enum RollToken {
     Reroll(Reroll),
     Target(Target),
     Argument(Argument),
+}
+
+impl RollToken {
+    pub fn tokenize_expression(infix_expression: &str) -> Result<Vec<RollToken>, RollError> {
+        let whitespace_cleaned = infix_expression.replace(" ", "");
+        let infix_processed = DICE_TOKEN_RE.replace_all(&whitespace_cleaned, " $token ");
+
+        let mut infix_vector = vec![];
+        for symbol in infix_processed.split_whitespace() {
+            infix_vector.push(symbol.parse()?);
+        }
+
+        Ok(infix_vector)
+    }
 }
 
 impl From<RpnToken> for RollToken {
@@ -203,19 +218,19 @@ impl FromStr for Target {
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
+    use super::*;
 
     #[test]
     fn test_from_str() {
-        todo!()
-        // let strings_to_parse = ["1d20", "k3", "r1", "r[1, 2]", "rr3", "e10", "er[9, 10]", "ea[10]"];
+        let expression = "2d20kh1";
+        let token_vector = vec![
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Dice(Dice(None)),
+            RollToken::Argument(Argument::Single(20)),
+            RollToken::Keep(Keep::High(None)),
+            RollToken::Argument(Argument::Single(1)),
+        ];
 
-        // assert_eq!(RollToken::Keep(Keep::High(3)), strings_to_parse[1].parse().unwrap());
-        // assert_eq!(RollToken::Reroll(Reroll::Once([1].to_vec())), strings_to_parse[2].parse().unwrap());
-        // assert_eq!(RollToken::Reroll(Reroll::Once([1, 2].to_vec())), strings_to_parse[3].parse().unwrap());
-        // assert_eq!(RollToken::Reroll(Reroll::Recursive([3].to_vec())), strings_to_parse[4].parse().unwrap());
-        // assert_eq!(RollToken::Explode(Explode::Once([10].to_vec())), strings_to_parse[5].parse().unwrap());
-        // assert_eq!(RollToken::Explode(Explode::Recursive([9, 10].to_vec())), strings_to_parse[6].parse().unwrap());
-        // assert_eq!(RollToken::Explode(Explode::Additive([10].to_vec())), strings_to_parse[7].parse().unwrap());
+        assert_eq!(RollToken::tokenize_expression(expression).unwrap(), token_vector);
     }
 }

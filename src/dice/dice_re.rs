@@ -3,7 +3,7 @@ use regex::Regex;
 
 const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)\s*(?:k?(?P<keep>[l|h]?)(?P<keepamt>\d*))";
 const DICE_TOKEN_STRING: &str = r"(?x)
-    (
+    (?P<token>
         [\^%\*x/\+\-\(\)]  # Math operators
         |
         \d+\.?\d*           # Numbers

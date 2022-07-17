@@ -6,7 +6,8 @@ use super::{
     pool::Pool,
     roll_token::{
         Argument,
-        Keep
+        Keep,
+        RollToken,
     },
 };
 
@@ -14,6 +15,7 @@ use super::{
 pub struct Roll {
     command: String,
     dicepools: Vec<Pool>,
+    _roll_tokens: Vec<RollToken>,
     roller: String,
     timestamp: DateTime<Utc>,
 }
@@ -22,6 +24,8 @@ impl Roll {
     pub fn new(command: &str) -> Result<Self, RollError> {
         let roller = "Placeholder name".to_owned();
         let timestamp = Utc::now();
+        let _roll_tokens = RollToken::tokenize_expression(command)?;
+        println!("{:?}", _roll_tokens);
         let mut dicepools = Vec::new();
         for captures in DICE_MATCH_RE.captures_iter(command) {
             let number = captures["number"].parse::<u8>()?;
@@ -38,7 +42,7 @@ impl Roll {
             };
             dicepools.push(Pool::new(number, sides, keep));
         }
-        Ok(Roll { command: command.to_string(), dicepools, roller, timestamp })
+        Ok(Roll { command: command.to_string(), dicepools, _roll_tokens, roller, timestamp })
     }
 
     pub fn math_command(&self) -> String {

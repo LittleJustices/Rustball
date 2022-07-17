@@ -103,6 +103,7 @@ impl FromStr for Pool {
     type Err = RollError;
 
     fn from_str(_s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        // TODO: Actually implement this
+        Err(RollError::PlaceholderError)
     }
 }
