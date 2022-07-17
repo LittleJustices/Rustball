@@ -25,6 +25,13 @@ pub enum RollToken {
 }
 
 impl RollToken {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            RollToken::Math(rpn_token) => rpn_token.precedence(),
+            _ => 255
+        }
+    }
+
     pub fn tokenize_expression(infix_expression: &str) -> Result<Vec<RollToken>, RollError> {
         let whitespace_cleaned = infix_expression.replace(" ", "");
         let infix_processed = DICE_TOKEN_RE.replace_all(&whitespace_cleaned, " $token ");

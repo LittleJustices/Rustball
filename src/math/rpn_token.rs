@@ -13,6 +13,17 @@ pub enum RpnToken {
     LParen,
 }
 
+impl RpnToken {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            RpnToken::Add | RpnToken::Sub => 4,
+            RpnToken::Mul | RpnToken::Div => 5,
+            RpnToken::Pow => 6,
+            _ => 0
+        }
+    }
+}
+
 impl FromStr for RpnToken {
     type Err = MathError;
 
