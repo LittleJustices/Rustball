@@ -5,6 +5,7 @@ use std::{
 use lazy_static::lazy_static;
 use super::{
     math_errors::MathError,
+    math_re::MATH_TOKEN_RE,
     rpn_token::RpnToken,
 };
 
@@ -93,10 +94,8 @@ impl RpnExpression {
     }
 
     fn tokenize_expression(infix_expression: &str) -> Result<Vec<RpnToken>, MathError> {
-        let mut infix_processed = infix_expression.replace(" ", "");
-        for key in PRECEDENCE.keys() {
-            infix_processed = infix_processed.replace(*key, &format!(" {} ", key));
-        }
+        let whitespace_cleaned = infix_expression.replace(" ", "");
+        let infix_processed = MATH_TOKEN_RE.replace_all(&whitespace_cleaned, " $token ");
 
         let mut infix_vector = vec![];
         for symbol in infix_processed.split_whitespace() {
@@ -132,7 +131,7 @@ mod tests {
 
     #[test]
     fn test_tokenize() {
-        let expression = "(1+2)-3*(4/5)^6";
+        let expression = "(1+2)-3*(4/5)^6.7";
         let token_vector = vec![
             RpnToken::LParen,
             RpnToken::Number(1.0),
@@ -148,7 +147,7 @@ mod tests {
             RpnToken::Number(5.0),
             RpnToken::RParen,
             RpnToken::Pow,
-            RpnToken::Number(6.0)
+            RpnToken::Number(6.7)
         ];
 
         assert_eq!(RpnExpression::tokenize_expression(expression).unwrap(), token_vector);
