@@ -123,8 +123,8 @@ impl FromStr for Explode {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Keep {
-    Low(u8),
-    High(u8),
+    Low(Option<Argument>),
+    High(Option<Argument>),
     All,
 }
 
@@ -134,8 +134,8 @@ impl FromStr for Keep {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('k') {
             match mode {
-                "" | "h"    => Ok(Keep::High(0)),
-                "l"         => Ok(Keep::Low(0)),
+                "" | "h"    => Ok(Keep::High(None)),
+                "l"         => Ok(Keep::Low(None)),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {

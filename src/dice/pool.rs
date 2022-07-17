@@ -1,7 +1,10 @@
 use super::{
     die::Die,
     dice_errors::RollError,
-    roll_token::Keep,
+    roll_token::{
+        Argument,
+        Keep
+    },
 };
 use std::{
     fmt,
@@ -45,15 +48,16 @@ impl Pool {
 
         kept_dice.sort_unstable();
         match keep {
-            Keep::Low(keepamt) => {
+            Keep::Low(Some(Argument::Single(keepamt))) => {
                 let max_index = if keepamt > &self.number { self.number as usize } else { *keepamt as usize };
-                return kept_dice[..max_index].to_vec();
+                kept_dice[..max_index].to_vec()
             }
-            Keep::High(keepamt) => {
+            Keep::High(Some(Argument::Single(keepamt))) => {
                 let min_index = if keepamt > &self.number { 0 } else { (self.number - *keepamt) as usize };
-                return kept_dice[min_index..].to_vec();
+                kept_dice[min_index..].to_vec()
             },
-            Keep::All => return kept_dice,
+            Keep::All => kept_dice,
+            _ => kept_dice
         }
     }
 

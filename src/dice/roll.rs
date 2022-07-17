@@ -4,7 +4,10 @@ use super::{
     dice_re::DICE_MATCH_RE,
     dice_errors::RollError,
     pool::Pool,
-    roll_token::Keep,
+    roll_token::{
+        Argument,
+        Keep
+    },
 };
 
 #[derive(Debug)]
@@ -25,11 +28,11 @@ impl Roll {
             let sides = captures["sides"].parse::<u8>()?;
 
             let keep = match &captures["keep"] {
-                "l" => Keep::Low(captures["keepamt"].parse::<u8>()?),
+                "l" => Keep::Low(Some(Argument::Single(captures["keepamt"].parse::<u8>()?))),
                 _ => {
                     match &captures["keepamt"] {
                         "" => Keep::All,
-                        _ => Keep::High(captures["keepamt"].parse::<u8>()?),
+                        _ => Keep::High(Some(Argument::Single(captures["keepamt"].parse::<u8>()?))),
                     }
                 }
             };
