@@ -102,9 +102,9 @@ impl FromStr for Argument {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Explode {
-    Once(Vec<u8>),
-    Recursive(Vec<u8>),
-    Additive(Vec<u8>),
+    Once(Option<Argument>),
+    Recursive(Option<Argument>),
+    Additive(Option<Argument>),
 }
 
 impl FromStr for Explode {
@@ -113,9 +113,9 @@ impl FromStr for Explode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('r') {
             match mode {
-                "" | "o"    => Ok(Explode::Once(Vec::<u8>::new())),
-                "r"         => Ok(Explode::Recursive(Vec::<u8>::new())),
-                "a"         => Ok(Explode::Additive(Vec::<u8>::new())),
+                "" | "o"    => Ok(Explode::Once(None)),
+                "r"         => Ok(Explode::Recursive(None)),
+                "a"         => Ok(Explode::Additive(None)),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
@@ -167,8 +167,8 @@ impl FromStr for Dice {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Reroll {
-    Once(Vec<u8>),
-    Recursive(Vec<u8>),
+    Once(Option<Argument>),
+    Recursive(Option<Argument>),
 }
 
 impl FromStr for Reroll {
@@ -177,8 +177,8 @@ impl FromStr for Reroll {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('r') {
             match mode {
-                "" | "o"    => Ok(Reroll::Once(Vec::<u8>::new())),
-                "r"         => Ok(Reroll::Recursive(Vec::<u8>::new())),
+                "" | "o"    => Ok(Reroll::Once(None)),
+                "r"         => Ok(Reroll::Recursive(None)),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
@@ -190,8 +190,8 @@ impl FromStr for Reroll {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Target {
-    Success(Vec<u8>),
-    Botch(Vec<u8>)
+    Success(Option<Argument>),
+    Botch(Option<Argument>)
 }
 
 impl FromStr for Target {
@@ -199,8 +199,8 @@ impl FromStr for Target {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "t" => Ok(Target::Success(Vec::<u8>::new())),
-            "b" => Ok(Target::Botch(Vec::<u8>::new())),
+            "t" => Ok(Target::Success(None)),
+            "b" => Ok(Target::Botch(None)),
             _   => Err(RollError::PlaceholderError)
         }
     }
