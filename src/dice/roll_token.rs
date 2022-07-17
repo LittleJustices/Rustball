@@ -9,7 +9,6 @@ use crate::math::{
 };
 use super::{
     dice_errors::RollError,
-    dice_re::DICE_MATCH_RE,
     pool::Pool, 
 };
 
@@ -17,7 +16,7 @@ use super::{
 #[derive(Debug, PartialEq)]
 pub enum RollToken {
     Math(RpnToken),
-    Pool(Pool),
+    Dice(Dice),
     Explode(Explode),
     Keep(Keep),
     Reroll(Reroll),
@@ -25,8 +24,6 @@ pub enum RollToken {
     Botch(Target),
     Argument(Argument),
 }
-
-// Method for deciding which token to try to parse based on the initial character in a string goes here
 
 impl From<RpnToken> for RollToken {
     fn from(rpn_token: RpnToken) -> Self {
@@ -43,12 +40,12 @@ impl TryFrom<RollToken> for RpnToken {
 
     fn try_from(value: RollToken) -> Result<Self, Self::Error> {
         match value {
-            RollToken::Math(rpn_token) => Ok(rpn_token),
-            RollToken::Pool(pool) => Ok(RpnToken::Number(pool.total().into())),
-            RollToken::Argument(argument) => {
+            RollToken::Math(rpn_token)      => Ok(rpn_token),
+            RollToken::Dice(Dice(Some(pool)))   => Ok(RpnToken::Number(pool.total().into())),
+            RollToken::Argument(argument)   => {
                 match argument {
-                    Argument::Array(_) => Err(MathError::PlaceholderError),
-                    Argument::Single(number) => Ok(RpnToken::Number(number.into()))
+                    Argument::Array(_)                => Err(MathError::PlaceholderError),
+                    Argument::Single(number)      => Ok(RpnToken::Number(number.into()))
                 }
             },
             _ => Err(MathError::PlaceholderError)
@@ -60,34 +57,23 @@ impl FromStr for RollToken {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // If it can be parsed into an rpn token, it's an rpn token
-        if let Ok(rpn_token) = s.parse::<RpnToken>() {
-            return Ok(rpn_token.into());
+        if let Ok(argument) = s.parse() {               // Attempt to parse into argument token
+            Ok(RollToken::Argument(argument))
+        } else if let Ok(rpn_token) = s.parse() {       // Attempt to parse into math token
+            Ok(RollToken::Math(rpn_token))
+        } else if let Ok(dice) = s.parse() {                // Attempt to parse into pool token
+            Ok(RollToken::Dice(dice))
+        } else if let Ok(explode) = s.parse() {          // Attempt to parse into explode token
+            Ok(RollToken::Explode(explode))
+        } else if let Ok(keep) = s.parse() {                // Attempt to parse into keep token
+            Ok(RollToken::Keep(keep))
+        } else if let Ok(reroll) = s.parse() {            // Attempt to parse into reroll token
+            Ok(RollToken::Reroll(reroll))
+        } else if let Ok(target) = s.parse() {            // Attempt to parse into target token
+            Ok(RollToken::Target(target))
+        } else {                                                  // If all these fail, error out
+            Err(RollError::PlaceholderError)
         }
-
-        // Logic for parsing other strings into roll tokens goes here
-        if s == "d" {
-            return Ok(RollToken::Pool(Pool::new(0, 0, Keep::All)));
-        }
-        if let Some(captures) = DICE_MATCH_RE.captures(s) {
-            let number = captures["number"].parse()?;
-            let sides = captures["sides"].parse()?;
-            return Ok(RollToken::Pool(Pool::new(number, sides, Keep::All)));
-        }
-        if let Some(keep_string) = s.strip_prefix('k') {
-            return Ok(RollToken::Keep(keep_string.parse()?));
-        }
-        if let Some(target_string) = s.strip_prefix('t') {
-            return Ok(RollToken::Target(target_string.parse()?));
-        }
-        if let Some(reroll_string) = s.strip_prefix('r') {
-            return Ok(RollToken::Reroll(reroll_string.parse()?));
-        }
-        if let Some(explode_string) = s.strip_prefix('e') {
-            return Ok(RollToken::Explode(explode_string.parse()?));
-        }
-
-        Err(RollError::PlaceholderError)
     }
 }
 
@@ -125,33 +111,16 @@ impl FromStr for Explode {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (mut explosion, argument) = {
-            if let Some(r_arg) = s.strip_prefix('r') {
-                (Explode::Recursive(Vec::<u8>::new()), r_arg)
-            } else if let Some(a_arg) = s.strip_prefix('a') {
-                (Explode::Additive(Vec::<u8>::new()), a_arg)
-            } else {
-                (Explode::Once(Vec::<u8>::new()), s)
-            }
-        };
-
-        if let Some(multi_explosions) = argument.trim().strip_prefix('[').unwrap_or("").strip_suffix(']') {
-            for number_str in multi_explosions.split_terminator(',') {
-                match explosion {
-                    Explode::Once(ref mut explode_numbers) => explode_numbers.push(number_str.trim().parse()?),
-                    Explode::Recursive(ref mut explode_numbers) => explode_numbers.push(number_str.trim().parse()?),
-                    Explode::Additive(ref mut explode_numbers) => explode_numbers.push(number_str.trim().parse()?),
-                }
+        if let Some(mode) = s.trim().strip_prefix('r') {
+            match mode {
+                "" | "o"    => Ok(Explode::Once(Vec::<u8>::new())),
+                "r"         => Ok(Explode::Recursive(Vec::<u8>::new())),
+                "a"         => Ok(Explode::Additive(Vec::<u8>::new())),
+                _           => Err(RollError::PlaceholderError)
             }
         } else {
-            match explosion {
-                Explode::Once(ref mut explode_numbers) => explode_numbers.push(argument.trim().parse()?),
-                Explode::Recursive(ref mut explode_numbers) => explode_numbers.push(argument.trim().parse()?),
-                Explode::Additive(ref mut explode_numbers) => explode_numbers.push(argument.trim().parse()?),
-            }
+            Err(RollError::PlaceholderError)
         }
-        
-        Ok(explosion)
     }
 }
 
@@ -166,12 +135,31 @@ impl FromStr for Keep {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(keep_high_number) = s.strip_prefix('h') {
-            return Ok(Keep::High(keep_high_number.parse()?));
-        } else if let Some(keep_low_number) = s.strip_prefix('l') {
-            return Ok(Keep::Low(keep_low_number.parse()?));
+        if let Some(mode) = s.trim().strip_prefix('k') {
+            match mode {
+                "" | "h"    => Ok(Keep::High(0)),
+                "l"         => Ok(Keep::Low(0)),
+                _           => Err(RollError::PlaceholderError)
+            }
         } else {
-            return Ok(Keep::High(s.parse()?));
+            Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Dice(Option<Pool>);
+
+impl FromStr for Dice {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s == "d" {                               // If just the dice operator, return an uninitialized pool
+            Ok(Dice(None))
+        } else if let Ok(pool) = s.parse() {  // If it can be parsed into a pool, return that pool
+            Ok(Dice(Some(pool)))
+        } else {                                    // Otherwise error
+            Err(RollError::PlaceholderError)
         }
     }
 }
@@ -187,24 +175,14 @@ impl FromStr for Reroll {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut reroll_numbers = Vec::<u8>::new();
-
-        let (argument, recur) = match s.strip_prefix('r') {
-            Some(r_arg) => (r_arg, true),
-            None => (s, false)
-        };
-
-        if let Some(multi_rerolls) = argument.trim().strip_prefix('[').unwrap_or("").strip_suffix(']') {
-            for number_str in multi_rerolls.split_terminator(',') {
-                reroll_numbers.push(number_str.trim().parse()?);
+        if let Some(mode) = s.trim().strip_prefix('r') {
+            match mode {
+                "" | "o"    => Ok(Reroll::Once(Vec::<u8>::new())),
+                "r"         => Ok(Reroll::Recursive(Vec::<u8>::new())),
+                _           => Err(RollError::PlaceholderError)
             }
         } else {
-            reroll_numbers.push(argument.trim().parse()?);
-        }
-
-        match recur {
-            true => Ok(Reroll::Recursive(reroll_numbers)),
-            false => Ok(Reroll::Once(reroll_numbers))
+            Err(RollError::PlaceholderError)
         }
     }
 }
@@ -212,39 +190,37 @@ impl FromStr for Reroll {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum Target {
-    Single(u8),
-    Complex(Vec<u8>)
+    Success(Vec<u8>),
+    Botch(Vec<u8>)
 }
 
 impl FromStr for Target {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(multi_targets) = s.trim().strip_prefix('[').unwrap_or("").strip_suffix(']') {
-            let mut target_numbers = Vec::<u8>::new();
-            for number_str in multi_targets.split_terminator(',') {
-                target_numbers.push(number_str.trim().parse()?);
-            }
-            return Ok(Target::Complex(target_numbers));
+        match s {
+            "t" => Ok(Target::Success(Vec::<u8>::new())),
+            "b" => Ok(Target::Botch(Vec::<u8>::new())),
+            _   => Err(RollError::PlaceholderError)
         }
-        return Ok(Target::Single(s.trim().parse()?));
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 
     #[test]
     fn test_from_str() {
-        let strings_to_parse = ["1d20", "k3", "r1", "r[1, 2]", "rr3", "e10", "er[9, 10]", "ea[10]"];
+        todo!()
+        // let strings_to_parse = ["1d20", "k3", "r1", "r[1, 2]", "rr3", "e10", "er[9, 10]", "ea[10]"];
 
-        assert_eq!(RollToken::Keep(Keep::High(3)), strings_to_parse[1].parse().unwrap());
-        assert_eq!(RollToken::Reroll(Reroll::Once([1].to_vec())), strings_to_parse[2].parse().unwrap());
-        assert_eq!(RollToken::Reroll(Reroll::Once([1, 2].to_vec())), strings_to_parse[3].parse().unwrap());
-        assert_eq!(RollToken::Reroll(Reroll::Recursive([3].to_vec())), strings_to_parse[4].parse().unwrap());
-        assert_eq!(RollToken::Explode(Explode::Once([10].to_vec())), strings_to_parse[5].parse().unwrap());
-        assert_eq!(RollToken::Explode(Explode::Recursive([9, 10].to_vec())), strings_to_parse[6].parse().unwrap());
-        assert_eq!(RollToken::Explode(Explode::Additive([10].to_vec())), strings_to_parse[7].parse().unwrap());
+        // assert_eq!(RollToken::Keep(Keep::High(3)), strings_to_parse[1].parse().unwrap());
+        // assert_eq!(RollToken::Reroll(Reroll::Once([1].to_vec())), strings_to_parse[2].parse().unwrap());
+        // assert_eq!(RollToken::Reroll(Reroll::Once([1, 2].to_vec())), strings_to_parse[3].parse().unwrap());
+        // assert_eq!(RollToken::Reroll(Reroll::Recursive([3].to_vec())), strings_to_parse[4].parse().unwrap());
+        // assert_eq!(RollToken::Explode(Explode::Once([10].to_vec())), strings_to_parse[5].parse().unwrap());
+        // assert_eq!(RollToken::Explode(Explode::Recursive([9, 10].to_vec())), strings_to_parse[6].parse().unwrap());
+        // assert_eq!(RollToken::Explode(Explode::Additive([10].to_vec())), strings_to_parse[7].parse().unwrap());
     }
 }
