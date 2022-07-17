@@ -20,7 +20,6 @@ pub enum RollToken {
     Keep(Keep),
     Reroll(Reroll),
     Target(Target),
-    Botch(Target),
     Argument(Argument),
 }
 
