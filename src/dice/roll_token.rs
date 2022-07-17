@@ -12,7 +12,6 @@ use super::{
     pool::Pool, 
 };
 
-#[allow(dead_code)]
 #[derive(Debug, PartialEq)]
 pub enum RollToken {
     Math(RpnToken),
@@ -77,7 +76,7 @@ impl FromStr for RollToken {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Argument {
     Single(u8),
     Array(Vec<u8>),
@@ -99,8 +98,7 @@ impl FromStr for Argument {
     }
 }
 
-#[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Explode {
     Once(Option<Argument>),
     Recursive(Option<Argument>),
@@ -147,7 +145,7 @@ impl FromStr for Keep {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Dice(Option<Pool>);
 
 impl FromStr for Dice {
@@ -164,8 +162,7 @@ impl FromStr for Dice {
     }
 }
 
-#[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Reroll {
     Once(Option<Argument>),
     Recursive(Option<Argument>),
@@ -187,8 +184,7 @@ impl FromStr for Reroll {
     }
 }
 
-#[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Target {
     Success(Option<Argument>),
     Botch(Option<Argument>)
