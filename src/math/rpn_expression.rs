@@ -199,4 +199,28 @@ mod tests {
         assert_eq!(RpnExpression::tokenize_expression(expression).unwrap(), token_vector);
         // TODO more tests
     }
+
+    #[test]
+    fn test_shunting() {
+        let expression = "3+4*2/(1-5)^2^3";
+        let token_vector = RpnExpression::tokenize_expression(expression).unwrap();
+
+        let postfix = vec![
+            RpnToken::Number(3.0),
+            RpnToken::Number(4.0),
+            RpnToken::Number(2.0),
+            RpnToken::Mul,
+            RpnToken::Number(1.0),
+            RpnToken::Number(5.0),
+            RpnToken::Sub,
+            RpnToken::Number(2.0),
+            RpnToken::Number(3.0),
+            RpnToken::Pow,
+            RpnToken::Pow,
+            RpnToken::Div,
+            RpnToken::Add,
+        ];
+
+        assert_eq!(RpnExpression::shunting_yard(&token_vector).unwrap(), postfix);
+    }
 }
