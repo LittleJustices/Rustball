@@ -22,6 +22,13 @@ impl RpnToken {
             _ => 0
         }
     }
+
+    pub fn left_associative(&self) -> bool {
+        match self {
+            RpnToken::Pow => false,
+            _ => true
+        }
+    }
 }
 
 impl FromStr for RpnToken {
