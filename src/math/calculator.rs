@@ -4,7 +4,6 @@ use super::{
     math_errors::MathError,
     rpn_token::{
         RpnToken,
-        Operator,
     },
 };
 use super::rpn_expression::RpnExpression;
@@ -28,33 +27,9 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
         match token {
             RpnToken::Number(number) => stack.push(number),
             RpnToken::Operator(operator) => {
-                match operator {
-                    Operator::Add => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left + right);
-                    },
-                    Operator::Sub => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left - right);
-                    },
-                    Operator::Mul => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left * right);
-                    },
-                    Operator::Div => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left / right);
-                    },
-                    Operator::Pow => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left.powf(right));
-                    }
-                }
+                let right = stack.pop().ok_or(MathError::PlaceholderError)?;
+                let left = stack.pop().ok_or(MathError::PlaceholderError)?;
+                stack.push(operator.apply(left, right));
             },
             _ => return Err(MathError::PlaceholderError)
         }

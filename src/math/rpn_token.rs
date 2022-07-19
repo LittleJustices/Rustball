@@ -64,6 +64,16 @@ impl Operator {
             _ => true
         }
     }
+
+    pub fn apply(&self, left: f64, right: f64) -> f64 {
+        match self {
+            Operator::Add => left + right,
+            Operator::Sub => left - right,
+            Operator::Mul => left * right,
+            Operator::Div => left / right,
+            Operator::Pow => left.powf(right),
+        }
+    }
 }
 
 #[cfg(test)]
