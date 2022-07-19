@@ -117,7 +117,8 @@ impl RpnExpression {
                 RpnToken::Add | RpnToken::Sub | RpnToken::Mul | RpnToken::Div | RpnToken::Pow => {
                     while let Some(left_operator) = token_stack.last() {
                         if left_operator == &RpnToken::LParen { break; }
-                        if left_operator.precedence() >= token.precedence() {
+                        if (left_operator.precedence() > token.precedence()) | 
+                            (left_operator.precedence() == token.precedence()) && (token.left_associative()) {
                             postfix_queue.push_back(token_stack.pop().ok_or(MathError::PlaceholderError)?);
                         } else {
                             break;
@@ -139,12 +140,13 @@ impl RpnExpression {
                     // If there is a function token at the top of the stack, pop it onto the queue
                 }
             }
+            println!("Queue: {:?};\tStack: {:?}", postfix_queue, token_stack);
         }
 
-        for token in token_stack {
+        while let Some(token) = token_stack.pop() {
             match token {
                 RpnToken::LParen | RpnToken::RParen => return Err(MathError::PlaceholderError),
-                _ => postfix_queue.push_back(token)
+                other => postfix_queue.push_back(other)
             }
         }
 
