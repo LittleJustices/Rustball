@@ -140,7 +140,6 @@ impl RpnExpression {
                     // If there is a function token at the top of the stack, pop it onto the queue
                 }
             }
-            println!("Queue: {:?};\tStack: {:?}", postfix_queue, token_stack);
         }
 
         while let Some(token) = token_stack.pop() {
