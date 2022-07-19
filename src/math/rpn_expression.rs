@@ -29,7 +29,7 @@ pub struct RpnExpression {
     infix_expression: String,
     infix_tokens: Vec<RpnToken>,
     postfix_expression: VecDeque<String>,
-    postfix_tokens: VecDeque<RpnToken>,
+    postfix_tokens: Vec<RpnToken>,
 }
 
 impl RpnExpression {
@@ -94,7 +94,7 @@ impl RpnExpression {
         infix_vector
     }
 
-    fn tokenize_expression(infix_expression: &str) -> Result<Vec<RpnToken>, MathError> {
+    pub fn tokenize_expression(infix_expression: &str) -> Result<Vec<RpnToken>, MathError> {
         let whitespace_cleaned = infix_expression.replace(" ", "");
         let infix_processed = MATH_TOKEN_RE.replace_all(&whitespace_cleaned, " $token ");
 
@@ -106,20 +106,20 @@ impl RpnExpression {
         Ok(infix_vector)
     }
 
-    fn shunting_yard(infix_vector: &[RpnToken]) -> Result<VecDeque<RpnToken>, MathError> {
-        let mut postfix_queue = VecDeque::new();
+    pub fn shunting_yard(infix_vector: &[RpnToken]) -> Result<Vec<RpnToken>, MathError> {
+        let mut postfix_queue = vec![];
         let mut token_stack: Vec<RpnToken> = vec![];
 
         for token in infix_vector.to_vec() {
             match token {
-                RpnToken::Number(_) => postfix_queue.push_back(token),
+                RpnToken::Number(_) => postfix_queue.push(token),
                 // When/if functions are implemented: If token is a function, push onto stack
                 RpnToken::Add | RpnToken::Sub | RpnToken::Mul | RpnToken::Div | RpnToken::Pow => {
                     while let Some(left_operator) = token_stack.last() {
                         if left_operator == &RpnToken::LParen { break; }
                         if (left_operator.precedence() > token.precedence()) | 
                             (left_operator.precedence() == token.precedence()) && (token.left_associative()) {
-                            postfix_queue.push_back(token_stack.pop().ok_or(MathError::PlaceholderError)?);
+                            postfix_queue.push(token_stack.pop().ok_or(MathError::PlaceholderError)?);
                         } else {
                             break;
                         }
@@ -130,7 +130,7 @@ impl RpnExpression {
                 RpnToken::RParen => {
                     while let Some(operator) = token_stack.last() {
                         if operator == &RpnToken::LParen { break; }
-                        postfix_queue.push_back(token_stack.pop().ok_or(MathError::PlaceholderError)?);
+                        postfix_queue.push(token_stack.pop().ok_or(MathError::PlaceholderError)?);
                     }
                     if token_stack.last() != Some(&RpnToken::LParen) {
                         return Err(MathError::PlaceholderError);
@@ -145,7 +145,7 @@ impl RpnExpression {
         while let Some(token) = token_stack.pop() {
             match token {
                 RpnToken::LParen | RpnToken::RParen => return Err(MathError::PlaceholderError),
-                other => postfix_queue.push_back(other)
+                other => postfix_queue.push(other)
             }
         }
 
