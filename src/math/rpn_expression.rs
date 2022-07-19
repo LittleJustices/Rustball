@@ -111,14 +111,13 @@ impl RpnExpression {
         let mut token_stack: Vec<RpnToken> = vec![];
 
         for token in infix_vector.to_vec() {
-            match token {
+            match &token {
                 RpnToken::Number(_) => postfix_queue.push(token),
                 // When/if functions are implemented: If token is a function, push onto stack
-                RpnToken::Add | RpnToken::Sub | RpnToken::Mul | RpnToken::Div | RpnToken::Pow => {
-                    while let Some(left_operator) = token_stack.last() {
-                        if left_operator == &RpnToken::LParen { break; }
-                        if (left_operator.precedence() > token.precedence()) | 
-                            (left_operator.precedence() == token.precedence()) && (token.left_associative()) {
+                RpnToken::Operator(right_operator) => {
+                    while let Some(RpnToken::Operator(left_operator)) = token_stack.last() {
+                        if (left_operator.precedence() > right_operator.precedence()) | 
+                            (left_operator.precedence() == right_operator.precedence()) && (right_operator.left_associative()) {
                             postfix_queue.push(token_stack.pop().ok_or(MathError::PlaceholderError)?);
                         } else {
                             break;
@@ -171,7 +170,7 @@ impl FromStr for RpnExpression {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::rpn_token::RpnToken;
+    use super::super::rpn_token::*;
 
     #[test]
     fn test_tokenize() {
@@ -179,18 +178,18 @@ mod tests {
         let token_vector = vec![
             RpnToken::LParen,
             RpnToken::Number(1.0),
-            RpnToken::Add,
+            RpnToken::Operator(Operator::Add),
             RpnToken::Number(2.0),
             RpnToken::RParen,
-            RpnToken::Sub,
+            RpnToken::Operator(Operator::Sub),
             RpnToken::Number(3.0),
-            RpnToken::Mul,
+            RpnToken::Operator(Operator::Mul),
             RpnToken::LParen,
             RpnToken::Number(4.0),
-            RpnToken::Div,
+            RpnToken::Operator(Operator::Div),
             RpnToken::Number(5.0),
             RpnToken::RParen,
-            RpnToken::Pow,
+            RpnToken::Operator(Operator::Pow),
             RpnToken::Number(6.7)
         ];
 
@@ -205,19 +204,19 @@ mod tests {
 
         let infix = vec![
             RpnToken::Number(3.0),
-            RpnToken::Add,
+            RpnToken::Operator(Operator::Add),
             RpnToken::Number(4.0),
-            RpnToken::Mul,
+            RpnToken::Operator(Operator::Mul),
             RpnToken::Number(2.0),
-            RpnToken::Div,
+            RpnToken::Operator(Operator::Div),
             RpnToken::LParen,
             RpnToken::Number(1.0),
-            RpnToken::Sub,
+            RpnToken::Operator(Operator::Sub),
             RpnToken::Number(5.0),
             RpnToken::RParen,
-            RpnToken::Pow,
+            RpnToken::Operator(Operator::Pow),
             RpnToken::Number(2.0),
-            RpnToken::Pow,
+            RpnToken::Operator(Operator::Pow),
             RpnToken::Number(3.0),
         ];
 
@@ -225,16 +224,16 @@ mod tests {
             RpnToken::Number(3.0),
             RpnToken::Number(4.0),
             RpnToken::Number(2.0),
-            RpnToken::Mul,
+            RpnToken::Operator(Operator::Mul),
             RpnToken::Number(1.0),
             RpnToken::Number(5.0),
-            RpnToken::Sub,
+            RpnToken::Operator(Operator::Sub),
             RpnToken::Number(2.0),
             RpnToken::Number(3.0),
-            RpnToken::Pow,
-            RpnToken::Pow,
-            RpnToken::Div,
-            RpnToken::Add,
+            RpnToken::Operator(Operator::Pow),
+            RpnToken::Operator(Operator::Pow),
+            RpnToken::Operator(Operator::Div),
+            RpnToken::Operator(Operator::Add),
         ];
 
         assert_eq!(token_vector, infix);

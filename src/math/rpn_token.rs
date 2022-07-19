@@ -4,11 +4,7 @@ use super::math_errors::MathError;
 #[derive(Clone, Debug, PartialEq)]
 pub enum RpnToken {
     Number(f64),
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Pow,
+    Operator(Operator),
     RParen,
     LParen,
 }
@@ -16,17 +12,8 @@ pub enum RpnToken {
 impl RpnToken {
     pub fn precedence(&self) -> u8 {
         match self {
-            RpnToken::Add | RpnToken::Sub => 4,
-            RpnToken::Mul | RpnToken::Div => 5,
-            RpnToken::Pow => 6,
+            RpnToken::Operator(operator) => operator.precedence(),
             _ => 0
-        }
-    }
-
-    pub fn left_associative(&self) -> bool {
-        match self {
-            RpnToken::Pow => false,
-            _ => true
         }
     }
 }
@@ -36,11 +23,11 @@ impl FromStr for RpnToken {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let token: Result<RpnToken, MathError> = match s.trim() {
-            "+" => Ok(RpnToken::Add),
-            "-" => Ok(RpnToken::Sub),
-            "*" | "x" => Ok(RpnToken::Mul),
-            "/" => Ok(RpnToken::Div),
-            "^" | "**" => Ok(RpnToken::Pow),
+            "+" => Ok(RpnToken::Operator(Operator::Add)),
+            "-" => Ok(RpnToken::Operator(Operator::Sub)),
+            "*" | "x" => Ok(RpnToken::Operator(Operator::Mul)),
+            "/" => Ok(RpnToken::Operator(Operator::Div)),
+            "^" | "**" => Ok(RpnToken::Operator(Operator::Pow)),
             ")" | "]" | "}" => Ok(RpnToken::RParen),
             "(" | "[" | "{" => Ok(RpnToken::LParen),
             other => match other.parse() {
@@ -53,6 +40,32 @@ impl FromStr for RpnToken {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum Operator {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Pow,
+}
+
+impl Operator {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            Operator::Add | Operator::Sub => 4,
+            Operator::Mul | Operator::Div => 5,
+            Operator::Pow => 6,
+        }
+    }
+
+    pub fn left_associative(&self) -> bool {
+        match self {
+            Operator::Pow => false,
+            _ => true
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -61,13 +74,13 @@ mod tests {
     fn test_from_str() {
         let strings_to_parse = ["+", " -", "* ", " x ", "/", "  ^  ", "\t**", ")", "(", "1", "2.0", "-15", "apple"];
 
-        assert_eq!(RpnToken::Add, strings_to_parse[0].parse().unwrap());
-        assert_eq!(RpnToken::Sub, strings_to_parse[1].parse().unwrap());
-        assert_eq!(RpnToken::Mul, strings_to_parse[2].parse().unwrap());
-        assert_eq!(RpnToken::Mul, strings_to_parse[3].parse().unwrap());
-        assert_eq!(RpnToken::Div, strings_to_parse[4].parse().unwrap());
-        assert_eq!(RpnToken::Pow, strings_to_parse[5].parse().unwrap());
-        assert_eq!(RpnToken::Pow, strings_to_parse[6].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Add), strings_to_parse[0].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Sub), strings_to_parse[1].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Mul), strings_to_parse[2].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Mul), strings_to_parse[3].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Div), strings_to_parse[4].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Pow), strings_to_parse[5].parse().unwrap());
+        assert_eq!(RpnToken::Operator(Operator::Pow), strings_to_parse[6].parse().unwrap());
         assert_eq!(RpnToken::RParen, strings_to_parse[7].parse().unwrap());
         assert_eq!(RpnToken::LParen, strings_to_parse[8].parse().unwrap());
         assert_eq!(RpnToken::Number(1.0), strings_to_parse[9].parse().unwrap());
