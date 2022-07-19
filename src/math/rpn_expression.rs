@@ -151,10 +151,6 @@ impl RpnExpression {
 
         Ok(postfix_queue)
     }
-
-    pub fn get_rpn_expression(&self) -> &VecDeque<String> {
-        &self.postfix_expression
-    }
 }
 
 impl FromStr for RpnExpression {

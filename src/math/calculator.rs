@@ -5,14 +5,19 @@ use super::{
     rpn_token::RpnToken,
 };
 use super::rpn_expression::RpnExpression;
-use std::str::FromStr;
 
-pub fn evaluate(infix_expression: &str) -> Result<f64, SixballError> {
-    let rpn_expression = RpnExpression::from_str(infix_expression)?;
-    Ok(resolve_rpn(rpn_expression)?)
+pub fn evaluate_string(infix_expression: &str) -> Result<f64, SixballError> {
+    let infix_tokens = RpnExpression::tokenize_expression(infix_expression)?;
+    
+    Ok(evaluate_tokens(&infix_tokens)?)
 }
 
-pub fn resolve(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
+pub fn evaluate_tokens(infix_tokens: &[RpnToken]) -> Result<f64, MathError> {
+    let postfix_tokens = RpnExpression::shunting_yard(infix_tokens)?;
+    resolve_rpn(&postfix_tokens)
+}
+
+pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
     let tokens = postfix_expression.to_vec();
     let mut stack = vec![];
 
@@ -59,46 +64,6 @@ pub fn resolve(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
     }
 }
 
-fn resolve_rpn(rpn_expression: RpnExpression) -> Result<f64, MathError> {
-    let mut queue = rpn_expression.get_rpn_expression().clone();
-    let mut stack: Vec<f64> = vec![];
-
-    while queue.len() > 0 {
-        if let Some(item) = queue.pop_front() {
-            if let Ok(number) = item.parse::<f64>() {
-                stack.push(number);
-            } else {
-                if stack.len() >= 2 {
-                    let right = stack.pop().unwrap_or_default();
-                    let left = stack.pop().unwrap_or_default();
-                    let value;
-
-                    match item.as_str() {
-                        "*" => { value = left * right },
-                        "x" => { value = left * right },
-                        "/" => { value = left / right },
-                        "+" => { value = left + right },
-                        "-" => { value = left - right },
-                        "%" => { value = left % right },
-                        "^" => { value = left.powf(right) },
-                        _ => { return Err(MathError::SymbolError(item)) /* Operator not found error */ }
-                    }
-                    stack.push(value);
-                }
-                else {
-                    return Err(MathError::ExpressionError("I'm running out of operands here!".to_owned())) /* not enough operands error */
-                }
-            }
-        }
-    }
-
-    if stack.len() != 1 {
-        return Err(MathError::ExpressionError("I don't think the operands and operators match up right...".to_owned())) /* Mismatched operators and operands error */
-    } else {
-        return Ok(stack.pop().unwrap_or_default())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -110,6 +75,6 @@ mod tests {
         let token_vector = RpnExpression::tokenize_expression(expression).unwrap();
         let postfix_expression = RpnExpression::shunting_yard(&token_vector).unwrap();
 
-        assert_eq!(resolve(&postfix_expression).unwrap(), result);
+        assert_eq!(resolve_rpn(&postfix_expression).unwrap(), result);
     }
 }

@@ -23,14 +23,14 @@ impl Tray {
         // Check if there is a dice expression in the command
         if !DICE_MATCH_RE.is_match(roll_command) {
             // If no dice, treat it as a mathematical expression and toss it to the calculator
-            let calc_result = calculator::evaluate(roll_command)?;
+            let calc_result = calculator::evaluate_string(roll_command)?;
             return Ok((calc_result, "No dice rolled".to_owned()));
         }
 
         // Interim because it might be a math expression that we have to resolve
         let (interim_result, compact_breakdown) = self.add_roll_from_command(roll_command)?;
 
-        let final_result = calculator::evaluate(&interim_result.trim())?;
+        let final_result = calculator::evaluate_string(&interim_result.trim())?;
 
         Ok((final_result, compact_breakdown))
     }

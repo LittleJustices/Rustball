@@ -17,7 +17,7 @@ use serenity::{
 #[command]
 async fn calc(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let infix_expression = args.message();
-    let result = match calculator::evaluate(infix_expression) {
+    let result = match calculator::evaluate_string(infix_expression) {
         Ok(res) => format!("`{}` = {}", infix_expression, res),
         Err(why) => format!("{}", why)
     };
