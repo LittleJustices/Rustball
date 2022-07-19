@@ -108,11 +108,11 @@ impl RpnExpression {
 
     fn shunting_yard(infix_vector: &[RpnToken]) -> Result<VecDeque<RpnToken>, MathError> {
         let mut postfix_queue = VecDeque::new();
-        let mut token_stack = vec![];
+        let mut token_stack: Vec<RpnToken> = vec![];
 
         for token in infix_vector.to_vec() {
             match token {
-                RpnToken::Number(_) => token_stack.push(token),
+                RpnToken::Number(_) => postfix_queue.push_back(token),
                 // When/if functions are implemented: If token is a function, push onto stack
                 RpnToken::Add | RpnToken::Sub | RpnToken::Mul | RpnToken::Div | RpnToken::Pow => {
                     while let Some(left_operator) = token_stack.last() {
@@ -123,6 +123,7 @@ impl RpnExpression {
                             break;
                         }
                     }
+                    token_stack.push(token);
                 },
                 RpnToken::LParen => token_stack.push(token),
                 RpnToken::RParen => {
@@ -205,6 +206,24 @@ mod tests {
         let expression = "3+4*2/(1-5)^2^3";
         let token_vector = RpnExpression::tokenize_expression(expression).unwrap();
 
+        let infix = vec![
+            RpnToken::Number(3.0),
+            RpnToken::Add,
+            RpnToken::Number(4.0),
+            RpnToken::Mul,
+            RpnToken::Number(2.0),
+            RpnToken::Div,
+            RpnToken::LParen,
+            RpnToken::Number(1.0),
+            RpnToken::Sub,
+            RpnToken::Number(5.0),
+            RpnToken::RParen,
+            RpnToken::Pow,
+            RpnToken::Number(2.0),
+            RpnToken::Pow,
+            RpnToken::Number(3.0),
+        ];
+
         let postfix = vec![
             RpnToken::Number(3.0),
             RpnToken::Number(4.0),
@@ -221,6 +240,7 @@ mod tests {
             RpnToken::Add,
         ];
 
+        assert_eq!(token_vector, infix);
         assert_eq!(RpnExpression::shunting_yard(&token_vector).unwrap(), postfix);
     }
 }
