@@ -4,13 +4,18 @@ use super::{
     dice_re::DICE_MATCH_RE,
     dice_errors::RollError,
     pool::Pool,
-    roll_token::Keep,
+    roll_token::{
+        Argument,
+        Keep,
+        RollToken,
+    },
 };
 
 #[derive(Debug)]
 pub struct Roll {
     command: String,
     dicepools: Vec<Pool>,
+    _roll_tokens: Vec<RollToken>,
     roller: String,
     timestamp: DateTime<Utc>,
 }
@@ -19,23 +24,25 @@ impl Roll {
     pub fn new(command: &str) -> Result<Self, RollError> {
         let roller = "Placeholder name".to_owned();
         let timestamp = Utc::now();
+        let _roll_tokens = RollToken::tokenize_expression(command)?;
+        println!("{:?}", _roll_tokens);
         let mut dicepools = Vec::new();
         for captures in DICE_MATCH_RE.captures_iter(command) {
             let number = captures["number"].parse::<u8>()?;
             let sides = captures["sides"].parse::<u8>()?;
 
             let keep = match &captures["keep"] {
-                "l" => Keep::Low(captures["keepamt"].parse::<u8>()?),
+                "l" => Keep::Low(Some(Argument::Single(captures["keepamt"].parse::<u8>()?))),
                 _ => {
                     match &captures["keepamt"] {
                         "" => Keep::All,
-                        _ => Keep::High(captures["keepamt"].parse::<u8>()?),
+                        _ => Keep::High(Some(Argument::Single(captures["keepamt"].parse::<u8>()?))),
                     }
                 }
             };
             dicepools.push(Pool::new(number, sides, keep));
         }
-        Ok(Roll { command: command.to_string(), dicepools, roller, timestamp })
+        Ok(Roll { command: command.to_string(), dicepools, _roll_tokens, roller, timestamp })
     }
 
     pub fn math_command(&self) -> String {

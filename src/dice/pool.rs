@@ -1,10 +1,17 @@
 use super::{
-    die::Die, 
-    roll_token::Keep
+    die::Die,
+    dice_errors::RollError,
+    roll_token::{
+        Argument,
+        Keep
+    },
 };
-use std::fmt;
+use std::{
+    fmt,
+    str::FromStr,
+};
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Pool {
     number: u8,
     sides: u8,
@@ -41,15 +48,16 @@ impl Pool {
 
         kept_dice.sort_unstable();
         match keep {
-            Keep::Low(keepamt) => {
+            Keep::Low(Some(Argument::Single(keepamt))) => {
                 let max_index = if keepamt > &self.number { self.number as usize } else { *keepamt as usize };
-                return kept_dice[..max_index].to_vec();
+                kept_dice[..max_index].to_vec()
             }
-            Keep::High(keepamt) => {
+            Keep::High(Some(Argument::Single(keepamt))) => {
                 let min_index = if keepamt > &self.number { 0 } else { (self.number - *keepamt) as usize };
-                return kept_dice[min_index..].to_vec();
+                kept_dice[min_index..].to_vec()
             },
-            Keep::All => return kept_dice,
+            Keep::All => kept_dice,
+            _ => kept_dice
         }
     }
 
@@ -88,5 +96,14 @@ impl fmt::Display for Pool {
             results = format!("{}, {}", results, self.dice[i].result)
         }
         write!(f, "{}d{} -> [{}]", self.number, self.sides, results)
+    }
+}
+
+impl FromStr for Pool {
+    type Err = RollError;
+
+    fn from_str(_s: &str) -> Result<Self, Self::Err> {
+        // TODO: Actually implement this
+        Err(RollError::PlaceholderError)
     }
 }

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 use super::math_errors::MathError;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RpnToken {
     Number(f64),
     Add,
@@ -11,6 +11,24 @@ pub enum RpnToken {
     Pow,
     RParen,
     LParen,
+}
+
+impl RpnToken {
+    pub fn precedence(&self) -> u8 {
+        match self {
+            RpnToken::Add | RpnToken::Sub => 4,
+            RpnToken::Mul | RpnToken::Div => 5,
+            RpnToken::Pow => 6,
+            _ => 0
+        }
+    }
+
+    pub fn left_associative(&self) -> bool {
+        match self {
+            RpnToken::Pow => false,
+            _ => true
+        }
+    }
 }
 
 impl FromStr for RpnToken {
@@ -25,12 +43,9 @@ impl FromStr for RpnToken {
             "^" | "**" => Ok(RpnToken::Pow),
             ")" | "]" | "}" => Ok(RpnToken::RParen),
             "(" | "[" | "{" => Ok(RpnToken::LParen),
-            other => {
-                if let Ok(num) = other.parse() {
-                    return Ok(RpnToken::Number(num));
-                } else {
-                    return Err(MathError::PlaceholderError);
-                }
+            other => match other.parse() {
+                Ok(num) => Ok(RpnToken::Number(num)),
+                Err(_) => Err(MathError::SymbolError(other.to_string()))
             }
         };
         
