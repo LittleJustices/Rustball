@@ -13,7 +13,7 @@ use super::{
 };
 pub use super::token_kinds::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RollToken {
     Math(RpnToken),
     Dice(Dice),
