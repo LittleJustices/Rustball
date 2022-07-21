@@ -62,7 +62,7 @@ impl TryFrom<RollToken> for RpnToken {
     fn try_from(value: RollToken) -> Result<Self, Self::Error> {
         match value {
             RollToken::Math(rpn_token)      => Ok(rpn_token),
-            RollToken::Dice(Dice(Some(pool)))   => Ok(RpnToken::Number(pool.total().into())),
+            RollToken::Dice(Dice{ pool: Some(pool) })   => Ok(RpnToken::Number(pool.total().into())),
             RollToken::Argument(argument)   => {
                 match argument {
                     Argument::Array(_)                => Err(MathError::PlaceholderError),
@@ -107,7 +107,7 @@ mod tests {
         let expression = "2d20kh1";
         let token_vector = vec![
             RollToken::Argument(Argument::Single(2)),
-            RollToken::Dice(Dice(None)),
+            RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Single(20)),
             RollToken::Keep(Keep::High(None)),
             RollToken::Argument(Argument::Single(1)),

@@ -74,16 +74,33 @@ impl FromStr for Keep {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Dice(pub Option<Pool>);
+pub struct Dice{pub pool: Option<Pool>}
+
+impl Dice {
+    pub fn apply(mut self, left: Argument, right:Argument) -> Result<Self, RollError> {
+        let number = match left {
+            Argument::Single(no) => no,
+            Argument::Array(_) => return Err(RollError::PlaceholderError)
+        };
+        let sides = match right {
+            Argument::Single(no) => no,
+            Argument::Array(_) => return Err(RollError::PlaceholderError)
+        };
+
+        self.pool = Some(Pool::new(number, sides, Keep::All));
+
+        Ok(self)
+    }
+}
 
 impl FromStr for Dice {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s == "d" {                               // If just the dice operator, return an uninitialized pool
-            Ok(Dice(None))
+            Ok(Dice{ pool: None })
         } else if let Ok(pool) = s.parse() {  // If it can be parsed into a pool, return that pool
-            Ok(Dice(Some(pool)))
+            Ok(Dice{ pool: Some(pool) })
         } else {                                    // Otherwise error
             Err(RollError::PlaceholderError)
         }
