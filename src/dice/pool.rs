@@ -15,12 +15,11 @@ use std::{
 pub struct Pool {
     number: u8,
     sides: u8,
-    keep: Keep,
     dice: Vec<Die>,
 }
 
 impl Pool {
-    pub fn new(number: u8, sides: u8, keep: Keep) -> Self {
+    pub fn new(number: u8, sides: u8) -> Self {
         let mut dice = Vec::<Die>::new();
 
         for _ in 0..number {
@@ -28,7 +27,7 @@ impl Pool {
             dice.push(die);
         }
 
-        Pool { number, sides, keep, dice }
+        Pool { number, sides, dice }
     }
 
     pub fn total(&self) -> u16 {
@@ -37,12 +36,10 @@ impl Pool {
     }
 
     fn sum_sides(&self) -> u16 {
-        if self.keep != Keep::All {
-            return self.keep_dice(&self.keep).iter().fold(0, |sum, die| sum + die.result as u16);
-        }
         self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
+    #[allow(dead_code)]
     fn keep_dice(&self, keep: &Keep) -> Vec<&Die> {
         let mut kept_dice: Vec<&Die> = self.dice.iter().collect();
 
@@ -56,7 +53,6 @@ impl Pool {
                 let min_index = if keepamt > &self.number { 0 } else { (self.number - *keepamt) as usize };
                 kept_dice[min_index..].to_vec()
             },
-            Keep::All => kept_dice,
             _ => kept_dice
         }
     }

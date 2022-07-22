@@ -54,7 +54,6 @@ impl FromStr for Explode {
 pub enum Keep {
     Low(Option<Argument>),
     High(Option<Argument>),
-    All,
 }
 
 impl FromStr for Keep {
@@ -87,7 +86,7 @@ impl Dice {
             Argument::Array(_) => return Err(RollError::PlaceholderError)
         };
 
-        self.pool = Some(Pool::new(number, sides, Keep::All));
+        self.pool = Some(Pool::new(number, sides));
 
         Ok(self)
     }
