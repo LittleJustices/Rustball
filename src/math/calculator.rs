@@ -38,7 +38,7 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
     if stack.len() != 1 {
         Err(MathError::PlaceholderError)
     } else {
-        stack.pop().ok_or(MathError::PlaceholderError)
+        stack.pop().ok_or(MathError::ImpossibleError)
     }
 }
 
