@@ -2,7 +2,9 @@ use crate::sixball_errors::SixballError;
 
 use super::{
     math_errors::MathError,
-    rpn_token::RpnToken,
+    rpn_token::{
+        RpnToken,
+    },
 };
 use super::rpn_expression::RpnExpression;
 
@@ -24,43 +26,19 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
     for token in tokens {
         match token {
             RpnToken::Number(number) => stack.push(number),
-            other => {
-                match other {
-                    RpnToken::Add => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left + right);
-                    },
-                    RpnToken::Sub => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left - right);
-                    },
-                    RpnToken::Mul => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left * right);
-                    },
-                    RpnToken::Div => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left / right);
-                    },
-                    RpnToken::Pow => {
-                        let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        let left = stack.pop().ok_or(MathError::PlaceholderError)?;
-                        stack.push(left.powf(right));
-                    },
-                    _ => return Err(MathError::PlaceholderError)
-                }
-            }
+            RpnToken::Operator(operator) => {
+                let right = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
+                let left = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
+                stack.push(operator.apply(left, right));
+            },
+            _ => return Err(MathError::PlaceholderError)
         }
     }
 
     if stack.len() != 1 {
         Err(MathError::PlaceholderError)
     } else {
-        stack.pop().ok_or(MathError::PlaceholderError)
+        stack.pop().ok_or(MathError::ImpossibleError)
     }
 }
 
