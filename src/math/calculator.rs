@@ -27,8 +27,8 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
         match token {
             RpnToken::Number(number) => stack.push(number),
             RpnToken::Operator(operator) => {
-                let right = stack.pop().ok_or(MathError::PlaceholderError)?;
-                let left = stack.pop().ok_or(MathError::PlaceholderError)?;
+                let right = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
+                let left = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
                 stack.push(operator.apply(left, right));
             },
             _ => return Err(MathError::PlaceholderError)
