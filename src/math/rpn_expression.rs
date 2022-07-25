@@ -129,7 +129,7 @@ impl RpnExpression {
                 RpnToken::RParen => {
                     while let Some(operator) = token_stack.last() {
                         if operator == &RpnToken::LParen { break; }
-                        postfix_queue.push(token_stack.pop().ok_or(MathError::PlaceholderError)?);
+                        postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?);
                     }
                     if token_stack.last() != Some(&RpnToken::LParen) {
                         return Err(MathError::PlaceholderError);
