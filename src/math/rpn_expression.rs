@@ -132,7 +132,7 @@ impl RpnExpression {
                         postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?);
                     }
                     if token_stack.last() != Some(&RpnToken::LParen) {
-                        return Err(MathError::PlaceholderError);
+                        return Err(MathError::ExpressionError("I think you're missing a parenthesis somewhere!".into()));
                     } else {
                         token_stack.pop();
                     }
@@ -143,7 +143,7 @@ impl RpnExpression {
 
         while let Some(token) = token_stack.pop() {
             match token {
-                RpnToken::LParen | RpnToken::RParen => return Err(MathError::PlaceholderError),
+                RpnToken::LParen | RpnToken::RParen => return Err(MathError::ExpressionError("I wasn't expecting a parenthesis there!".into())),
                 other => postfix_queue.push(other)
             }
         }
