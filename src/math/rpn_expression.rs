@@ -41,14 +41,9 @@ impl RpnExpression {
                 },
                 RpnToken::LParen => token_stack.push(token),
                 RpnToken::RParen => {
-                    while let Some(operator) = token_stack.last() {
-                        if operator == &RpnToken::LParen { break; }
-                        postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?);
-                    }
-                    if token_stack.last() != Some(&RpnToken::LParen) {
-                        return Err(MathError::ExpressionError("I think you're missing a parenthesis somewhere!".into()));
-                    } else {
-                        token_stack.pop();
+                    while let Some(operator) = token_stack.pop() {
+                        if operator == RpnToken::LParen { break; }
+                        postfix_queue.push(operator);
                     }
                     // If there is a function token at the top of the stack, pop it onto the queue
                 }
