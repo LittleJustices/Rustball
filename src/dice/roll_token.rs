@@ -41,6 +41,68 @@ impl RollToken {
 
         Ok(infix_vector)
     }
+
+    pub fn shunting_dice(infix_vector: &[RollToken]) -> Result<Vec<RollToken>, RollError> {
+        let mut postfix_queue = vec![];
+        let mut token_stack = vec![];
+
+        for token in infix_vector.to_vec() {
+            match &token {
+                RollToken::Math(math_token) => match math_token {
+                    RpnToken::LParen => token_stack.push(token),
+                    RpnToken::RParen => {
+                        while let Some(top_token) = token_stack.pop() {
+                            if top_token == RollToken::Math(RpnToken::LParen) { break; };
+                            postfix_queue.push(top_token);
+                        }
+                    },
+                    RpnToken::Number(_) => postfix_queue.push(token),
+                    RpnToken::Operator(right_operator) => {
+                        while let Some(top_of_stack) = token_stack.last() {
+                            match top_of_stack {
+                                RollToken::Math(RpnToken::Operator(left_operator)) => {
+                                    if (left_operator.precedence() > right_operator.precedence()) |
+                                    ((left_operator.precedence() == right_operator.precedence()) && (right_operator.left_associative())) {
+                                        postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                                    } else {
+                                        break;
+                                    }
+                                },
+                                RollToken::Dice(_) | RollToken::Operator(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
+                                _ => break
+                            }
+                        }
+                        token_stack.push(token);
+                    },
+                },
+                RollToken::Argument(_) => postfix_queue.push(token),
+                RollToken::Dice(_) => {
+                    while let Some(RollToken::Dice(_)) = token_stack.last() {
+                        postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                    }
+                    token_stack.push(token);
+                },
+                RollToken::Operator(_) => {
+                    while let Some(top_of_stack) = token_stack.last() {
+                        match top_of_stack {
+                            RollToken::Dice(_) | RollToken::Operator(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
+                            _ => break
+                        }
+                    }
+                    token_stack.push(token);
+                },
+            }
+        }
+
+        while let Some(token) = token_stack.pop() {
+            match token {
+                RollToken::Math(RpnToken::LParen) | RollToken::Math(RpnToken::RParen) => return Err(RollError::PlaceholderError),
+                other => postfix_queue.push(other)
+            }
+        }
+
+        Ok(postfix_queue)
+    }
 }
 
 impl From<RpnToken> for RollToken {
@@ -91,6 +153,8 @@ impl FromStr for RollToken {
 
 #[cfg(test)]
 mod tests {
+    use crate::math::rpn_token;
+
     use super::*;
 
     #[test]
@@ -105,5 +169,126 @@ mod tests {
         ];
 
         assert_eq!(RollToken::tokenize_expression(expression).unwrap(), token_vector);
+    }
+
+    #[test]
+    fn test_shunting_dice() {
+        let expressions = vec![
+            "(2d6r[1,2]*1.5)/2",
+            "1d2+3d4+5d6",
+            "(2+2)d10+4d(5+5)",
+            "4d6r1k3",
+            "1d2d3d4",
+        ];
+        let token_vector_0 = RollToken::tokenize_expression(expressions[0]).unwrap();
+        let token_vector_1 = RollToken::tokenize_expression(expressions[1]).unwrap();
+        let token_vector_2 = RollToken::tokenize_expression(expressions[2]).unwrap();
+        let token_vector_3 = RollToken::tokenize_expression(expressions[3]).unwrap();
+        let token_vector_4 = RollToken::tokenize_expression(expressions[4]).unwrap();
+
+        let postfix_0 = vec![
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Argument(Argument::Single(6)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Argument(Argument::Array(vec![1, 2])),
+            RollToken::Operator(Operator::Reroll(Reroll::Once(None))),
+            RollToken::Math(RpnToken::Number(1.5)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Mul)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Div)),
+        ];
+        let postfix_1 = vec![
+            RollToken::Argument(Argument::Single(1)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Argument(Argument::Single(3)),
+            RollToken::Argument(Argument::Single(4)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+            RollToken::Argument(Argument::Single(5)),
+            RollToken::Argument(Argument::Single(6)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+        ];
+        let postfix_2 = vec![
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+            RollToken::Argument(Argument::Single(10)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Argument(Argument::Single(4)),
+            RollToken::Argument(Argument::Single(5)),
+            RollToken::Argument(Argument::Single(5)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+        ];
+        let postfix_3 = vec![
+            RollToken::Argument(Argument::Single(4)),
+            RollToken::Argument(Argument::Single(6)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Argument(Argument::Single(1)),
+            RollToken::Operator(Operator::Reroll(Reroll::Once(None))),
+            RollToken::Argument(Argument::Single(3)),
+            RollToken::Operator(Operator::Keep(Keep::High(None))),
+        ];
+        let postfix_4 = vec![
+            RollToken::Argument(Argument::Single(1)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Argument(Argument::Single(3)),
+            RollToken::Dice(Dice{ pool: None }),
+            RollToken::Argument(Argument::Single(4)),
+            RollToken::Dice(Dice{ pool: None }),
+        ];
+
+        assert_eq!(RollToken::shunting_dice(&token_vector_0).unwrap(), postfix_0);
+        assert_eq!(RollToken::shunting_dice(&token_vector_1).unwrap(), postfix_1);
+        assert_eq!(RollToken::shunting_dice(&token_vector_2).unwrap(), postfix_2);
+        assert_eq!(RollToken::shunting_dice(&token_vector_3).unwrap(), postfix_3);
+        assert_eq!(RollToken::shunting_dice(&token_vector_4).unwrap(), postfix_4);
+    }
+
+    #[test]
+    fn test_shunting_math() {
+        let expression = "3+4*2/(1-5)^2^3";
+        let token_vector = RollToken::tokenize_expression(expression).unwrap();
+
+        let infix = vec![
+            RollToken::Argument(Argument::Single(3)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+            RollToken::Argument(Argument::Single(4)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Mul)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Div)),
+            RollToken::Math(RpnToken::LParen),
+            RollToken::Argument(Argument::Single(1)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Sub)),
+            RollToken::Argument(Argument::Single(5)),
+            RollToken::Math(RpnToken::RParen),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Pow)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Pow)),
+            RollToken::Argument(Argument::Single(3)),
+        ];
+
+        let postfix = vec![
+            RollToken::Argument(Argument::Single(3)),
+            RollToken::Argument(Argument::Single(4)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Mul)),
+            RollToken::Argument(Argument::Single(1)),
+            RollToken::Argument(Argument::Single(5)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Sub)),
+            RollToken::Argument(Argument::Single(2)),
+            RollToken::Argument(Argument::Single(3)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Pow)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Pow)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Div)),
+            RollToken::Math(RpnToken::Operator(rpn_token::Operator::Add)),
+        ];
+
+        assert_eq!(token_vector, infix);
+        assert_eq!(RollToken::shunting_dice(&token_vector).unwrap(), postfix);
     }
 }
