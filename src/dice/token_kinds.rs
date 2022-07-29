@@ -63,7 +63,7 @@ impl FromStr for Explode {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(mode) = s.trim().strip_prefix('r') {
+        if let Some(mode) = s.trim().strip_prefix('e') {
             match mode {
                 "" | "o"    => Ok(Explode::Once(None)),
                 "r"         => Ok(Explode::Recursive(None)),
