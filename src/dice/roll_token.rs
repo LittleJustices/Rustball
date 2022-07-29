@@ -17,11 +17,8 @@ pub use super::token_kinds::*;
 pub enum RollToken {
     Math(RpnToken),
     Dice(Dice),
-    Explode(Explode),
-    Keep(Keep),
-    Reroll(Reroll),
-    Target(Target),
     Argument(Argument),
+    Operator(Operator)
 }
 
 impl RollToken {
@@ -84,14 +81,8 @@ impl FromStr for RollToken {
             Ok(RollToken::Math(rpn_token))
         } else if let Ok(dice) = s.parse() {                // Attempt to parse into pool token
             Ok(RollToken::Dice(dice))
-        } else if let Ok(explode) = s.parse() {          // Attempt to parse into explode token
-            Ok(RollToken::Explode(explode))
-        } else if let Ok(keep) = s.parse() {                // Attempt to parse into keep token
-            Ok(RollToken::Keep(keep))
-        } else if let Ok(reroll) = s.parse() {            // Attempt to parse into reroll token
-            Ok(RollToken::Reroll(reroll))
-        } else if let Ok(target) = s.parse() {            // Attempt to parse into target token
-            Ok(RollToken::Target(target))
+        } else if let Ok(operator) = s.parse() {          // Attempt to parse into operator
+            Ok(RollToken::Operator(operator))
         } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
@@ -109,7 +100,7 @@ mod tests {
             RollToken::Argument(Argument::Single(2)),
             RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Single(20)),
-            RollToken::Keep(Keep::High(None)),
+            RollToken::Operator(Operator::Keep(Keep::High(None))),
             RollToken::Argument(Argument::Single(1)),
         ];
 

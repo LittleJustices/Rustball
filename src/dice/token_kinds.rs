@@ -27,6 +27,32 @@ impl FromStr for Argument {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum Operator {
+    Explode(Explode),
+    Keep(Keep),
+    Reroll(Reroll),
+    Target(Target),
+}
+
+impl FromStr for Operator {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(explode) = s.parse() {          // Attempt to parse into explode token
+            Ok(Operator::Explode(explode))
+        } else if let Ok(keep) = s.parse() {                // Attempt to parse into keep token
+            Ok(Operator::Keep(keep))
+        } else if let Ok(reroll) = s.parse() {            // Attempt to parse into reroll token
+            Ok(Operator::Reroll(reroll))
+        } else if let Ok(target) = s.parse() {            // Attempt to parse into target token
+            Ok(Operator::Target(target))
+        } else {                                                  // If all these fail, error out
+            Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Explode {
     Once(Option<Argument>),
     Recursive(Option<Argument>),
