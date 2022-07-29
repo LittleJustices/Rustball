@@ -31,7 +31,7 @@ impl RpnExpression {
                 RpnToken::Operator(right_operator) => {
                     while let Some(RpnToken::Operator(left_operator)) = token_stack.last() {
                         if (left_operator.precedence() > right_operator.precedence()) | 
-                            (left_operator.precedence() == right_operator.precedence()) && (right_operator.left_associative()) {
+                            ((left_operator.precedence() == right_operator.precedence()) && (right_operator.left_associative())) {
                             postfix_queue.push(token_stack.pop().ok_or(MathError::PlaceholderError)?);
                         } else {
                             break;
