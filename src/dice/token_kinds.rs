@@ -271,7 +271,10 @@ impl Reroll {
             Reroll::Better { arg: _, res: _ } => Err(RollError::NotImplementedError),
             Reroll::Once { arg: _, res: _ } => {
                 match argument {
-                    Argument::Array(_) => Err(RollError::NotImplementedError),
+                    Argument::Array(array) => {
+                        rerolled_pool.reroll_specific(&array);
+                        Ok(Reroll::Once { arg, res: Some(rerolled_pool) })
+                    },
                     Argument::Single(reroll_number) => {
                         rerolled_pool.reroll_n(reroll_number);
                         Ok(Reroll::Once { arg, res: Some(rerolled_pool) })
