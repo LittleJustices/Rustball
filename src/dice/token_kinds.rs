@@ -92,6 +92,7 @@ pub enum Operator {
 impl Operator {
     pub fn apply(&self, pool: Pool, argument: Argument) -> Result<Self, RollError> {
         match self {
+            Operator::Explode(explode) => Ok(Operator::Explode(explode.apply(pool, argument)?)),
             Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(pool, argument)?)),
             Operator::Reroll(reroll) => Ok(Operator::Reroll(reroll.apply(pool, argument)?)),
             _ => Err(RollError::NotImplementedError)
@@ -100,6 +101,7 @@ impl Operator {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
+            Operator::Explode(explode) => explode.pool(),
             Operator::Keep(keep) => keep.pool(),
             Operator::Reroll(reroll) => reroll.pool(),
             _ => Err(RollError::NotImplementedError)
@@ -108,6 +110,7 @@ impl Operator {
 
     pub fn value(&self) -> Result<f64, RollError> {
         match self {
+            Operator::Explode(explode) => explode.value(),
             Operator::Keep(keep) => keep.value(),
             Operator::Reroll(reroll) => reroll.value(),
             _ => Err(RollError::NotImplementedError)
@@ -116,6 +119,7 @@ impl Operator {
 
     pub fn verbose(&self) -> String {
         match self {
+            Operator::Explode(explode) => explode.verbose(),
             Operator::Keep(keep) => keep.verbose(),
             Operator::Reroll(reroll) => reroll.verbose(),
             _ => "You shouldn't be seeing this! Please let the boss know something's wrong!".into()
@@ -157,6 +161,36 @@ pub enum Explode {
     Once{arg: Option<Argument>, res: Option<Pool>},
     Recursive{arg: Option<Argument>, res: Option<Pool>},
     Additive{arg: Option<Argument>, res: Option<Pool>},
+}
+
+impl Explode {
+    pub fn apply(&self, pool: Pool, argument: Argument) -> Result<Self, RollError> {
+        Err(RollError::NotImplementedError)
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            Explode::Additive { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+            Explode::Once { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+            Explode::Recursive { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+        }
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        match self {
+            Explode::Additive { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Explode::Once { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Explode::Recursive { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Explode::Additive { arg, res: _ } => format!("For all dice showing {}, roll another one and add results", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Explode::Once { arg, res: _ } => format!("Explode dice showing {} once", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Explode::Recursive { arg, res: _ } => format!("Explode dice showing {} indefinitely", arg.as_ref().unwrap_or(&Argument::Single(0))),
+        }
+    }
 }
 
 impl FromStr for Explode {
