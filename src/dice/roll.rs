@@ -95,7 +95,7 @@ impl Roll {
     #[allow(dead_code)]
     pub fn reroll_all(&mut self) {
         for pool in self.dicepools.iter_mut() {
-            pool.reroll();
+            pool.reroll_all();
         }
     }
 

@@ -66,7 +66,7 @@ impl Pool {
         Pool { dice: dice_sorted[..max_index].to_vec(), ..*self }
     }
 
-    pub fn reroll(&mut self) {
+    pub fn reroll_all(&mut self) {
         for die in self.dice.iter_mut() {
             die.reroll();
         }
