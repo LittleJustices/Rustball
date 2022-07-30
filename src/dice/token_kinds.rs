@@ -268,7 +268,18 @@ impl Reroll {
         let mut rerolled_pool = pool.clone();
 
         match self {
-            Reroll::Better { arg: _, res: _ } => Err(RollError::NotImplementedError),
+            Reroll::Better { arg: _, res: _ } => {
+                match argument {
+                    Argument::Array(array) => {
+                        rerolled_pool.reroll_specific_better(&array);
+                        Ok(Reroll::Better { arg, res: Some(rerolled_pool) })
+                    },
+                    Argument::Single(reroll_number) => {
+                        rerolled_pool.reroll_n_better(reroll_number);
+                        Ok(Reroll::Better { arg, res: Some(rerolled_pool) })
+                    }
+                }
+            },
             Reroll::Once { arg: _, res: _ } => {
                 match argument {
                     Argument::Array(array) => {
@@ -282,7 +293,18 @@ impl Reroll {
                 }
             },
             Reroll::Recursive { arg: _, res: _ } => Err(RollError::NotImplementedError),
-            Reroll::Worse { arg: _, res: _ } => Err(RollError::NotImplementedError),
+            Reroll::Worse { arg: _, res: _ } => {
+                match argument {
+                    Argument::Array(array) => {
+                        rerolled_pool.reroll_specific_worse(&array);
+                        Ok(Reroll::Worse { arg, res: Some(rerolled_pool) })
+                    },
+                    Argument::Single(reroll_number) => {
+                        rerolled_pool.reroll_n_worse(reroll_number);
+                        Ok(Reroll::Worse { arg, res: Some(rerolled_pool) })
+                    }
+                }
+            },
         }
     }
 

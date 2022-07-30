@@ -78,9 +78,33 @@ impl Pool {
         }
     }
 
+    pub fn reroll_n_better(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
+            die.reroll_better();
+        }
+    }
+
+    pub fn reroll_n_worse(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
+            die.reroll_worse();
+        }
+    }
+
     pub fn reroll_specific(&mut self, range: &[u8]) {
         for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
             die.reroll();
+        }
+    }
+
+    pub fn reroll_specific_better(&mut self, range: &[u8]) {
+        for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
+            die.reroll_better();
+        }
+    }
+
+    pub fn reroll_specific_worse(&mut self, range: &[u8]) {
+        for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
+            die.reroll_worse();
         }
     }
 
