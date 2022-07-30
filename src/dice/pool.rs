@@ -1,10 +1,6 @@
 use super::{
     die::Die,
     dice_errors::RollError,
-    roll_token::{
-        Argument,
-        Keep
-    },
 };
 use std::{
     fmt,
@@ -30,6 +26,19 @@ impl Pool {
         Pool { number, sides, dice }
     }
 
+    #[allow(dead_code)]
+    pub fn dice(&self) -> &Vec<Die> {
+        &self.dice
+    }
+
+    pub fn number(&self) -> u8 {
+        self.number
+    }
+
+    pub fn sides(&self) -> u8 {
+        self.sides
+    }
+
     pub fn total(&self) -> u16 {
         // For now, this just returns the sum. In the future it will decide whether to sum, count successes, something else...
         self.sum_sides()
@@ -39,22 +48,22 @@ impl Pool {
         self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
-    #[allow(dead_code)]
-    fn keep_dice(&self, keep: &Keep) -> Vec<&Die> {
-        let mut kept_dice: Vec<&Die> = self.dice.iter().collect();
+    pub fn keep_highest(&self, argument: u8) -> Self {
+        let mut dice_sorted = self.dice.clone();
+        dice_sorted.sort_unstable();
 
-        kept_dice.sort_unstable();
-        match keep {
-            Keep::Low(Some(Argument::Single(keepamt))) => {
-                let max_index = if keepamt > &self.number { self.number as usize } else { *keepamt as usize };
-                kept_dice[..max_index].to_vec()
-            }
-            Keep::High(Some(Argument::Single(keepamt))) => {
-                let min_index = if keepamt > &self.number { 0 } else { (self.number - *keepamt) as usize };
-                kept_dice[min_index..].to_vec()
-            },
-            _ => kept_dice
-        }
+        let min_index = if argument > self.number { 0 } else { (self.number - argument) as usize };
+
+        Pool { dice: dice_sorted[min_index..].to_vec(), ..*self }
+    }
+
+    pub fn keep_lowest(&self, argument: u8) -> Self {
+        let mut dice_sorted = self.dice.clone();
+        dice_sorted.sort_unstable();
+
+        let max_index = if argument > self.number { self.number as usize } else { argument as usize };
+
+        Pool { dice: dice_sorted[..max_index].to_vec(), ..*self }
     }
 
     pub fn reroll(&mut self) {
@@ -91,7 +100,7 @@ impl fmt::Display for Pool {
         for i in 1..self.dice.len() {
             results = format!("{}, {}", results, self.dice[i].result)
         }
-        write!(f, "{}d{} -> [{}]", self.number, self.sides, results)
+        write!(f, "[{}]", results)
     }
 }
 

@@ -14,7 +14,7 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         k[lh]?              # Keep
         |
-        r[bwr]?             # Reroll
+        r[obwr]?             # Reroll
         |
         e[ar]?              # Explode
         |

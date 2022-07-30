@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{str::FromStr, fmt};
 use super::{
     dice_errors::RollError,
     pool::Pool,
@@ -26,12 +26,51 @@ impl FromStr for Argument {
     }
 }
 
+impl fmt::Display for Argument {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Argument::Array(array) => write!(f, "{:?}", array),
+            Argument::Single(single) => write!(f, "{}", single),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Operator {
     Explode(Explode),
     Keep(Keep),
     Reroll(Reroll),
     Target(Target),
+}
+
+impl Operator {
+    pub fn apply(&self, pool: Pool, argument: Argument) -> Result<Self, RollError> {
+        match self {
+            Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(pool, argument)?)),
+            _ => Err(RollError::NotImplementedError)
+        }
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            Operator::Keep(keep) => keep.pool(),
+            _ => Err(RollError::NotImplementedError)
+        }
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        match self {
+            Operator::Keep(keep) => keep.value(),
+            _ => Err(RollError::NotImplementedError)
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Operator::Keep(keep) => keep.verbose(),
+            _ => "You shouldn't be seeing this! Please let the boss know something's wrong!".into()
+        }
+    }
 }
 
 impl FromStr for Operator {
@@ -48,6 +87,15 @@ impl FromStr for Operator {
             Ok(Operator::Target(target))
         } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+impl fmt::Display for Operator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Operator::Keep(keep) => write!(f, "{}", keep),
+            _ => write!(f, ""),
         }
     }
 }
@@ -78,8 +126,56 @@ impl FromStr for Explode {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Keep {
-    Low(Option<Argument>),
-    High(Option<Argument>),
+    Low{arg: Option<Argument>, res: Option<Pool>},
+    High{arg: Option<Argument>, res: Option<Pool>},
+}
+
+impl Keep {
+    pub fn apply(&self, pool: Pool, argument: Argument) -> Result<Self, RollError> {
+        let arg = Some(argument.clone());
+
+        match self {
+            Keep::High { arg: _, res: _ } => {
+                match argument {
+                    Argument::Array(_) => Err(RollError::PlaceholderError),
+                    Argument::Single(keep_amount) => {
+                        let res = Some(pool.keep_highest(keep_amount));
+                        Ok(Keep::High { arg, res })
+                    }
+                }
+            },
+            Keep::Low { arg: _, res: _ } => {
+                match argument {
+                    Argument::Array(_) => Err(RollError::PlaceholderError),
+                    Argument::Single(keep_amount) => {
+                        let res = Some(pool.keep_lowest(keep_amount));
+                        Ok(Keep::Low { arg, res })
+                    }
+                }
+            },
+        }
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            Keep::High { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+            Keep::Low { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+        }
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        match self {
+            Keep::High { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Keep::Low { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Keep::High { arg, res: _ } => format!("Keep highest {} di(c)e", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Keep::Low { arg, res: _ } => format!("Keep lowest {} di(c)e", arg.as_ref().unwrap_or(&Argument::Single(0))),
+        }
+    }
 }
 
 impl FromStr for Keep {
@@ -88,8 +184,8 @@ impl FromStr for Keep {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('k') {
             match mode {
-                "" | "h"    => Ok(Keep::High(None)),
-                "l"         => Ok(Keep::Low(None)),
+                "" | "h"    => Ok(Keep::High { arg: None, res: None }),
+                "l"         => Ok(Keep::Low { arg: None, res: None }),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
@@ -98,11 +194,20 @@ impl FromStr for Keep {
     }
 }
 
+impl fmt::Display for Keep {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Keep::High { arg, res } => write!(f, "kh {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Keep::Low { arg, res } => write!(f, "kl {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Dice{pub pool: Option<Pool>}
 
 impl Dice {
-    pub fn apply(mut self, left: Argument, right:Argument) -> Result<Self, RollError> {
+    pub fn apply(&self, left: Argument, right: Argument) -> Result<Self, RollError> {
         let number = match left {
             Argument::Single(no) => no,
             Argument::Array(_) => return Err(RollError::PlaceholderError)
@@ -112,9 +217,14 @@ impl Dice {
             Argument::Array(_) => return Err(RollError::PlaceholderError)
         };
 
-        self.pool = Some(Pool::new(number, sides));
+        let pool = Some(Pool::new(number, sides));
 
-        Ok(self)
+        Ok(Dice{ pool })
+    }
+
+    pub fn verbose(&self) -> String {
+        let pool = self.pool.as_ref().expect("Tried to print a dice operation that wasn't resolved yet!");
+        format!("Rolled {}d{}", pool.number(), pool.sides())
     }
 }
 
@@ -132,10 +242,19 @@ impl FromStr for Dice {
     }
 }
 
+impl fmt::Display for Dice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let pool = self.pool.as_ref().expect("Tried to print a dice operation that wasn't resolved yet!");
+        write!(f, "{}d{} -> {}", pool.number(), pool.sides(), pool)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Reroll {
+    Better(Option<Argument>),
     Once(Option<Argument>),
     Recursive(Option<Argument>),
+    Worse(Option<Argument>),
 }
 
 impl FromStr for Reroll {
@@ -146,6 +265,8 @@ impl FromStr for Reroll {
             match mode {
                 "" | "o"    => Ok(Reroll::Once(None)),
                 "r"         => Ok(Reroll::Recursive(None)),
+                "b"         => Ok(Reroll::Better(None)),
+                "w"         => Ok(Reroll::Worse(None)),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {

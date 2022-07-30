@@ -1,6 +1,6 @@
 use std::{
     convert::TryFrom, 
-    str::FromStr
+    str::FromStr, fmt
 };
 
 use crate::math::{
@@ -10,6 +10,7 @@ use crate::math::{
 use super::{
     dice_errors::RollError,
     dice_re::DICE_TOKEN_RE,
+    pool::Pool,
 };
 pub use super::token_kinds::*;
 
@@ -27,6 +28,47 @@ impl RollToken {
         match self {
             RollToken::Math(rpn_token) => rpn_token.precedence(),
             _ => 255
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            RollToken::Dice(dice) => dice.verbose(),
+            RollToken::Operator(operator) => operator.verbose(),
+            _ => "Placeholder description".into()
+        }
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        match self {
+            RollToken::Math(rpn_token) => match rpn_token {
+                RpnToken::Number(value) => Ok(*value),
+                _ => Err(RollError::PlaceholderError),
+            },
+            RollToken::Argument(argument) => match argument {
+                Argument::Array(_) => Err(RollError::NotImplementedError),
+                Argument::Single(value) => {
+                    let v = *value;
+                    Ok(v.into())
+                },
+            },
+            RollToken::Dice(dice) => Ok(dice.pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            RollToken::Operator(operator) => operator.value()
+        }
+    }
+
+    pub fn argument(self) -> Result<Argument, RollError> {
+        match self {
+            RollToken::Argument(argument) => Ok(argument),
+            _ => Err(RollError::PlaceholderError)
+        }
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            RollToken::Dice(dice) => Ok(dice.pool.ok_or(RollError::PlaceholderError)?),
+            RollToken::Operator(operator) => operator.pool(),
+            _ => Err(RollError::PlaceholderError)
         }
     }
 
@@ -151,6 +193,16 @@ impl FromStr for RollToken {
     }
 }
 
+impl fmt::Display for RollToken {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RollToken::Dice(dice) => write!(f, "{}", dice),
+            RollToken::Operator(operator) => write!(f, "{}", operator),
+            _ => write!(f, "")
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::math::rpn_token;
@@ -164,7 +216,7 @@ mod tests {
             RollToken::Argument(Argument::Single(2)),
             RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Single(20)),
-            RollToken::Operator(Operator::Keep(Keep::High(None))),
+            RollToken::Operator(Operator::Keep(Keep::High { arg: None, res: None })),
             RollToken::Argument(Argument::Single(1)),
         ];
 
@@ -230,7 +282,7 @@ mod tests {
             RollToken::Argument(Argument::Single(1)),
             RollToken::Operator(Operator::Reroll(Reroll::Once(None))),
             RollToken::Argument(Argument::Single(3)),
-            RollToken::Operator(Operator::Keep(Keep::High(None))),
+            RollToken::Operator(Operator::Keep(Keep::High { arg: None, res: None })),
         ];
         let postfix_4 = vec![
             RollToken::Argument(Argument::Single(1)),
