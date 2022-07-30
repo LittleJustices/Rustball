@@ -153,9 +153,9 @@ impl fmt::Display for Operator {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Explode {
-    Once(Option<Argument>),
-    Recursive(Option<Argument>),
-    Additive(Option<Argument>),
+    Once{arg: Option<Argument>, res: Option<Pool>},
+    Recursive{arg: Option<Argument>, res: Option<Pool>},
+    Additive{arg: Option<Argument>, res: Option<Pool>},
 }
 
 impl FromStr for Explode {
@@ -164,9 +164,9 @@ impl FromStr for Explode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('e') {
             match mode {
-                "" | "o"    => Ok(Explode::Once(None)),
-                "r"         => Ok(Explode::Recursive(None)),
-                "a"         => Ok(Explode::Additive(None)),
+                "" | "o"    => Ok(Explode::Once { arg: None, res: None }),
+                "r"         => Ok(Explode::Recursive { arg: None, res: None }),
+                "a"         => Ok(Explode::Additive { arg: None, res: None }),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
