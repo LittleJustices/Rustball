@@ -48,6 +48,24 @@ impl Pool {
         self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
+    pub fn explode_n(&self, n: u8) -> Self {
+        let mut exploded_pool = self.clone();
+        for die in self.dice.iter().filter(|d| d.equals(n)) {
+            exploded_pool.dice.push(die.explode());
+        }
+
+        exploded_pool
+    }
+
+    pub fn explode_specific(&self, range: &[u8]) -> Self {
+        let mut exploded_pool = self.clone();
+        for die in self.dice.iter().filter(|d| d.is_in(range)) {
+            exploded_pool.dice.push(die.explode());
+        }
+
+        exploded_pool
+    }
+
     pub fn keep_highest(&self, argument: u8) -> Self {
         let mut dice_sorted = self.dice.clone();
         dice_sorted.sort_unstable();

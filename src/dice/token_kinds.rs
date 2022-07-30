@@ -158,14 +158,34 @@ impl fmt::Display for Operator {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Explode {
+    Additive{arg: Option<Argument>, res: Option<Pool>},
     Once{arg: Option<Argument>, res: Option<Pool>},
     Recursive{arg: Option<Argument>, res: Option<Pool>},
-    Additive{arg: Option<Argument>, res: Option<Pool>},
 }
 
 impl Explode {
     pub fn apply(&self, pool: Pool, argument: Argument) -> Result<Self, RollError> {
-        Err(RollError::NotImplementedError)
+        let arg = Some(argument.clone());
+
+        match self {
+            Explode::Additive { arg: _, res: _ } => {
+                Err(RollError::NotImplementedError)
+            },
+            Explode::Once { arg: _, res: _ } => {
+                let res = match argument {
+                    Argument::Single(explode_number) => {
+                        Some(pool.explode_n(explode_number))
+                    },
+                    Argument::Array(explode_array) => {
+                        Some(pool.explode_specific(&explode_array))
+                    },
+                };
+                Ok(Explode::Once { arg, res })
+            },
+            Explode::Recursive { arg: _, res: _ } => {
+                Err(RollError::NotImplementedError)
+            },
+        }
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
