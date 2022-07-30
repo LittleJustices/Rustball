@@ -36,7 +36,7 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
     }
 
     if stack.len() != 1 {
-        Err(MathError::PlaceholderError)
+        Err(MathError::ExpressionError("This math has too many elements left over!".into()))
     } else {
         stack.pop().ok_or(MathError::ImpossibleError)
     }

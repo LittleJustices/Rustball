@@ -36,13 +36,13 @@ Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let roll_command;
-    let comment;
+    let roll_comment;
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
     {
         let config_data = ctx.data.read().await;
         let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
 
-        (roll_command, comment) = match args.message().split_once(&cfg.comment_separator) {
+        (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
             Some(res) => res,
             None => (args.message(), "")
         };
@@ -74,7 +74,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let result;
     let compact_breakdown;
-    match tray.process_roll_command(roll_command) {
+    match tray.process_roll_command(roll_command, roll_comment) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
             let roll_error = format!("{}", why);
@@ -89,7 +89,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         msg.channel_id.send_message(&ctx.http, |m| {
             m.content(message);
             m.embed(|e| {
-                e.title(comment);
+                e.title(roll_comment);
                 e.description(breakdown);
     
                 e
@@ -97,9 +97,9 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             m
         }).await?;
     } else {
-        let annotation = match comment.trim() {
+        let annotation = match roll_comment.trim() {
             "" => "".to_owned(),
-            _ => format!(" ({})", comment.trim())
+            _ => format!(" ({})", roll_comment.trim())
         };
         let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, result, compact_breakdown);
         msg.reply_ping(&ctx.http, message).await?;
@@ -145,23 +145,66 @@ async fn pastrolls(ctx: &Context, msg: &Message) -> CommandResult {
         .expect("Failed to retrieve tray map!")
         .lock().await;
 
-        if let Some(tray) = tray_map.get(&make_tray_id(msg)) {
-            msg.channel_id.send_message(&ctx.http, |m| {
-                m.embed(|e| {
-                    e.title("Currently Stored Rolls");
-                    for (i, roll) in tray.rolls().iter().enumerate() {
-                        // Build the title here containing i, person who rolled, and maybe timestamp?
-                        let title = format!("{}: By {} at {}", i, roll.roller(), roll.timestamp().format("%y/%m/%d %H:%M:%S"));
-                        let text = format!("{}", roll);
-                        e.field(title, text, false);
-                    }
-                    e
-                });
-                m
-            }).await?;
-        } else {
-            msg.reply_ping(&ctx.http, "I haven't even set up a tray for this server yet!").await?;
-        }
+    if let Some(tray) = tray_map.get(&make_tray_id(msg)) {
+        msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                e.title("Currently Stored Rolls");
+                for (i, roll) in tray.rolls().iter().enumerate() {
+                    // Build the title here containing i, person who rolled, and maybe timestamp?
+                    let title = format!("{}: By {} at {}", i, roll.roller(), roll.timestamp().format("%y/%m/%d %H:%M:%S"));
+                    let text = format!("{}", roll);
+                    e.field(title, text, false);
+                }
+                e
+            });
+            m
+        }).await?;
+    } else {
+        msg.reply_ping(&ctx.http, "I haven't even set up a tray for this server yet!").await?;
+    }
+
+    Ok(())
+}
+
+#[command]
+#[description="Under construction. Please wait warmly!"]
+async fn verbose(ctx: &Context, msg: &Message) -> CommandResult {
+    let tray_data = ctx.data.read().await;
+    let tray_map = tray_data
+        .get::<crate::TrayKey>()
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+
+    if let Some(tray) = tray_map.get(&make_tray_id(msg)) {
+        let latest_roll = match tray.get_newest_roll() {
+            Ok(roll) => roll,
+            Err(why) => {
+                msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+                return Ok(());
+            }
+        };
+
+        msg.channel_id.send_message(&ctx.http, |m| {
+            m.embed(|e| {
+                let annotation = match latest_roll.comment().trim() {
+                    "" => "".into(),
+                    other => format!(" ({})", other),
+                };
+                let title = format!("{}{}", latest_roll.command(), annotation);
+                e.title(title);
+                for operation in latest_roll.operations() {
+                    let name = operation.verbose();
+                    let value = format!("{}", operation);
+                    e.field(name, value, false);
+                }
+                e.field("Total", latest_roll.result(), false);
+                e
+            });
+            m
+        }).await?;
+    } else {
+        msg.reply_ping(&ctx.http, "I haven't even set up a tray for this server yet!").await?;
+    }
 
     Ok(())
 }

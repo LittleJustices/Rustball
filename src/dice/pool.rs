@@ -1,10 +1,6 @@
 use super::{
     die::Die,
     dice_errors::RollError,
-    roll_token::{
-        Argument,
-        Keep
-    },
 };
 use std::{
     fmt,
@@ -30,6 +26,19 @@ impl Pool {
         Pool { number, sides, dice }
     }
 
+    #[allow(dead_code)]
+    pub fn dice(&self) -> &Vec<Die> {
+        &self.dice
+    }
+
+    pub fn number(&self) -> u8 {
+        self.number
+    }
+
+    pub fn sides(&self) -> u8 {
+        self.sides
+    }
+
     pub fn total(&self) -> u16 {
         // For now, this just returns the sum. In the future it will decide whether to sum, count successes, something else...
         self.sum_sides()
@@ -39,34 +48,81 @@ impl Pool {
         self.dice.iter().fold(0, |sum, die| sum + die.result as u16)
     }
 
-    #[allow(dead_code)]
-    fn keep_dice(&self, keep: &Keep) -> Vec<&Die> {
-        let mut kept_dice: Vec<&Die> = self.dice.iter().collect();
-
-        kept_dice.sort_unstable();
-        match keep {
-            Keep::Low(Some(Argument::Single(keepamt))) => {
-                let max_index = if keepamt > &self.number { self.number as usize } else { *keepamt as usize };
-                kept_dice[..max_index].to_vec()
-            }
-            Keep::High(Some(Argument::Single(keepamt))) => {
-                let min_index = if keepamt > &self.number { 0 } else { (self.number - *keepamt) as usize };
-                kept_dice[min_index..].to_vec()
-            },
-            _ => kept_dice
+    pub fn explode_n(&self, n: u8) -> Self {
+        let mut exploded_pool = self.clone();
+        for die in self.dice.iter().filter(|d| d.equals(n)) {
+            exploded_pool.dice.push(die.explode());
         }
+
+        exploded_pool
     }
 
-    pub fn reroll(&mut self) {
+    pub fn explode_specific(&self, range: &[u8]) -> Self {
+        let mut exploded_pool = self.clone();
+        for die in self.dice.iter().filter(|d| d.is_in(range)) {
+            exploded_pool.dice.push(die.explode());
+        }
+
+        exploded_pool
+    }
+
+    pub fn keep_highest(&self, argument: u8) -> Self {
+        let mut dice_sorted = self.dice.clone();
+        dice_sorted.sort_unstable();
+
+        let min_index = if argument > self.number { 0 } else { (self.number - argument) as usize };
+
+        Pool { dice: dice_sorted[min_index..].to_vec(), ..*self }
+    }
+
+    pub fn keep_lowest(&self, argument: u8) -> Self {
+        let mut dice_sorted = self.dice.clone();
+        dice_sorted.sort_unstable();
+
+        let max_index = if argument > self.number { self.number as usize } else { argument as usize };
+
+        Pool { dice: dice_sorted[..max_index].to_vec(), ..*self }
+    }
+
+    pub fn reroll_all(&mut self) {
         for die in self.dice.iter_mut() {
             die.reroll();
         }
     }
 
-    #[allow(dead_code)]
-    fn reroll_n(&mut self, n: u8) {
+    pub fn reroll_n(&mut self, n: u8) {
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
             die.reroll();
+        }
+    }
+
+    pub fn reroll_n_better(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
+            die.reroll_better();
+        }
+    }
+
+    pub fn reroll_n_worse(&mut self, n: u8) {
+        for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
+            die.reroll_worse();
+        }
+    }
+
+    pub fn reroll_specific(&mut self, range: &[u8]) {
+        for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
+            die.reroll();
+        }
+    }
+
+    pub fn reroll_specific_better(&mut self, range: &[u8]) {
+        for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
+            die.reroll_better();
+        }
+    }
+
+    pub fn reroll_specific_worse(&mut self, range: &[u8]) {
+        for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
+            die.reroll_worse();
         }
     }
 
@@ -91,7 +147,7 @@ impl fmt::Display for Pool {
         for i in 1..self.dice.len() {
             results = format!("{}, {}", results, self.dice[i].result)
         }
-        write!(f, "{}d{} -> [{}]", self.number, self.sides, results)
+        write!(f, "[{}]", results)
     }
 }
 

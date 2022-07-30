@@ -19,19 +19,32 @@ impl Die {
         self.result = rng.gen_range(1..=self.sides);
     }
 
-    #[allow(dead_code)]
+    pub fn reroll_better(&mut self) {
+        let mut rng = thread_rng();
+        let new_result = rng.gen_range(1..=self.sides);
+        if new_result > self.result { self.set(new_result) };
+    }
+
+    pub fn reroll_worse(&mut self) {
+        let mut rng = thread_rng();
+        let new_result = rng.gen_range(1..=self.sides);
+        if new_result < self.result { self.set(new_result) };
+    }
+
     pub fn set(&mut self, value: u8) {
         self.result = value
     }
 
-    #[allow(dead_code)]
     pub fn explode(&self) -> Die {
         Die::roll(self.sides)
     }
 
-    #[allow(dead_code)]
     pub fn equals(&self, value: u8) -> bool {
         self.result == value
+    }
+
+    pub fn is_in(&self, range: &[u8]) -> bool {
+        range.contains(&self.result)
     }
 
     #[allow(dead_code)]
