@@ -35,7 +35,6 @@ impl Die {
         self.result = value
     }
 
-    #[allow(dead_code)]
     pub fn explode(&self) -> Die {
         Die::roll(self.sides)
     }
