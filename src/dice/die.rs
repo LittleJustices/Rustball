@@ -29,7 +29,6 @@ impl Die {
         Die::roll(self.sides)
     }
 
-    #[allow(dead_code)]
     pub fn equals(&self, value: u8) -> bool {
         self.result == value
     }
