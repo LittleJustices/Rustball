@@ -78,6 +78,12 @@ impl Pool {
         }
     }
 
+    pub fn reroll_specific(&mut self, range: &[u8]) {
+        for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
+            die.reroll();
+        }
+    }
+
     #[allow(dead_code)]
     fn reroll_n_or_less(&mut self, n: u8) {
         for die in self.dice.iter_mut().filter(|d| d.equal_or_less(n)) {
