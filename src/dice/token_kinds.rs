@@ -144,6 +144,7 @@ impl FromStr for Operator {
 impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Operator::Explode(explode) => write!(f, "{}", explode),
             Operator::Keep(keep) => write!(f, "{}", keep),
             Operator::Reroll(reroll) => write!(f, "{}", reroll),
             _ => write!(f, ""),
@@ -171,6 +172,16 @@ impl FromStr for Explode {
             }
         } else {
             Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+impl fmt::Display for Explode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Explode::Additive { arg, res } => write!(f, "ka {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Explode::Once { arg, res } => write!(f, "ko {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Explode::Recursive { arg, res } => write!(f, "kr {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
         }
     }
 }
