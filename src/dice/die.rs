@@ -33,6 +33,10 @@ impl Die {
         self.result == value
     }
 
+    pub fn is_in(&self, range: &[u8]) -> bool {
+        range.contains(&self.result)
+    }
+
     #[allow(dead_code)]
     pub fn equal_or_greater(&self, target: u8) -> bool {
         self.result >= target
