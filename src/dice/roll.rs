@@ -82,6 +82,13 @@ impl Roll {
                     operations.push(RollToken::Operator(operator_resolved.clone()));
                     stack.push(RollToken::Operator(operator_resolved));
                 },
+                RollToken::Conversion(conversion) => {
+                    let right = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let left = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let conversion_resolved = conversion.apply(left, right.argument()?)?;
+                    operations.push(RollToken::Conversion(conversion_resolved.clone()));
+                    stack.push(RollToken::Conversion(conversion_resolved));
+                },
             }
         }
 

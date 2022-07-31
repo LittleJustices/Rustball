@@ -12,11 +12,11 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         [tb]                # Target number or botch number
         |
-        k[lh]?              # Keep
+        k[elh]?             # Keep
         |
-        r[obwr]?             # Reroll
+        r[obwr]?            # Reroll
         |
-        e[ar]?              # Explode
+        e[aor]?             # Explode
         |
         \[.*?\]             # Array
     )";
