@@ -262,30 +262,24 @@ impl Keep {
         match self {
             Keep::Exact { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Array(keep_array) => {
-                        Some(pool.keep_exact(&keep_array))
-                    },
-                    Argument::Single(keep_number) => {
-                        Some(pool.keep_exact(&[keep_number]))
-                    }
+                    Argument::Array(keep_array) => Some(pool.keep_exact(&keep_array)),
+                    Argument::Single(keep_number) => Some(pool.keep_exact(&[keep_number]))
                 };
                 Ok(Keep::Exact { arg, res })
             },
             Keep::High { arg: _, res: _ } => {
                 let res = match argument {
+                    Argument::Array(keep_array) if keep_array.len() == 1 => Some(pool.keep_highest(keep_array[0])),
                     Argument::Array(_) => return Err(RollError::PlaceholderError),
-                    Argument::Single(keep_amount) => {
-                        Some(pool.keep_highest(keep_amount))
-                    }
+                    Argument::Single(keep_amount) => Some(pool.keep_highest(keep_amount))
                 };
                 Ok(Keep::High { arg, res })
             },
             Keep::Low { arg: _, res: _ } => {
                 let res = match argument {
+                    Argument::Array(keep_array) if keep_array.len() == 1 => Some(pool.keep_lowest(keep_array[0])),
                     Argument::Array(_) => return Err(RollError::PlaceholderError),
-                    Argument::Single(keep_amount) => {
-                        Some(pool.keep_lowest(keep_amount))
-                    }
+                    Argument::Single(keep_amount) => Some(pool.keep_lowest(keep_amount))
                 };
                 Ok(Keep::Low { arg, res })
             },
