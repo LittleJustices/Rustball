@@ -47,17 +47,14 @@ impl Die {
         range.contains(&self.result)
     }
 
-    #[allow(dead_code)]
     pub fn equal_or_greater(&self, target: u8) -> bool {
         self.result >= target
     }
 
-    #[allow(dead_code)]
     pub fn equal_or_less(&self, target: u8) -> bool {
         self.result <= target
     }
 
-    #[allow(dead_code)]
     pub fn count_successes(&self, tns: &[u8]) -> u8 {
         tns[(self.result-1) as usize]
     }

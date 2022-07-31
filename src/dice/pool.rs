@@ -56,6 +56,10 @@ impl Pool {
         self.dice.iter().filter(|d| d.equal_or_less(target)).fold(0, |sum, _| sum + 1)
     }
 
+    pub fn count_successes(&self, tns: &[u8]) -> u16 {
+        self.dice.iter().fold(0, |sum, die| sum + die.count_successes(tns) as u16)
+    }
+
     pub fn explode_n(&self, n: u8) -> Self {
         let mut exploded_pool = self.clone();
         for die in self.dice.iter().filter(|d| d.equals(n)) {

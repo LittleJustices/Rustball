@@ -519,7 +519,34 @@ impl Target {
                             },
                         }
                     },
-                    Argument::Array(_) => todo!(),
+                    Argument::Array(threshold_array) => {
+                        match self {
+                            Target::Success { arg: _, pool: _, sux: _ } => {
+                                let max_sides = target.clone().pool()?.sides() as usize;
+                                let mut tns = vec![0; max_sides];
+                                if tns.len() >= threshold_array.len() {
+                                    tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
+                                } else {
+                                    tns.copy_from_slice(&threshold_array[..max_sides]);
+                                }
+                                
+                                let sux = target.value() as i16 + target.pool()?.count_successes(&tns) as i16;
+                                Ok(Target::Success { arg, pool, sux })
+                            },
+                            Target::Botch { arg: _, pool: _, sux: _ } => {
+                                let max_sides = target.clone().pool()?.sides() as usize;
+                                let mut tns = vec![0; max_sides];
+                                if tns.len() >= threshold_array.len() {
+                                    tns[..threshold_array.len()].copy_from_slice(&threshold_array);
+                                } else {
+                                    tns.copy_from_slice(&threshold_array[..max_sides]);
+                                }
+
+                                let sux = target.value() as i16 - target.pool()?.count_successes(&tns) as i16;
+                                Ok(Target::Botch { arg, pool, sux })
+                            },
+                        }
+                    },
                 }
             },
             RollToken::Dice(dice) => {
@@ -537,7 +564,34 @@ impl Target {
                             },
                         }
                     },
-                    Argument::Array(_) => todo!(),
+                    Argument::Array(threshold_array) => {
+                        match self {
+                            Target::Success { arg: _, pool: _, sux: _ } => {
+                                let max_sides = dice.clone().pool()?.sides() as usize;
+                                let mut tns = vec![0; max_sides];
+                                if tns.len() >= threshold_array.len() {
+                                    tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
+                                } else {
+                                    tns.copy_from_slice(&threshold_array[..max_sides]);
+                                }
+
+                                let sux = dice.pool()?.count_successes(&tns) as i16;
+                                Ok(Target::Success { arg, pool, sux })
+                            },
+                            Target::Botch { arg: _, pool: _, sux: _ } => {
+                                let max_sides = dice.clone().pool()?.sides() as usize;
+                                let mut tns = vec![0; max_sides];
+                                if tns.len() >= threshold_array.len() {
+                                    tns[..threshold_array.len()].copy_from_slice(&threshold_array);
+                                } else {
+                                    tns.copy_from_slice(&threshold_array[..max_sides]);
+                                }
+
+                                let sux = - (dice.pool()?.count_successes(&threshold_array) as i16);
+                                Ok(Target::Botch { arg, pool, sux })
+                            },
+                        }
+                    },
                 }
             },
             RollToken::Operator(operator) => {
@@ -555,7 +609,34 @@ impl Target {
                             },
                         }
                     },
-                    Argument::Array(_) => todo!(),
+                    Argument::Array(threshold_array) => {
+                        match self {
+                            Target::Success { arg: _, pool: _, sux: _ } => {
+                                let max_sides = operator.clone().pool()?.sides() as usize;
+                                let mut tns = vec![0; max_sides];
+                                if tns.len() >= threshold_array.len() {
+                                    tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
+                                } else {
+                                    tns.copy_from_slice(&threshold_array[..max_sides]);
+                                }
+
+                                let sux = operator.pool()?.count_successes(&tns) as i16;
+                                Ok(Target::Success { arg, pool, sux })
+                            },
+                            Target::Botch { arg: _, pool: _, sux: _ } => {
+                                let max_sides = operator.clone().pool()?.sides() as usize;
+                                let mut tns = vec![0; max_sides];
+                                if tns.len() >= threshold_array.len() {
+                                    tns[..threshold_array.len()].copy_from_slice(&threshold_array);
+                                } else {
+                                    tns.copy_from_slice(&threshold_array[..max_sides]);
+                                }
+
+                                let sux = - (operator.pool()?.count_successes(&threshold_array) as i16);
+                                Ok(Target::Botch { arg, pool, sux })
+                            },
+                        }
+                    },
                 }
             },
             _ => Err(RollError::PlaceholderError)
