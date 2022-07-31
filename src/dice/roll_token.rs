@@ -52,7 +52,7 @@ impl RollToken {
                     Ok(v.into())
                 },
             },
-            RollToken::Dice(dice) => Ok(dice.pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            RollToken::Dice(dice) => dice.clone().value(),
             RollToken::Operator(operator) => operator.value()
         }
     }
@@ -66,7 +66,7 @@ impl RollToken {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            RollToken::Dice(dice) => Ok(dice.pool.ok_or(RollError::PlaceholderError)?),
+            RollToken::Dice(dice) => dice.pool(),
             RollToken::Operator(operator) => operator.pool(),
             _ => Err(RollError::PlaceholderError)
         }
@@ -163,7 +163,7 @@ impl TryFrom<RollToken> for RpnToken {
     fn try_from(value: RollToken) -> Result<Self, Self::Error> {
         match value {
             RollToken::Math(rpn_token)      => Ok(rpn_token),
-            RollToken::Dice(Dice{ pool: Some(pool) })   => Ok(RpnToken::Number(pool.total().into())),
+            RollToken::Dice(dice)   => Ok(RpnToken::Number(dice.value().or(Err(MathError::PlaceholderError))?)),
             RollToken::Argument(argument)   => {
                 match argument {
                     Argument::Array(_)                => Err(MathError::PlaceholderError),

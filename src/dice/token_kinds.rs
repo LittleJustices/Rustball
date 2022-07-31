@@ -54,6 +54,14 @@ impl Dice {
         Ok(Dice{ pool })
     }
 
+    pub fn pool(self) -> Result<Pool, RollError> {
+        self.pool.ok_or(RollError::PlaceholderError)
+    }
+
+    pub fn value(self) -> Result<f64, RollError> {
+        Ok(self.pool()?.total().into())
+    }
+
     pub fn verbose(&self) -> String {
         let pool = self.pool.as_ref().expect("Tried to print a dice operation that wasn't resolved yet!");
         format!("Rolled {}d{}", pool.number(), pool.sides())
