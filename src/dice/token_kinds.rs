@@ -2,6 +2,7 @@ use std::{str::FromStr, fmt};
 use super::{
     dice_errors::RollError,
     pool::Pool,
+    roll_token::RollToken,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -94,7 +95,6 @@ pub enum Operator {
     Explode(Explode),
     Keep(Keep),
     Reroll(Reroll),
-    Target(Target),
 }
 
 impl Operator {
@@ -103,7 +103,6 @@ impl Operator {
             Operator::Explode(explode) => Ok(Operator::Explode(explode.apply(pool, argument)?)),
             Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(pool, argument)?)),
             Operator::Reroll(reroll) => Ok(Operator::Reroll(reroll.apply(pool, argument)?)),
-            _ => Err(RollError::NotImplementedError)
         }
     }
 
@@ -112,7 +111,6 @@ impl Operator {
             Operator::Explode(explode) => explode.pool(),
             Operator::Keep(keep) => keep.pool(),
             Operator::Reroll(reroll) => reroll.pool(),
-            _ => Err(RollError::NotImplementedError)
         }
     }
 
@@ -121,7 +119,6 @@ impl Operator {
             Operator::Explode(explode) => explode.value(),
             Operator::Keep(keep) => keep.value(),
             Operator::Reroll(reroll) => reroll.value(),
-            _ => Err(RollError::NotImplementedError)
         }
     }
 
@@ -130,7 +127,6 @@ impl Operator {
             Operator::Explode(explode) => explode.verbose(),
             Operator::Keep(keep) => keep.verbose(),
             Operator::Reroll(reroll) => reroll.verbose(),
-            _ => "You shouldn't be seeing this! Please let the boss know something's wrong!".into()
         }
     }
 }
@@ -145,8 +141,6 @@ impl FromStr for Operator {
             Ok(Operator::Keep(keep))
         } else if let Ok(reroll) = s.parse() {            // Attempt to parse into reroll token
             Ok(Operator::Reroll(reroll))
-        } else if let Ok(target) = s.parse() {            // Attempt to parse into target token
-            Ok(Operator::Target(target))
         } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
@@ -159,7 +153,57 @@ impl fmt::Display for Operator {
             Operator::Explode(explode) => write!(f, "{}", explode),
             Operator::Keep(keep) => write!(f, "{}", keep),
             Operator::Reroll(reroll) => write!(f, "{}", reroll),
-            _ => write!(f, ""),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Conversion {
+    Target(Target),
+}
+
+impl Conversion {
+    pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
+        match self {
+            Conversion::Target(target) => Ok(Conversion::Target(target.apply(token, argument)?)),
+        }
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            Conversion::Target(target) => target.pool()
+        }
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        match self {
+            Conversion::Target(target) => Ok(target.value()),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Conversion::Target(target) => target.verbose(),
+        }
+    }
+}
+
+impl FromStr for Conversion {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(target) = s.parse() {
+            Ok(Conversion::Target(target))
+        } else {
+            Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+impl fmt::Display for Conversion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Conversion::Target(target) => write!(f, "{}", target),
         }
     }
 }
@@ -451,8 +495,93 @@ impl fmt::Display for Reroll {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Target {
-    Success(Option<Argument>),
-    Botch(Option<Argument>)
+    Success{arg: Option<Argument>, pool: Option<Pool>, sux: i16},
+    Botch{arg: Option<Argument>, pool: Option<Pool>, sux: i16},
+}
+
+impl Target {
+    pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
+        let arg = Some(argument.clone());
+
+        match token {
+            RollToken::Conversion(Conversion::Target(target)) => {
+                let pool = Some(target.clone().pool()?);
+                match argument {
+                    Argument::Single(threshold) => {
+                        match self {
+                            Target::Success { arg: _, pool: _, sux: _ } => {
+                                let sux = target.value() as i16 + target.pool()?.count_dice_over(threshold) as i16;
+                                Ok(Target::Success { arg, pool, sux })
+                            },
+                            Target::Botch { arg: _, pool: _, sux: _ } => {
+                                let sux = target.value() as i16 - (target.pool()?.count_dice_under(threshold) as i16);
+                                Ok(Target::Botch { arg, pool, sux })
+                            },
+                        }
+                    },
+                    Argument::Array(_) => todo!(),
+                }
+            },
+            RollToken::Dice(dice) => {
+                let pool = Some(dice.clone().pool()?);
+                match argument {
+                    Argument::Single(threshold) => {
+                        match self {
+                            Target::Success { arg: _, pool: _, sux: _ } => {
+                                let sux = dice.pool()?.count_dice_over(threshold) as i16;
+                                Ok(Target::Success { arg, pool, sux })
+                            },
+                            Target::Botch { arg: _, pool: _, sux: _ } => {
+                                let sux = - (dice.pool()?.count_dice_under(threshold) as i16);
+                                Ok(Target::Botch { arg, pool, sux })
+                            },
+                        }
+                    },
+                    Argument::Array(_) => todo!(),
+                }
+            },
+            RollToken::Operator(operator) => {
+                let pool = Some(operator.clone().pool()?);
+                match argument {
+                    Argument::Single(threshold) => {
+                        match self {
+                            Target::Success { arg: _, pool: _, sux: _ } => {
+                                let sux = operator.pool()?.count_dice_over(threshold) as i16;
+                                Ok(Target::Success { arg, pool, sux })
+                            },
+                            Target::Botch { arg: _, pool: _, sux: _ } => {
+                                let sux = - (operator.pool()?.count_dice_under(threshold) as i16);
+                                Ok(Target::Botch { arg, pool, sux })
+                            },
+                        }
+                    },
+                    Argument::Array(_) => todo!(),
+                }
+            },
+            _ => Err(RollError::PlaceholderError)
+        }
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            Target::Success { arg: _, pool, sux: _ } => pool.ok_or(RollError::PlaceholderError),
+            Target::Botch { arg: _, pool, sux: _ } => pool.ok_or(RollError::PlaceholderError),
+        }
+    }
+
+    pub fn value(&self) -> f64 {
+        match self {
+            Target::Success { arg: _, pool: _, sux } => *sux as f64,
+            Target::Botch { arg: _, pool: _, sux } => *sux as f64,
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Target::Success { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
+            Target::Botch { arg: _, pool: _, sux: _ } => todo!("Verbose description TBA"),
+        }
+    }
 }
 
 impl FromStr for Target {
@@ -460,9 +589,17 @@ impl FromStr for Target {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "t" => Ok(Target::Success(None)),
-            "b" => Ok(Target::Botch(None)),
+            "t" => Ok(Target::Success { arg: None, pool: None, sux: 0 }),
+            "b" => Ok(Target::Botch { arg: None, pool: None, sux: 0 }),
             _   => Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+impl fmt::Display for Target {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            _ => write!(f, "Text output TBA")
         }
     }
 }

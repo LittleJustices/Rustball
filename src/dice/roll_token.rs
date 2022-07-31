@@ -19,7 +19,8 @@ pub enum RollToken {
     Math(RpnToken),
     Dice(Dice),
     Argument(Argument),
-    Operator(Operator)
+    Operator(Operator),
+    Conversion(Conversion),
 }
 
 impl RollToken {
@@ -35,6 +36,7 @@ impl RollToken {
         match self {
             RollToken::Dice(dice) => dice.verbose(),
             RollToken::Operator(operator) => operator.verbose(),
+            RollToken::Conversion(conversion) => conversion.verbose(),
             _ => "Placeholder description".into()
         }
     }
@@ -53,7 +55,8 @@ impl RollToken {
                 },
             },
             RollToken::Dice(dice) => dice.clone().value(),
-            RollToken::Operator(operator) => operator.value()
+            RollToken::Operator(operator) => operator.value(),
+            RollToken::Conversion(conversion) => conversion.value(),
         }
     }
 
@@ -70,6 +73,7 @@ impl RollToken {
         match self {
             RollToken::Dice(dice) => dice.pool(),
             RollToken::Operator(operator) => operator.pool(),
+            RollToken::Conversion(conversion) => conversion.pool(),
             _ => Err(RollError::PlaceholderError)
         }
     }
@@ -126,10 +130,10 @@ impl RollToken {
                     }
                     token_stack.push(token);
                 },
-                RollToken::Operator(_) => {
+                RollToken::Operator(_) | RollToken::Conversion(_) => {
                     while let Some(top_of_stack) = token_stack.last() {
                         match top_of_stack {
-                            RollToken::Dice(_) | RollToken::Operator(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
+                            RollToken::Dice(_) | RollToken::Operator(_) | RollToken::Conversion(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
                             _ => break
                         }
                     }
@@ -166,13 +170,14 @@ impl TryFrom<RollToken> for RpnToken {
         match value {
             RollToken::Math(rpn_token)      => Ok(rpn_token),
             RollToken::Dice(dice)   => Ok(RpnToken::Number(dice.value().or(Err(MathError::PlaceholderError))?)),
+            RollToken::Operator(operator)   => Ok(RpnToken::Number(operator.value().or(Err(MathError::PlaceholderError))?)),
+            RollToken::Conversion(conversion)   => Ok(RpnToken::Number(conversion.value().or(Err(MathError::PlaceholderError))?)),
             RollToken::Argument(argument)   => {
                 match argument {
                     Argument::Array(_)                => Err(MathError::PlaceholderError),
                     Argument::Single(number)      => Ok(RpnToken::Number(number.into()))
                 }
             },
-            _ => Err(MathError::PlaceholderError)
         }
     }
 }
@@ -189,6 +194,8 @@ impl FromStr for RollToken {
             Ok(RollToken::Dice(dice))
         } else if let Ok(operator) = s.parse() {          // Attempt to parse into operator
             Ok(RollToken::Operator(operator))
+        } else if let Ok(conversion) = s.parse() {          // Attempt to parse into operator
+            Ok(RollToken::Conversion(conversion))
         } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
