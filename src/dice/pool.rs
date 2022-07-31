@@ -66,6 +66,15 @@ impl Pool {
         exploded_pool
     }
 
+    pub fn keep_exact(&self, range: &[u8]) -> Self {
+        let mut kept_dice = vec![];
+        for die in self.dice.iter().filter(|d| d.is_in(range)) {
+            kept_dice.push(*die);
+        }
+
+        Pool { dice: kept_dice, ..*self }
+    }
+
     pub fn keep_highest(&self, argument: u8) -> Self {
         let mut dice_sorted = self.dice.clone();
         dice_sorted.sort_unstable();

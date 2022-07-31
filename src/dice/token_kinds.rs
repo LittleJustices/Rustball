@@ -242,6 +242,7 @@ impl fmt::Display for Explode {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Keep {
+    Exact{arg: Option<Argument>, res: Option<Pool>},
     Low{arg: Option<Argument>, res: Option<Pool>},
     High{arg: Option<Argument>, res: Option<Pool>},
 }
@@ -251,29 +252,41 @@ impl Keep {
         let arg = Some(argument.clone());
 
         match self {
-            Keep::High { arg: _, res: _ } => {
-                match argument {
-                    Argument::Array(_) => Err(RollError::PlaceholderError),
-                    Argument::Single(keep_amount) => {
-                        let res = Some(pool.keep_highest(keep_amount));
-                        Ok(Keep::High { arg, res })
+            Keep::Exact { arg: _, res: _ } => {
+                let res = match argument {
+                    Argument::Array(keep_array) => {
+                        Some(pool.keep_exact(&keep_array))
+                    },
+                    Argument::Single(keep_number) => {
+                        Some(pool.keep_exact(&[keep_number]))
                     }
-                }
+                };
+                Ok(Keep::Exact { arg, res })
+            },
+            Keep::High { arg: _, res: _ } => {
+                let res = match argument {
+                    Argument::Array(_) => return Err(RollError::PlaceholderError),
+                    Argument::Single(keep_amount) => {
+                        Some(pool.keep_highest(keep_amount))
+                    }
+                };
+                Ok(Keep::High { arg, res })
             },
             Keep::Low { arg: _, res: _ } => {
-                match argument {
-                    Argument::Array(_) => Err(RollError::PlaceholderError),
+                let res = match argument {
+                    Argument::Array(_) => return Err(RollError::PlaceholderError),
                     Argument::Single(keep_amount) => {
-                        let res = Some(pool.keep_lowest(keep_amount));
-                        Ok(Keep::Low { arg, res })
+                        Some(pool.keep_lowest(keep_amount))
                     }
-                }
+                };
+                Ok(Keep::Low { arg, res })
             },
         }
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
+            Keep::Exact { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
             Keep::High { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
             Keep::Low { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
         }
@@ -281,6 +294,7 @@ impl Keep {
 
     pub fn value(&self) -> Result<f64, RollError> {
         match self {
+            Keep::Exact { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
             Keep::High { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
             Keep::Low { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
         }
@@ -288,6 +302,7 @@ impl Keep {
 
     pub fn verbose(&self) -> String {
         match self {
+            Keep::Exact { arg, res: _ } => format!("Keep all dice showing {}", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Keep::High { arg, res: _ } => format!("Keep highest {} di(c)e", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Keep::Low { arg, res: _ } => format!("Keep lowest {} di(c)e", arg.as_ref().unwrap_or(&Argument::Single(0))),
         }
@@ -302,6 +317,7 @@ impl FromStr for Keep {
             match mode {
                 "" | "h"    => Ok(Keep::High { arg: None, res: None }),
                 "l"         => Ok(Keep::Low { arg: None, res: None }),
+                "e"         => Ok(Keep::Exact { arg: None, res: None }),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
@@ -313,6 +329,7 @@ impl FromStr for Keep {
 impl fmt::Display for Keep {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            Keep::Exact { arg, res } => write!(f, "ke {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
             Keep::High { arg, res } => write!(f, "kh {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
             Keep::Low { arg, res } => write!(f, "kl {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
         }
