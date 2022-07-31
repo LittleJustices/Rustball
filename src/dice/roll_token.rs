@@ -60,6 +60,8 @@ impl RollToken {
     pub fn argument(self) -> Result<Argument, RollError> {
         match self {
             RollToken::Argument(argument) => Ok(argument),
+            RollToken::Dice(dice) => Ok(Argument::Single(dice.value()? as u8)),
+            RollToken::Operator(operator) => Ok(Argument::Single(operator.value()? as u8)),
             _ => Err(RollError::PlaceholderError)
         }
     }
