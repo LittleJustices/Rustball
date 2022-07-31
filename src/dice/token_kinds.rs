@@ -285,9 +285,9 @@ impl FromStr for Explode {
 impl fmt::Display for Explode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Explode::Additive { arg, res } => write!(f, "ka {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Explode::Once { arg, res } => write!(f, "ko {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Explode::Recursive { arg, res } => write!(f, "kr {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Explode::Additive { arg, res } => write!(f, "ea {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Explode::Once { arg, res } => write!(f, "eo {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Explode::Recursive { arg, res } => write!(f, "er {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
         }
     }
 }
