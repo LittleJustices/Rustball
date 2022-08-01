@@ -69,6 +69,19 @@ impl Pool {
         exploded_pool
     }
 
+    pub fn explode_n_additive(&self, n: u8) -> Self {
+        let mut dice = self.clone().dice;
+        for die in &self.dice {
+            if die.equals(n) {
+                dice.push(*die);
+            } else {
+                dice.push(die.explode_additive());
+            }
+        }
+
+        Pool { dice, ..*self }
+    }
+
     pub fn explode_specific(&self, range: &[u8]) -> Self {
         let mut exploded_pool = self.clone();
         for die in self.dice.iter().filter(|d| d.is_in(range)) {
@@ -76,6 +89,19 @@ impl Pool {
         }
 
         exploded_pool
+    }
+
+    pub fn explode_specific_additive(&self, range: &[u8]) -> Self {
+        let mut dice = self.clone().dice;
+        for die in &self.dice {
+            if die.is_in(range) {
+                dice.push(*die);
+            } else {
+                dice.push(die.explode_additive());
+            }
+        }
+
+        Pool { dice, ..*self }
     }
 
     pub fn keep_exact(&self, range: &[u8]) -> Self {

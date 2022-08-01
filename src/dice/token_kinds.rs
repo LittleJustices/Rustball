@@ -221,7 +221,11 @@ impl Explode {
 
         match self {
             Explode::Additive { arg: _, res: _ } => {
-                Err(RollError::NotImplementedError)
+                let res = match argument {
+                    Argument::Single(explode_number) => Some(pool.explode_n_additive(explode_number)),
+                    Argument::Array(explode_array) => Some(pool.explode_specific_additive(&explode_array)),
+                };
+                Ok(Explode::Additive { arg, res })
             },
             Explode::Once { arg: _, res: _ } => {
                 let res = match argument {
