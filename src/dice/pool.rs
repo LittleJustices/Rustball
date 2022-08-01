@@ -70,12 +70,12 @@ impl Pool {
     }
 
     pub fn explode_n_additive(&self, n: u8) -> Self {
-        let mut dice = self.clone().dice;
+        let mut dice = vec![];
         for die in &self.dice {
             if die.equals(n) {
-                dice.push(*die);
-            } else {
                 dice.push(die.explode_additive());
+            } else {
+                dice.push(*die);
             }
         }
 
@@ -92,12 +92,12 @@ impl Pool {
     }
 
     pub fn explode_specific_additive(&self, range: &[u8]) -> Self {
-        let mut dice = self.clone().dice;
+        let mut dice = vec![];
         for die in &self.dice {
             if die.is_in(range) {
-                dice.push(*die);
-            } else {
                 dice.push(die.explode_additive());
+            } else {
+                dice.push(*die);
             }
         }
 
