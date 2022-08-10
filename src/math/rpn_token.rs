@@ -5,6 +5,7 @@ use super::math_errors::MathError;
 pub enum RpnToken {
     Number(f64),
     Operator(Operator),
+    MathFn(MathFn),
     RParen,
     LParen,
 }
@@ -23,16 +24,18 @@ impl FromStr for RpnToken {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let token: Result<RpnToken, MathError> = match s.trim() {
-            "+" => Ok(RpnToken::Operator(Operator::Add)),
-            "-" => Ok(RpnToken::Operator(Operator::Sub)),
-            "*" | "x" => Ok(RpnToken::Operator(Operator::Mul)),
-            "/" => Ok(RpnToken::Operator(Operator::Div)),
-            "^" | "**" => Ok(RpnToken::Operator(Operator::Pow)),
             ")" | "]" | "}" => Ok(RpnToken::RParen),
             "(" | "[" | "{" => Ok(RpnToken::LParen),
-            other => match other.parse() {
-                Ok(num) => Ok(RpnToken::Number(num)),
-                Err(_) => Err(MathError::SymbolError(other.to_string()))
+            other => {
+                if let Ok(number) = other.parse() {
+                    Ok(RpnToken::Number(number))
+                } else if let Ok(operator) = other.parse() {
+                    Ok(RpnToken::Operator(operator))
+                } else if let Ok(math_fn) = other.parse() {
+                    Ok(RpnToken::MathFn(math_fn))
+                } else {
+                    Err(MathError::SymbolError(s.into()))
+                }
             }
         };
         
@@ -72,6 +75,78 @@ impl Operator {
             Operator::Mul => left * right,
             Operator::Div => left / right,
             Operator::Pow => left.powf(right),
+        }
+    }
+}
+
+impl FromStr for Operator {
+    type Err = MathError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim() {
+            "+" => Ok(Operator::Add),
+            "-" => Ok(Operator::Sub),
+            "*" | "x" => Ok(Operator::Mul),
+            "/" => Ok(Operator::Div),
+            "^" | "**" => Ok(Operator::Pow),
+            _ => Err(MathError::PlaceholderError),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum MathFn {
+    Sin,
+    Asin,
+    Sinh,
+    Asinh,
+    Cos,
+    Acos,
+    Cosh,
+    Acosh,
+    Tan,
+    Atan,
+    Tanh,
+    Atanh,
+}
+
+impl MathFn {
+    pub fn apply(&self, arg: f64) -> f64 {
+        match self {
+            MathFn::Sin => arg.sin(),
+            MathFn::Cos => arg.cos(),
+            MathFn::Tan => arg.tan(),
+            MathFn::Asin => arg.asin(),
+            MathFn::Sinh => arg.sinh(),
+            MathFn::Acos => arg.acos(),
+            MathFn::Cosh => arg.cosh(),
+            MathFn::Atan => arg.atan(),
+            MathFn::Tanh => arg.tanh(),
+            MathFn::Asinh => arg.asinh(),
+            MathFn::Acosh => arg.acosh(),
+            MathFn::Atanh => arg.atanh(),
+        }
+    }
+}
+
+impl FromStr for MathFn {
+    type Err = MathError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim() {
+            "sin" => Ok(MathFn::Sin),
+            "asin" => Ok(MathFn::Asin),
+            "sinh" => Ok(MathFn::Sinh),
+            "asinh" => Ok(MathFn::Asinh),
+            "cos" => Ok(MathFn::Cos),
+            "acos" => Ok(MathFn::Acos),
+            "cosh" => Ok(MathFn::Cosh),
+            "acosh" => Ok(MathFn::Acosh),
+            "tan" => Ok(MathFn::Tan),
+            "atan" => Ok(MathFn::Atan),
+            "tanh" => Ok(MathFn::Tanh),
+            "atanh" => Ok(MathFn::Atanh),
+            _ => Err(MathError::PlaceholderError),
         }
     }
 }

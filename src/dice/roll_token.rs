@@ -103,8 +103,12 @@ impl RollToken {
                             if top_token == RollToken::Math(RpnToken::LParen) { break; };
                             postfix_queue.push(top_token);
                         }
+                        if let Some(RollToken::Math(RpnToken::MathFn(_))) = token_stack.last() {
+                            postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                        }
                     },
                     RpnToken::Number(_) => postfix_queue.push(token),
+                    RpnToken::MathFn(_) => token_stack.push(token),
                     RpnToken::Operator(right_operator) => {
                         while let Some(top_of_stack) = token_stack.last() {
                             match top_of_stack {

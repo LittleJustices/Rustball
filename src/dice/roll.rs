@@ -64,6 +64,10 @@ impl Roll {
                             let left = stack.pop().ok_or(RollError::PlaceholderError)?;
                             stack.push(RpnToken::Number(operator.apply(left.value()?, right.value()?)).into());
                         },
+                        RpnToken::MathFn(math_fn) => {
+                            let arg = stack.pop().ok_or(RollError::PlaceholderError)?;
+                            stack.push(RpnToken::Number(math_fn.apply(arg.value()?)).into());
+                        },
                         _ => return Err(RollError::PlaceholderError),
                     }
                 },

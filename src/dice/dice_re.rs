@@ -4,9 +4,11 @@ use regex::Regex;
 const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)";
 const DICE_TOKEN_STRING: &str = r"(?x)
     (?P<token>
-        [\^%\*x/\+\-\(\)]  # Math operators
+        [\^%\*x/\+\-\(\)]   # Math operators
         |
         \d+\.?\d*           # Numbers
+        |
+        a?(?:sin|cos|tan)h? # Trig functions
         |
         d                   # Dice notation
         |

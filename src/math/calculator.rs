@@ -31,6 +31,10 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
                 let left = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
                 stack.push(operator.apply(left, right));
             },
+            RpnToken::MathFn(math_fn) => {
+                let arg = stack.pop().ok_or(MathError::ExpressionError("Can you check if the functions and arguments line up?".into()))?;
+                stack.push(math_fn.apply(arg));
+            },
             _ => return Err(MathError::PlaceholderError)
         }
     }
