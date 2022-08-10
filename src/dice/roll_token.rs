@@ -159,10 +159,16 @@ impl RollToken {
 
 impl From<RpnToken> for RollToken {
     fn from(rpn_token: RpnToken) -> Self {
-        if let RpnToken::Number(number) = rpn_token {
-            RollToken::Argument(Argument::Single(number as u8))
-        } else {
-            RollToken::Math(rpn_token)
+        match rpn_token {
+            RpnToken::Number(number) => {
+                let number_as_argument = number as u8;
+                if number == number_as_argument as f64 {
+                    RollToken::Argument(Argument::Single(number_as_argument))
+                } else {
+                    RollToken::Math(rpn_token)
+                }
+            },
+            _ => RollToken::Math(rpn_token),
         }
     }
 }
