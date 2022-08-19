@@ -32,7 +32,7 @@ impl Pool {
     }
 
     pub fn number(&self) -> u8 {
-        self.number
+        self.dice().len() as u8
     }
 
     pub fn sides(&self) -> u8 {
