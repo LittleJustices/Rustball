@@ -63,9 +63,13 @@ impl Dice {
         Ok(self.pool()?.total().into())
     }
 
-    pub fn verbose(&self) -> String {
+    pub fn description(&self) -> String {
         let pool = self.pool.as_ref().expect("Tried to print a dice operation that wasn't resolved yet!");
         format!("Rolled {}d{}", pool.number(), pool.sides())
+    }
+
+    pub fn verbose(&self) -> String {
+        format!("{}", self)
     }
 }
 
@@ -119,6 +123,14 @@ impl Operator {
             Operator::Explode(explode) => explode.value(),
             Operator::Keep(keep) => keep.value(),
             Operator::Reroll(reroll) => reroll.value(),
+        }
+    }
+
+    pub fn description(&self) -> String {
+        match self {
+            Operator::Explode(explode) => explode.description(),
+            Operator::Keep(keep) => keep.description(),
+            Operator::Reroll(reroll) => reroll.description(),
         }
     }
 
@@ -178,6 +190,12 @@ impl Conversion {
     pub fn value(&self) -> Result<f64, RollError> {
         match self {
             Conversion::Target(target) => Ok(target.value()),
+        }
+    }
+
+    pub fn description(&self) -> String {
+        match self {
+            Conversion::Target(target) => target.description(),
         }
     }
 
@@ -273,11 +291,48 @@ impl Explode {
         Ok(self.clone().pool()?.total().into())
     }
 
-    pub fn verbose(&self) -> String {
+    pub fn description(&self) -> String {
         match self {
             Explode::Additive { arg, res: _ } => format!("For all dice showing {}, roll another one and add results", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Explode::Once { arg, res: _ } => format!("Explode dice showing {} once", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Explode::Recursive { arg, res: _ } => format!("Explode dice showing {} indefinitely", arg.as_ref().unwrap_or(&Argument::Single(0))),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Explode::Additive { arg: _, res } => {
+                let mut summary = String::new();
+                let mut results = res.clone();
+                let total = match results.pop() {
+                    None => return "Something went wrong! Please let the boss know!".into(),
+                    Some(t) => t
+                };
+                // Skip the first value, which is the base pool
+                for pool in results.iter().skip(1) {
+                    if pool.number() == 0 {continue;}
+                    summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.number(), pool);
+                }
+                summary = format!("{}Total: {}", summary, total);
+                summary
+            },
+            Explode::Once { arg: _, res } => {
+                match res.len() {
+                    1 => format!("No exploded dice -> {}", res[0]),
+                    2 => format!("Explode {} di(c)e -> {}, total: {}", res[1].number(), res[1], res[0].add(&res[1])),
+                    _ => "Something went wrong! Please let the boss know!".into()
+                }
+            },
+            Explode::Recursive { arg: _, res } => {
+                let mut summary = String::new();
+                // Skip the first value, which is the base pool
+                for pool in res.iter().skip(1) {
+                    if pool.number() == 0 {continue;}
+                    summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.number(), pool);
+                }
+                summary = format!("{}Total: {}", summary, res.iter().fold(Pool::new(0, 0), |final_pool, pool| final_pool.add(pool)));
+                summary
+            },
         }
     }
 }
@@ -302,9 +357,9 @@ impl FromStr for Explode {
 impl fmt::Display for Explode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Explode::Additive { arg, res } => write!(f, "ea {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.last().unwrap_or(&Pool::new(0, 0))),
-            Explode::Once { arg, res } => write!(f, "eo {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.last().unwrap_or(&Pool::new(0, 0))),
-            Explode::Recursive { arg, res } => write!(f, "er {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.last().unwrap_or(&Pool::new(0, 0))),
+            Explode::Additive { arg, res: _ } => write!(f, "ea {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
+            Explode::Once { arg, res: _ } => write!(f, "eo {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
+            Explode::Recursive { arg, res: _ } => write!(f, "er {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
         }
     }
 }
@@ -363,11 +418,31 @@ impl Keep {
         }
     }
 
-    pub fn verbose(&self) -> String {
+    pub fn description(&self) -> String {
         match self {
             Keep::Exact { arg, res: _ } => format!("Keep all dice showing {}", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Keep::High { arg, res: _ } => format!("Keep highest {} di(c)e", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Keep::Low { arg, res: _ } => format!("Keep lowest {} di(c)e", arg.as_ref().unwrap_or(&Argument::Single(0))),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Keep::Exact { arg: _, res } => {
+                let default = Pool::new(0, 0);
+                let result = res.as_ref().unwrap_or(&default);
+                format!("Keep {} dice -> {}", result.dice().len(), result)
+            },
+            Keep::Low { arg: _, res } => {
+                let default = Pool::new(0, 0);
+                let result = res.as_ref().unwrap_or(&default);
+                format!("Keep {} lowest -> {}", result.dice().len(), result)
+            },
+            Keep::High { arg: _, res } => {
+                let default = Pool::new(0, 0);
+                let result = res.as_ref().unwrap_or(&default);
+                format!("Keep {} highest -> {}", result.dice().len(), result)
+            },
         }
     }
 }
@@ -471,12 +546,45 @@ impl Reroll {
         }
     }
 
-    pub fn verbose(&self) -> String {
+    pub fn description(&self) -> String {
         match self {
             Reroll::Better { arg, res: _ } => format!("Reroll all dice showing {} and keep the better result", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Reroll::Once { arg, res: _ } => format!("Reroll all dice showing {} once", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Reroll::Recursive { arg, res: _ } => format!("Reroll all dice showing {} until none appear", arg.as_ref().unwrap_or(&Argument::Single(0))),
             Reroll::Worse { arg, res: _ } => format!("Reroll all dice showing {} and keep the worse result", arg.as_ref().unwrap_or(&Argument::Single(0))),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Reroll::Better { arg, res } => {
+                format!(
+                    "Reroll {} -> {}", 
+                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    res.as_ref().unwrap_or(&Pool::new(0, 0))
+                )
+            },
+            Reroll::Once { arg, res } => {
+                format!(
+                    "Reroll {} -> {}", 
+                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    res.as_ref().unwrap_or(&Pool::new(0, 0))
+                )
+            },
+            Reroll::Recursive { arg, res } => {
+                format!(
+                    "Reroll {} -> {}", 
+                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    res.as_ref().unwrap_or(&Pool::new(0, 0))
+                )
+            },
+            Reroll::Worse { arg, res } => {
+                format!(
+                    "Reroll {} -> {}", 
+                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    res.as_ref().unwrap_or(&Pool::new(0, 0))
+                )
+            },
         }
     }
 }
@@ -674,10 +782,17 @@ impl Target {
         }
     }
 
+    pub fn description(&self) -> String {
+        match self {
+            Target::Success { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
+            Target::Botch { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
+        }
+    }
+
     pub fn verbose(&self) -> String {
         match self {
             Target::Success { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
-            Target::Botch { arg: _, pool: _, sux: _ } => todo!("Verbose description TBA"),
+            Target::Botch { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
         }
     }
 }

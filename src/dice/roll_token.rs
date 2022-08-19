@@ -32,6 +32,15 @@ impl RollToken {
         }
     }
 
+    pub fn description(&self) -> String {
+        match self {
+            RollToken::Dice(dice) => dice.description(),
+            RollToken::Operator(operator) => operator.description(),
+            RollToken::Conversion(conversion) => conversion.description(),
+            _ => "Placeholder description".into()
+        }
+    }
+
     pub fn verbose(&self) -> String {
         match self {
             RollToken::Dice(dice) => dice.verbose(),

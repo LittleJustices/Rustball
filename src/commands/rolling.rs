@@ -193,8 +193,8 @@ async fn verbose(ctx: &Context, msg: &Message) -> CommandResult {
                 let title = format!("{}{}", latest_roll.command(), annotation);
                 e.title(title);
                 for operation in latest_roll.operations() {
-                    let name = operation.verbose();
-                    let value = format!("{}", operation);
+                    let name = operation.description();
+                    let value = operation.verbose();
                     e.field(name, value, false);
                 }
                 e.field("Total", latest_roll.result(), false);
