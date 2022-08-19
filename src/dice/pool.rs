@@ -190,11 +190,16 @@ impl Pool {
 
 impl fmt::Display for Pool {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self.dice.len() {
+            0 => write!(f, "[No dice]"),
+            _ => {
         let mut results = format!("{}", self.dice[0].result);
         for i in 1..self.dice.len() {
             results = format!("{}, {}", results, self.dice[i].result)
         }
         write!(f, "[{}]", results)
+            }
+        }
     }
 }
 
