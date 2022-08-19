@@ -39,11 +39,6 @@ impl Die {
         Die::roll(self.sides)
     }
 
-    pub fn explode_additive(&self) -> Die {
-        let extra_roll = Die::roll(self.sides);
-        Die { result: self.result + extra_roll.result, ..*self }
-    }
-
     pub fn equals(&self, value: u8) -> bool {
         self.result == value
     }
