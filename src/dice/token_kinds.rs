@@ -210,9 +210,9 @@ impl fmt::Display for Conversion {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Explode {
-    Additive{arg: Option<Argument>, res: Option<Pool>},
-    Once{arg: Option<Argument>, res: Option<Pool>},
-    Recursive{arg: Option<Argument>, res: Option<Pool>},
+    Additive{arg: Option<Argument>, res: Vec<Pool>},
+    Once{arg: Option<Argument>, res: Vec<Pool>},
+    Recursive{arg: Option<Argument>, res: Vec<Pool>},
 }
 
 impl Explode {
@@ -222,42 +222,55 @@ impl Explode {
         match self {
             Explode::Additive { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => Some(pool.explode_n_additive(explode_number)),
-                    Argument::Array(explode_array) => Some(pool.explode_specific_additive(&explode_array)),
+                    Argument::Single(explode_number) => pool.explode_n_additive(explode_number, true),
+                    Argument::Array(explode_array) => pool.explode_specific_additive(&explode_array, true),
                 };
                 Ok(Explode::Additive { arg, res })
             },
             Explode::Once { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => {
-                        Some(pool.explode_n(explode_number))
-                    },
-                    Argument::Array(explode_array) => {
-                        Some(pool.explode_specific(&explode_array))
-                    },
+                    Argument::Single(explode_number) => pool.explode_n(explode_number, false),
+                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, false),
                 };
                 Ok(Explode::Once { arg, res })
             },
             Explode::Recursive { arg: _, res: _ } => {
-                Err(RollError::NotImplementedError)
+                let res = match argument {
+                    Argument::Single(explode_number) => pool.explode_n(explode_number, true),
+                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, true),
+                };
+                Ok(Explode::Recursive { arg, res })
             },
         }
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            Explode::Additive { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Explode::Once { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Explode::Recursive { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+            Explode::Additive { arg: _, res } => {
+                match res.len() {
+                    0 => Err(RollError::PlaceholderError),
+                    _ => Ok(res.last().unwrap_or(&Pool::new(0, 0)).clone()),
+                }
+            },
+            Explode::Once { arg: _, res } => {
+                match res.len() {
+                    0 => Err(RollError::PlaceholderError),
+                    1 => Ok(res[0].clone()),
+                    2 => Ok(res[0].add(&res[1])),
+                    _ => Err(RollError::PlaceholderError),
+                }
+            },
+            Explode::Recursive { arg: _, res } => {
+                match res.len() {
+                    0 => Err(RollError::PlaceholderError),
+                    _ => Ok(res.iter().fold(Pool::new(0, 0), |final_pool, pool| final_pool.add(pool)))
+                }
+            },
         }
     }
 
     pub fn value(&self) -> Result<f64, RollError> {
-        match self {
-            Explode::Additive { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Explode::Once { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Explode::Recursive { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-        }
+        Ok(self.clone().pool()?.total().into())
     }
 
     pub fn verbose(&self) -> String {
@@ -275,9 +288,9 @@ impl FromStr for Explode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('e') {
             match mode {
-                "" | "o"    => Ok(Explode::Once { arg: None, res: None }),
-                "r"         => Ok(Explode::Recursive { arg: None, res: None }),
-                "a"         => Ok(Explode::Additive { arg: None, res: None }),
+                "" | "o"    => Ok(Explode::Once { arg: None, res: vec![] }),
+                "r"         => Ok(Explode::Recursive { arg: None, res: vec![] }),
+                "a"         => Ok(Explode::Additive { arg: None, res: vec![] }),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
@@ -289,9 +302,9 @@ impl FromStr for Explode {
 impl fmt::Display for Explode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Explode::Additive { arg, res } => write!(f, "ea {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Explode::Once { arg, res } => write!(f, "eo {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Explode::Recursive { arg, res } => write!(f, "er {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Explode::Additive { arg, res } => write!(f, "ea {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.last().unwrap_or(&Pool::new(0, 0))),
+            Explode::Once { arg, res } => write!(f, "eo {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.last().unwrap_or(&Pool::new(0, 0))),
+            Explode::Recursive { arg, res } => write!(f, "er {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.last().unwrap_or(&Pool::new(0, 0))),
         }
     }
 }
