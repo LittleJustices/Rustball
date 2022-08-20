@@ -313,7 +313,10 @@ impl Explode {
                     if pool.number() == 0 {continue;}
                     summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.number(), pool);
                 }
-                summary = format!("{}Total: {}", summary, total);
+                summary = match summary.len() {
+                    0 => format!("No exploded dice -> {}", total),
+                    _ => format!("{}Total: {}", summary, total)
+                };
                 summary
             },
             Explode::Once { arg: _, res } => {
@@ -330,7 +333,10 @@ impl Explode {
                     if pool.number() == 0 {continue;}
                     summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.number(), pool);
                 }
-                summary = format!("{}Total: {}", summary, res.iter().fold(Pool::new(0, 0), |final_pool, pool| final_pool.add(pool)));
+                summary = match summary.len() {
+                    0 => format!("No exploded dice -> {}", res[0]),
+                    _ => format!("{}Total: {}", summary, res.iter().fold(Pool::new(0, 0), |final_pool, pool| final_pool.add(pool)))
+                };
                 summary
             },
         }
