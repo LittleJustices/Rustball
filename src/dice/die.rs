@@ -31,6 +31,20 @@ impl Die {
         if new_result < self.result { self.set(new_result) };
     }
 
+    pub fn reroll_excluding_single(&mut self, excluded: u8) {
+        let mut rng = thread_rng();
+        let mut new_result = rng.gen_range(1..self.sides);
+        if new_result >= excluded { new_result += 1; }
+        self.set(new_result);
+    }
+
+    pub fn reroll_excluding_range(&mut self, excluded: &[u8]) {
+        let mut rng = thread_rng();
+        let possible_values: Vec<u8> = (1..=self.sides).filter(|x| !excluded.contains(x)).collect();
+        let random_index = rng.gen_range(0..possible_values.len());
+        self.set(possible_values[random_index]);
+    }
+
     pub fn set(&mut self, value: u8) {
         self.result = value
     }

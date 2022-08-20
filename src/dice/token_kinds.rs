@@ -518,7 +518,18 @@ impl Reroll {
                     }
                 }
             },
-            Reroll::Recursive { arg: _, res: _ } => Err(RollError::NotImplementedError),
+            Reroll::Recursive { arg: _, res: _ } => {
+                match argument {
+                    Argument::Array(array) => {
+                        rerolled_pool.reroll_specific_recursive(&array);
+                        Ok(Reroll::Recursive { arg, res: Some(rerolled_pool) })
+                    },
+                    Argument::Single(reroll_number) => {
+                        rerolled_pool.reroll_n_recursive(reroll_number);
+                        Ok(Reroll::Recursive { arg, res: Some(rerolled_pool) })
+                    },
+                }
+            },
             Reroll::Worse { arg: _, res: _ } => {
                 match argument {
                     Argument::Array(array) => {
