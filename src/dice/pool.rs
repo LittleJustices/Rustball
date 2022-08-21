@@ -9,7 +9,6 @@ use std::{
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pool {
-    number: u8,
     sides: u8,
     dice: Vec<Die>,
 }
@@ -23,7 +22,7 @@ impl Pool {
             dice.push(die);
         }
 
-        Pool { number, sides, dice }
+        Pool { sides, dice }
     }
 
     #[allow(dead_code)]
@@ -157,7 +156,7 @@ impl Pool {
         let mut dice_sorted = self.dice.clone();
         dice_sorted.sort_unstable();
 
-        let min_index = if argument > self.number { 0 } else { (self.number - argument) as usize };
+        let min_index = if argument > self.number() { 0 } else { (self.number() - argument) as usize };
 
         Pool { dice: dice_sorted[min_index..].to_vec(), ..*self }
     }
@@ -166,7 +165,7 @@ impl Pool {
         let mut dice_sorted = self.dice.clone();
         dice_sorted.sort_unstable();
 
-        let max_index = if argument > self.number { self.number as usize } else { argument as usize };
+        let max_index = if argument > self.number() { self.number() as usize } else { argument as usize };
 
         Pool { dice: dice_sorted[..max_index].to_vec(), ..*self }
     }
