@@ -41,6 +41,7 @@ pub fn dailydose() -> &'static str {
         "https://www.pixiv.net/artworks/44898062",
         "https://twitter.com/k0mamid0ri/status/815561664477073411",
         "https://twitter.com/smalllightAON/status/1532765221240160261",
+        "https://twitter.com/Vtcsku3HJBR2eZw/status/1562432126091268097",
     ];
     let random_index = rand::thread_rng().gen_range(0..links.len());
     links[random_index]
