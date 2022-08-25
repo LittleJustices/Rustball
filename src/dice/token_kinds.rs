@@ -363,9 +363,9 @@ impl FromStr for Explode {
 impl fmt::Display for Explode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Explode::Additive { arg, res: _ } => write!(f, "ea {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
-            Explode::Once { arg, res: _ } => write!(f, "eo {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
-            Explode::Recursive { arg, res: _ } => write!(f, "er {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
+            Explode::Additive { arg, res: _ } => write!(f, "explode additive {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
+            Explode::Once { arg, res: _ } => write!(f, "explode once {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
+            Explode::Recursive { arg, res: _ } => write!(f, "explode recursive {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), self.clone().pool().unwrap_or(Pool::new(0, 0))),
         }
     }
 }
@@ -473,9 +473,9 @@ impl FromStr for Keep {
 impl fmt::Display for Keep {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Keep::Exact { arg, res } => write!(f, "ke {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Keep::High { arg, res } => write!(f, "kh {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Keep::Low { arg, res } => write!(f, "kl {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Keep::Exact { arg, res } => write!(f, "keep exactly {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Keep::High { arg, res } => write!(f, "keep highest {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Keep::Low { arg, res } => write!(f, "keep lowest {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
         }
     }
 }
@@ -627,10 +627,10 @@ impl FromStr for Reroll {
 impl fmt::Display for Reroll {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Reroll::Better { arg, res } => write!(f, "rb {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Reroll::Once { arg, res } => write!(f, "ro {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Reroll::Recursive { arg, res } => write!(f, "rr {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Reroll::Worse { arg, res } => write!(f, "rw {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Better { arg, res } => write!(f, "reroll keep better {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Once { arg, res } => write!(f, "reroll once {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Recursive { arg, res } => write!(f, "reroll recursively {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Worse { arg, res } => write!(f, "reroll keep worse {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
         }
     }
 }
