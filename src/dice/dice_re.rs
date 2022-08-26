@@ -10,6 +10,8 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         a?(?:sin|cos|tan)h? # Trig functions
         |
+        sqrt                # Square root
+        |
         d                   # Dice notation
         |
         [tb]                # Target number or botch number
