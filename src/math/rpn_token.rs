@@ -50,13 +50,14 @@ pub enum Operator {
     Mul,
     Div,
     Pow,
+    Mod,
 }
 
 impl Operator {
     pub fn precedence(&self) -> u8 {
         match self {
             Operator::Add | Operator::Sub => 4,
-            Operator::Mul | Operator::Div => 5,
+            Operator::Mul | Operator::Div | Operator::Mod => 5,
             Operator::Pow => 6,
         }
     }
@@ -74,6 +75,7 @@ impl Operator {
             Operator::Sub => left - right,
             Operator::Mul => left * right,
             Operator::Div => left / right,
+            Operator::Mod => left % right,
             Operator::Pow => left.powf(right),
         }
     }
@@ -88,6 +90,7 @@ impl FromStr for Operator {
             "-" => Ok(Operator::Sub),
             "*" | "x" => Ok(Operator::Mul),
             "/" => Ok(Operator::Div),
+            "%" => Ok(Operator::Mod),
             "^" | "**" => Ok(Operator::Pow),
             _ => Err(MathError::PlaceholderError),
         }
