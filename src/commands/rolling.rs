@@ -74,7 +74,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let result;
     let compact_breakdown;
-    match tray.process_roll_command(roll_command, roll_comment) {
+    match tray.process_roll_command(&roll_command.to_lowercase(), roll_comment) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
             let roll_error = format!("{}", why);
