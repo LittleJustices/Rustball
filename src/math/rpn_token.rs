@@ -26,6 +26,7 @@ impl FromStr for RpnToken {
         let token: Result<RpnToken, MathError> = match s.trim() {
             ")" | "]" | "}" => Ok(RpnToken::RParen),
             "(" | "[" | "{" => Ok(RpnToken::LParen),
+            "pi" | "π" => Ok(RpnToken::Number(std::f64::consts::PI)),
             other => {
                 if let Ok(number) = other.parse() {
                     Ok(RpnToken::Number(number))

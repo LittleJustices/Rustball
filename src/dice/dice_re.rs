@@ -8,6 +8,8 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         \d+\.?\d*           # Numbers
         |
+        pi|π                # Pi
+        |
         a?(?:sin|cos|tan)h? # Trig functions
         |
         sqrt                # Square root
