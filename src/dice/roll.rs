@@ -3,9 +3,7 @@ use std::fmt;
 use crate::math::rpn_token::RpnToken;
 
 use super::{
-    dice_re::DICE_MATCH_RE,
     dice_errors::RollError,
-    pool::Pool,
     roll_token::RollToken,
 };
 
@@ -13,7 +11,6 @@ use super::{
 pub struct Roll {
     command: String,
     comment: String,
-    dicepools: Vec<Pool>,
     operations: Vec<RollToken>,
     result: f64,
     roller: String,
@@ -27,14 +24,7 @@ impl Roll {
 
         let (operations, result) = Roll::evaluate_string(command)?;
 
-        let mut dicepools = Vec::new();
-        for captures in DICE_MATCH_RE.captures_iter(command) {
-            let number = captures["number"].parse::<u8>()?;
-            let sides = captures["sides"].parse::<u8>()?;
-
-            dicepools.push(Pool::new(number, sides));
-        }
-        Ok(Roll { command: command.to_string(), comment: comment.into(), dicepools, operations, result, roller, timestamp })
+        Ok(Roll { command: command.to_string(), comment: comment.into(), operations, result, roller, timestamp })
     }
 
     fn evaluate_string(infix_expression: &str) -> Result<(Vec<RollToken>, f64), RollError> {
@@ -105,9 +95,7 @@ impl Roll {
 
     #[allow(dead_code)]
     pub fn reroll_all(&mut self) {
-        for pool in self.dicepools.iter_mut() {
-            pool.reroll_all();
-        }
+        todo!();
     }
 
     pub fn command(&self) -> &str {
