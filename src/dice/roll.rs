@@ -13,18 +13,19 @@ pub struct Roll {
     comment: String,
     operations: Vec<RollToken>,
     result: f64,
-    roller: String,
+    owner: String,
     timestamp: DateTime<Utc>,
 }
 
 impl Roll {
-    pub fn new(command: &str, comment: &str) -> Result<Self, RollError> {
-        let roller = "Placeholder name".to_owned();
+    pub fn new(expression: &str, comment: &str, roller: &str) -> Result<Self, RollError> {
+        let command = expression.to_string();
+        let owner = roller.to_string();
         let timestamp = Utc::now();
 
-        let (operations, result) = Roll::evaluate_string(command)?;
+        let (operations, result) = Roll::evaluate_string(expression)?;
 
-        Ok(Roll { command: command.to_string(), comment: comment.into(), operations, result, roller, timestamp })
+        Ok(Roll { command, comment: comment.into(), operations, result, owner, timestamp })
     }
 
     fn evaluate_string(infix_expression: &str) -> Result<(Vec<RollToken>, f64), RollError> {
@@ -115,7 +116,7 @@ impl Roll {
     }
 
     pub fn roller(&self) -> &str {
-        &self.roller
+        &self.owner
     }
 
     pub fn timestamp(&self) -> DateTime<Utc> {

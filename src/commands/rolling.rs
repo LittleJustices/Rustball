@@ -37,6 +37,7 @@ Additional dice operations to be added. Please wait warmly!"]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let roll_command;
     let roll_comment;
+    let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
     {
         let config_data = ctx.data.read().await;
@@ -74,7 +75,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let result;
     let compact_breakdown;
-    match tray.process_roll_command(&roll_command.to_lowercase(), roll_comment) {
+    match tray.process_roll_command(&roll_command.to_lowercase(), roll_comment, &roller) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
             let roll_error = format!("{}", why);
