@@ -113,6 +113,7 @@ pub enum MathFn {
     Tanh,
     Atanh,
     Sqrt,
+    Abs,
 }
 
 impl MathFn {
@@ -131,6 +132,7 @@ impl MathFn {
             MathFn::Acosh => arg.acosh(),
             MathFn::Atanh => arg.atanh(),
             MathFn::Sqrt => arg.sqrt(),
+            MathFn::Abs => arg.abs(),
         }
     }
 }
@@ -153,6 +155,7 @@ impl FromStr for MathFn {
             "tanh" => Ok(MathFn::Tanh),
             "atanh" => Ok(MathFn::Atanh),
             "sqrt" => Ok(MathFn::Sqrt),
+            "abs" => Ok(MathFn::Abs),
             _ => Err(MathError::PlaceholderError),
         }
     }

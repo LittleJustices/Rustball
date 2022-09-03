@@ -14,6 +14,8 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         sqrt                # Square root
         |
+        abs                 # Absolute value
+        |
         d                   # Dice notation
         |
         [tb]                # Target number or botch number
