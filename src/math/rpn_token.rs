@@ -154,7 +154,7 @@ impl FromStr for MathFn {
             "atan" => Ok(MathFn::Atan),
             "tanh" => Ok(MathFn::Tanh),
             "atanh" => Ok(MathFn::Atanh),
-            "sqrt" => Ok(MathFn::Sqrt),
+            "sqrt" | "√" => Ok(MathFn::Sqrt),
             "abs" => Ok(MathFn::Abs),
             _ => Err(MathError::PlaceholderError),
         }

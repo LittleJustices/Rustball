@@ -12,7 +12,7 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         a?(?:sin|cos|tan)h? # Trig functions
         |
-        sqrt                # Square root
+        sqrt|√              # Square root
         |
         abs                 # Absolute value
         |
