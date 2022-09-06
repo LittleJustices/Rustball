@@ -30,6 +30,8 @@ pub fn dailydose() -> &'static str {
         "https://twitter.com/nsl_mgh/status/1367171515154800640",
         "https://twitter.com/kyomoneko_2/status/1347468091668762626",
         "https://twitter.com/yakumosgap/status/1474855343176011779",
+        "https://twitter.com/yakumosgap/status/1474855343176011779",
+        "https://twitter.com/kyomoneko_2/status/1485186556210163713",
         "https://twitter.com/kyomoneko_2/status/1485186556210163713",
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1519303729417097216",
         "https://www.pixiv.net/artworks/92405212",
@@ -44,6 +46,7 @@ pub fn dailydose() -> &'static str {
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1562432126091268097",
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1561344299702165504",
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1566211831143604225",
+        "https://twitter.com/bon_feather/status/1567113632814620676",
         "https://twitter.com/bon_feather/status/1567113632814620676",
     ];
     let random_index = rand::thread_rng().gen_range(0..links.len());
