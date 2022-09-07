@@ -16,6 +16,12 @@ const DICE_TOKEN_STRING: &str = r"(?x)
         |
         abs                 # Absolute value
         |
+        round               # rounding
+        |
+        rddown|rounddown|floor
+        |
+        rdup|roundup|ceil
+        |
         d                   # Dice notation
         |
         [tb]                # Target number or botch number

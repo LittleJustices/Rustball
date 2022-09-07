@@ -114,6 +114,9 @@ pub enum MathFn {
     Atanh,
     Sqrt,
     Abs,
+    Round,
+    RdDown,
+    RdUp,
 }
 
 impl MathFn {
@@ -133,6 +136,9 @@ impl MathFn {
             MathFn::Atanh => arg.atanh(),
             MathFn::Sqrt => arg.sqrt(),
             MathFn::Abs => arg.abs(),
+            MathFn::Round => arg.round(),
+            MathFn::RdDown => arg.floor(),
+            MathFn::RdUp => arg.ceil(),
         }
     }
 }
@@ -156,6 +162,9 @@ impl FromStr for MathFn {
             "atanh" => Ok(MathFn::Atanh),
             "sqrt" | "√" => Ok(MathFn::Sqrt),
             "abs" => Ok(MathFn::Abs),
+            "round" => Ok(MathFn::Round),
+            "rddown" | "rounddown" | "floor" => Ok(MathFn::RdDown),
+            "rdup" | "roundup" | "ceil" => Ok(MathFn::RdUp),
             _ => Err(MathError::PlaceholderError),
         }
     }

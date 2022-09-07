@@ -14,6 +14,12 @@ const MATH_TOKEN_STRING: &str = r"(?x)
         sqrt|√              # Square root
         |
         abs                 # Absolute value
+        |
+        round               # rounding
+        |
+        rddown|rounddown|floor
+        |
+        rdup|roundup|ceil
     )";
 
 lazy_static!{
