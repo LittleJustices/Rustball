@@ -177,52 +177,74 @@ impl Pool {
         }
     }
 
-    pub fn reroll_n(&mut self, n: u8) {
+    pub fn reroll_n(&mut self, n: u8) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
             die.reroll();
+            new_rolls.push(*die);
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_n_better(&mut self, n: u8) {
+    pub fn reroll_n_better(&mut self, n: u8) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
-            die.reroll_better();
+            new_rolls.push(die.reroll_better());
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_n_worse(&mut self, n: u8) {
+    pub fn reroll_n_worse(&mut self, n: u8) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
-            die.reroll_worse();
+            new_rolls.push(die.reroll_worse());
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_n_recursive(&mut self, n: u8) {
+    pub fn reroll_n_recursive(&mut self, n: u8) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
             die.reroll_excluding_single(n);
+            new_rolls.push(*die);
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_specific(&mut self, range: &[u8]) {
+    pub fn reroll_specific(&mut self, range: &[u8]) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
             die.reroll();
+            new_rolls.push(*die);
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_specific_better(&mut self, range: &[u8]) {
+    pub fn reroll_specific_better(&mut self, range: &[u8]) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
             die.reroll_better();
+            new_rolls.push(*die);
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_specific_worse(&mut self, range: &[u8]) {
+    pub fn reroll_specific_worse(&mut self, range: &[u8]) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
             die.reroll_worse();
+            new_rolls.push(*die);
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
-    pub fn reroll_specific_recursive(&mut self, range: &[u8]) {
+    pub fn reroll_specific_recursive(&mut self, range: &[u8]) -> Pool {
+        let mut new_rolls = vec![];
         for die in self.dice.iter_mut().filter(|d| d.is_in(range)) {
             die.reroll_excluding_range(range);
+            new_rolls.push(*die);
         }
+        Pool { dice: new_rolls, ..*self }
     }
 
     #[allow(dead_code)]

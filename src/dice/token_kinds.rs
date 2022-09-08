@@ -482,10 +482,10 @@ impl fmt::Display for Keep {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Reroll {
-    Better{arg: Option<Argument>, res: Option<Pool>},
-    Once{arg: Option<Argument>, res: Option<Pool>},
-    Recursive{arg: Option<Argument>, res: Option<Pool>},
-    Worse{arg: Option<Argument>, res: Option<Pool>},
+    Better{arg: Option<Argument>, res: Option<Pool>, rerolls: Option<Pool>},
+    Once{arg: Option<Argument>, res: Option<Pool>, rerolls: Option<Pool>},
+    Recursive{arg: Option<Argument>, res: Option<Pool>, rerolls: Option<Pool>},
+    Worse{arg: Option<Argument>, res: Option<Pool>, rerolls: Option<Pool>},
 }
 
 impl Reroll {
@@ -494,51 +494,51 @@ impl Reroll {
         let mut rerolled_pool = pool.clone();
 
         match self {
-            Reroll::Better { arg: _, res: _ } => {
+            Reroll::Better { arg: _, res: _, rerolls: _ } => {
                 match argument {
                     Argument::Array(array) => {
-                        rerolled_pool.reroll_specific_better(&array);
-                        Ok(Reroll::Better { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_specific_better(&array);
+                        Ok(Reroll::Better { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     },
                     Argument::Single(reroll_number) => {
-                        rerolled_pool.reroll_n_better(reroll_number);
-                        Ok(Reroll::Better { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_n_better(reroll_number);
+                        Ok(Reroll::Better { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     }
                 }
             },
-            Reroll::Once { arg: _, res: _ } => {
+            Reroll::Once { arg: _, res: _, rerolls: _ } => {
                 match argument {
                     Argument::Array(array) => {
-                        rerolled_pool.reroll_specific(&array);
-                        Ok(Reroll::Once { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_specific(&array);
+                        Ok(Reroll::Once { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     },
                     Argument::Single(reroll_number) => {
-                        rerolled_pool.reroll_n(reroll_number);
-                        Ok(Reroll::Once { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_n(reroll_number);
+                        Ok(Reroll::Once { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     }
                 }
             },
-            Reroll::Recursive { arg: _, res: _ } => {
+            Reroll::Recursive { arg: _, res: _, rerolls: _ } => {
                 match argument {
                     Argument::Array(array) => {
-                        rerolled_pool.reroll_specific_recursive(&array);
-                        Ok(Reroll::Recursive { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_specific_recursive(&array);
+                        Ok(Reroll::Recursive { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     },
                     Argument::Single(reroll_number) => {
-                        rerolled_pool.reroll_n_recursive(reroll_number);
-                        Ok(Reroll::Recursive { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_n_recursive(reroll_number);
+                        Ok(Reroll::Recursive { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     },
                 }
             },
-            Reroll::Worse { arg: _, res: _ } => {
+            Reroll::Worse { arg: _, res: _, rerolls: _ } => {
                 match argument {
                     Argument::Array(array) => {
-                        rerolled_pool.reroll_specific_worse(&array);
-                        Ok(Reroll::Worse { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_specific_worse(&array);
+                        Ok(Reroll::Worse { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     },
                     Argument::Single(reroll_number) => {
-                        rerolled_pool.reroll_n_worse(reroll_number);
-                        Ok(Reroll::Worse { arg, res: Some(rerolled_pool) })
+                        let new_dice = rerolled_pool.reroll_n_worse(reroll_number);
+                        Ok(Reroll::Worse { arg, res: Some(rerolled_pool), rerolls: Some(new_dice) })
                     }
                 }
             },
@@ -547,58 +547,62 @@ impl Reroll {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            Reroll::Better { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Reroll::Once { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Reroll::Recursive { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Reroll::Worse { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+            Reroll::Better { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
+            Reroll::Once { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
+            Reroll::Recursive { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
+            Reroll::Worse { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
         }
     }
 
     pub fn value(&self) -> Result<f64, RollError> {
         match self {
-            Reroll::Better { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Reroll::Once { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Reroll::Recursive { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Reroll::Worse { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Reroll::Better { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Reroll::Once { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Reroll::Recursive { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Reroll::Worse { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
         }
     }
 
     pub fn description(&self) -> String {
         match self {
-            Reroll::Better { arg, res: _ } => format!("Reroll all dice showing {} and keep the better result", arg.as_ref().unwrap_or(&Argument::Single(0))),
-            Reroll::Once { arg, res: _ } => format!("Reroll all dice showing {} once", arg.as_ref().unwrap_or(&Argument::Single(0))),
-            Reroll::Recursive { arg, res: _ } => format!("Reroll all dice showing {} until none appear", arg.as_ref().unwrap_or(&Argument::Single(0))),
-            Reroll::Worse { arg, res: _ } => format!("Reroll all dice showing {} and keep the worse result", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Reroll::Better { arg, res: _, rerolls: _ } => format!("Reroll all dice showing {} and keep the better result", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Reroll::Once { arg, res: _, rerolls: _ } => format!("Reroll all dice showing {} once", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Reroll::Recursive { arg, res: _, rerolls: _ } => format!("Reroll all dice showing {} until none appear", arg.as_ref().unwrap_or(&Argument::Single(0))),
+            Reroll::Worse { arg, res: _, rerolls: _ } => format!("Reroll all dice showing {} and keep the worse result", arg.as_ref().unwrap_or(&Argument::Single(0))),
         }
     }
 
     pub fn verbose(&self) -> String {
         match self {
-            Reroll::Better { arg, res } => {
+            Reroll::Better { arg: _, res, rerolls } => {
                 format!(
-                    "Reroll {} -> {}", 
-                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    "Reroll {} di(c)e -> {}, result: {}", 
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
             },
-            Reroll::Once { arg, res } => {
+            Reroll::Once { arg: _, res, rerolls } => {
                 format!(
-                    "Reroll {} -> {}", 
-                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    "Reroll {} di(c)e -> {}, result: {}", 
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
             },
-            Reroll::Recursive { arg, res } => {
+            Reroll::Recursive { arg: _, res, rerolls } => {
                 format!(
-                    "Reroll {} -> {}", 
-                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    "Reroll {} di(c)e -> {}, result: {}", 
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
             },
-            Reroll::Worse { arg, res } => {
+            Reroll::Worse { arg: _, res, rerolls } => {
                 format!(
-                    "Reroll {} -> {}", 
-                    arg.as_ref().unwrap_or(&Argument::Single(0)), 
+                    "Reroll {} di(c)e -> {}, result: {}", 
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
             },
@@ -612,10 +616,10 @@ impl FromStr for Reroll {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(mode) = s.trim().strip_prefix('r') {
             match mode {
-                "" | "o"    => Ok(Reroll::Once { arg: None , res: None }),
-                "r"         => Ok(Reroll::Recursive { arg: None , res: None }),
-                "b"         => Ok(Reroll::Better { arg: None , res: None }),
-                "w"         => Ok(Reroll::Worse { arg: None , res: None }),
+                "" | "o"    => Ok(Reroll::Once { arg: None , res: None, rerolls: None }),
+                "r"         => Ok(Reroll::Recursive { arg: None , res: None, rerolls: None }),
+                "b"         => Ok(Reroll::Better { arg: None , res: None, rerolls: None }),
+                "w"         => Ok(Reroll::Worse { arg: None , res: None, rerolls: None }),
                 _           => Err(RollError::PlaceholderError)
             }
         } else {
@@ -627,10 +631,10 @@ impl FromStr for Reroll {
 impl fmt::Display for Reroll {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Reroll::Better { arg, res } => write!(f, "reroll keep better {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Reroll::Once { arg, res } => write!(f, "reroll once {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Reroll::Recursive { arg, res } => write!(f, "reroll recursively {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
-            Reroll::Worse { arg, res } => write!(f, "reroll keep worse {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Better { arg, res, rerolls: _ } => write!(f, "reroll keep better {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Once { arg, res, rerolls: _ } => write!(f, "reroll once {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Recursive { arg, res, rerolls: _ } => write!(f, "reroll recursively {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
+            Reroll::Worse { arg, res, rerolls: _ } => write!(f, "reroll keep worse {} -> {}", arg.as_ref().unwrap_or(&Argument::Single(0)), res.as_ref().unwrap_or(&Pool::new(0, 0))),
         }
     }
 }

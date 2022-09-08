@@ -19,16 +19,16 @@ impl Die {
         self.result = rng.gen_range(1..=self.sides);
     }
 
-    pub fn reroll_better(&mut self) {
-        let mut rng = thread_rng();
-        let new_result = rng.gen_range(1..=self.sides);
-        if new_result > self.result { self.set(new_result) };
+    pub fn reroll_better(&mut self) -> Die {
+        let new_die = self.explode();
+        if new_die > *self { self.set(new_die.result) };
+        new_die
     }
 
-    pub fn reroll_worse(&mut self) {
-        let mut rng = thread_rng();
-        let new_result = rng.gen_range(1..=self.sides);
-        if new_result < self.result { self.set(new_result) };
+    pub fn reroll_worse(&mut self) -> Die {
+        let new_die = self.explode();
+        if new_die < *self { self.set(new_die.result) };
+        new_die
     }
 
     pub fn reroll_excluding_single(&mut self, excluded: u8) {

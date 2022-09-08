@@ -271,7 +271,7 @@ mod tests {
             RollToken::Argument(Argument::Single(6)),
             RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Array(vec![1, 2])),
-            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None })),
+            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None, rerolls: None })),
             RollToken::Math(RpnToken::Number(1.5)),
             RollToken::Math(RpnToken::Operator(rpn_token::Operator::Mul)),
             RollToken::Argument(Argument::Single(2)),
@@ -308,7 +308,7 @@ mod tests {
             RollToken::Argument(Argument::Single(6)),
             RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Single(1)),
-            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None })),
+            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None, rerolls: None })),
             RollToken::Argument(Argument::Single(3)),
             RollToken::Operator(Operator::Keep(Keep::High { arg: None, res: None })),
         ];
