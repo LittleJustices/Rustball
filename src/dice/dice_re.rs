@@ -2,7 +2,6 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use crate::math::math_re::MATH_TOKEN_STRING;
 
-const DICE_MATCH_STRING: &str = r"(?P<number>\d+)d(?P<sides>\d+)";
 const DICE_TOKEN_STRING: &str = r"
     d                   # Dice notation
     |
@@ -18,6 +17,5 @@ const DICE_TOKEN_STRING: &str = r"
 ";
 
 lazy_static!{
-    pub static ref DICE_MATCH_RE: Regex = Regex::new(DICE_MATCH_STRING).expect("Failed to compile dice expression regex!");
     pub static ref DICE_TOKEN_RE: Regex = Regex::new(&format!("(?x)(?P<token>{}|{})", MATH_TOKEN_STRING, DICE_TOKEN_STRING)).expect("Failed to compile dice token regex!");
 }
