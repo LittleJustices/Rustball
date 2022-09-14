@@ -677,6 +677,7 @@ impl Target {
                                 }
                                 
                                 let sux = target.value() as i16 + target.pool()?.count_successes(&tns) as i16;
+                                let arg = Some(Argument::Array(tns));
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
@@ -689,6 +690,7 @@ impl Target {
                                 }
 
                                 let sux = target.value() as i16 - target.pool()?.count_successes(&tns) as i16;
+                                let arg = Some(Argument::Array(tns));
                                 Ok(Target::Botch { arg, pool, sux })
                             },
                         }
@@ -722,6 +724,7 @@ impl Target {
                                 }
 
                                 let sux = dice.pool()?.count_successes(&tns) as i16;
+                                let arg = Some(Argument::Array(tns));
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
@@ -734,6 +737,7 @@ impl Target {
                                 }
 
                                 let sux = - (dice.pool()?.count_successes(&threshold_array) as i16);
+                                let arg = Some(Argument::Array(tns));
                                 Ok(Target::Botch { arg, pool, sux })
                             },
                         }
@@ -767,6 +771,7 @@ impl Target {
                                 }
 
                                 let sux = operator.pool()?.count_successes(&tns) as i16;
+                                let arg = Some(Argument::Array(tns));
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
@@ -779,6 +784,7 @@ impl Target {
                                 }
 
                                 let sux = - (operator.pool()?.count_successes(&threshold_array) as i16);
+                                let arg = Some(Argument::Array(tns));
                                 Ok(Target::Botch { arg, pool, sux })
                             },
                         }
@@ -833,7 +839,48 @@ impl FromStr for Target {
 impl fmt::Display for Target {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            _ => write!(f, "Text output TBA")
+            Target::Success { arg, pool: _, sux } => {
+                match arg.as_ref().unwrap_or(&Argument::Single(0)) {
+                    Argument::Single(threshold) => {
+                        write!(f, "success on {} or higher -> {} successes", threshold, sux)
+                    },
+                    Argument::Array(thresh_array) => {
+                        let t_values = thresh_array.iter().enumerate();
+                        let t_string = t_values.fold(String::new(), |acc, (index, &value)| {
+                            if value == 0 {
+                                acc
+                            } else {
+                                format!("{}{}: {} sux, ", acc, index + 1, value)
+                            }
+                        });
+                        match t_string.strip_suffix(", ") {
+                            Some(output) => write!(f, "count successes: {} -> {} successes", output, sux),
+                            None => write!(f, "no success counting rule given -> {} successes", sux),
+                        }
+                    },
+                }
+            },
+            Target::Botch { arg, pool: _, sux } => {
+                match arg.as_ref().unwrap_or(&Argument::Single(0)) {
+                    Argument::Single(threshold) => {
+                        write!(f, "subtract success on {} or lower -> {} successes", threshold, sux)
+                    },
+                    Argument::Array(thresh_array) => {
+                        let t_values = thresh_array.iter().enumerate();
+                        let t_string = t_values.fold(String::new(), |acc, (index, &value)| {
+                            if value == 0 {
+                                acc
+                            } else {
+                                format!("{}{}: -{} sux, ", acc, index + 1, value)
+                            }
+                        });
+                        match t_string.strip_suffix(", ") {
+                            Some(output) => write!(f, "subtract successes: {} -> {} successes", output, sux),
+                            None => write!(f, "no success counting rule given -> {} successes", sux),
+                        }
+                    },
+                }
+            },
         }
     }
 }

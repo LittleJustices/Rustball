@@ -131,6 +131,7 @@ impl fmt::Display for Roll {
             match &self.operations[i] {
                 RollToken::Dice(dice) => breakdown = format!("{}; {}", breakdown, dice),
                 RollToken::Operator(operator) => breakdown = format!("{}, {}", breakdown, operator),
+                RollToken::Conversion(conversion) => breakdown = format!("{}, {}", breakdown, conversion),
                 _ => continue
             }
         }
