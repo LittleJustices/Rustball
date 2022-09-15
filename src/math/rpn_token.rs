@@ -117,6 +117,7 @@ pub enum MathFn {
     Round,
     RdDown,
     RdUp,
+    Exp,
 }
 
 impl MathFn {
@@ -139,6 +140,7 @@ impl MathFn {
             MathFn::Round => arg.round(),
             MathFn::RdDown => arg.floor(),
             MathFn::RdUp => arg.ceil(),
+            MathFn::Exp => arg.exp(),
         }
     }
 }
@@ -165,6 +167,7 @@ impl FromStr for MathFn {
             "round" => Ok(MathFn::Round),
             "rddown" | "rounddown" | "floor" => Ok(MathFn::RdDown),
             "rdup" | "roundup" | "ceil" => Ok(MathFn::RdUp),
+            "exp" => Ok(MathFn::Exp),
             _ => Err(MathError::PlaceholderError),
         }
     }

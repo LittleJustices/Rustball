@@ -19,6 +19,8 @@ pub const MATH_TOKEN_STRING: &str = r"
     rddown|rounddown|floor
     |
     rdup|roundup|ceil
+    |
+    exp
 ";
 
 lazy_static!{
