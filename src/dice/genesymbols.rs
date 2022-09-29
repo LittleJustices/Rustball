@@ -1,4 +1,9 @@
-use super::die::Die;
+use std::str::FromStr;
+
+use super::{
+    dice_errors::RollError,
+    die::Die,
+};
 
 #[allow(dead_code)]
 pub enum GeneSymbol {
@@ -76,6 +81,46 @@ impl GeneSymbol {
             10 | 11 => vec![GeneSymbol::Threat, GeneSymbol::Threat],
             12 => vec![GeneSymbol::Despair],
             _ => vec![GeneSymbol::Blank],
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub enum GenesysDie {
+    Boost(Die),
+    Setback(Die),
+    Ability(Die),
+    Difficulty(Die),
+    Proficiency(Die),
+    Challenge(Die),
+}
+
+#[allow(dead_code)]
+impl GenesysDie {
+    pub fn result(&self) -> Vec<GeneSymbol> {
+        match self {
+            GenesysDie::Boost(die) => GeneSymbol::boost(*die),
+            GenesysDie::Setback(die) => GeneSymbol::setback(*die),
+            GenesysDie::Ability(die) => GeneSymbol::ability(*die),
+            GenesysDie::Difficulty(die) => GeneSymbol::difficulty(*die),
+            GenesysDie::Proficiency(die) => GeneSymbol::proficiency(*die),
+            GenesysDie::Challenge(die) => GeneSymbol::challenge(*die),
+        }
+    }
+}
+
+impl FromStr for GenesysDie {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "b" => Ok(GenesysDie::Boost(Die::roll(6))),
+            "s" => Ok(GenesysDie::Setback(Die::roll(6))),
+            "a" => Ok(GenesysDie::Ability(Die::roll(8))),
+            "d" => Ok(GenesysDie::Difficulty(Die::roll(8))),
+            "p" => Ok(GenesysDie::Proficiency(Die::roll(12))),
+            "c" => Ok(GenesysDie::Challenge(Die::roll(12))),
+            _ => Err(RollError::PlaceholderError),
         }
     }
 }
