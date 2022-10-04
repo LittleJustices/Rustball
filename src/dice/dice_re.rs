@@ -17,9 +17,9 @@ const DICE_TOKEN_STRING: &str = r"
 ";
 
 const GENESYS_TOKEN_STRING: &str = r"(?x)
-    (?P<type>[bsadpc])  # Types of dice, named capture group
+    (?P<kind>[bsadpc])  # Kinds of dice, named capture group
     \s*                 # Allow any number of spaces
-    (?P<number>\d+)     # Number of dice of the preceding kind
+    (?P<number>\d+)     # Number of dice of the preceding kind, named capture group
 ";
 
 lazy_static!{

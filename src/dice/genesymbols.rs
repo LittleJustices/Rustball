@@ -5,7 +5,7 @@ use super::{
     die::Die,
 };
 
-#[allow(dead_code)]
+#[derive(Debug)]
 pub enum GeneSymbol {
     Success,
     Advantage,
@@ -16,7 +16,6 @@ pub enum GeneSymbol {
     Blank,
 }
 
-#[allow(dead_code)]
 impl GeneSymbol {
     pub fn boost(die: Die) -> Vec<Self> {
         match die.result {
@@ -85,7 +84,7 @@ impl GeneSymbol {
     }
 }
 
-#[allow(dead_code)]
+#[derive(Clone, Copy, Debug)]
 pub enum GenesysDie {
     Boost(Die),
     Setback(Die),
@@ -95,7 +94,6 @@ pub enum GenesysDie {
     Challenge(Die),
 }
 
-#[allow(dead_code)]
 impl GenesysDie {
     pub fn result(&self) -> Vec<GeneSymbol> {
         match self {
