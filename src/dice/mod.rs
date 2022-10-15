@@ -7,3 +7,4 @@ pub mod roll_token;
 pub mod token_kinds;
 pub mod tray;
 pub mod genesymbols;
+pub mod roll_result;
