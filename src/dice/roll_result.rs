@@ -1,7 +1,9 @@
-use super::roll_token::RollToken;
+use super::{
+    dice_errors::RollError,
+    roll_stack::RollStack,
+    result_kinds::*,
+};
 
-pub trait RollResult {
-    fn evaluate(operations: &[RollToken]) -> Self;
-
-    fn summarize(&self) -> String;
+pub enum RollResult {
+    SumDice(SumDice),
 }

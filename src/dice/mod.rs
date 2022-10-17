@@ -8,4 +8,5 @@ pub mod token_kinds;
 pub mod tray;
 pub mod genesymbols;
 pub mod roll_result;
+pub mod result_kinds;
 pub mod roll_stack;
