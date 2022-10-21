@@ -251,7 +251,7 @@ async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     use crate::dice::{
         dice_re::GENESYS_TOKEN_RE,
-        genesymbols::GenesysDie,
+        genesymbols::{GenesysDie, GenesysResults},
     };
     let roll_command;
     let roll_comment;
@@ -293,6 +293,7 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             dice_vector.push(die);
         }
     }
+    let results = GenesysResults::new(&dice_vector);
 
     for die in dice_vector {
         for symbol in die.result() {
@@ -306,10 +307,10 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
     
     let message = format!(
-        "`{}` {}:\n{:?}",
+        "`{}` {}:\n{}",
         roll_command.trim(),
         annotation,
-        results_vector
+        results
     );
 
     msg.reply_ping(&ctx.http, message).await?;
