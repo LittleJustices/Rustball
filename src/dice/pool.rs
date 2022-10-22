@@ -9,7 +9,8 @@ use std::{
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Pool {
-    sides: u8,
+    numbers: Vec<u8>,
+    sides: Vec<u8>,
     dice: Vec<Die>,
 }
 
@@ -22,21 +23,22 @@ impl Pool {
             dice.push(die);
         }
 
-        Pool { sides, dice }
+        let numbers = vec![number];
+        let sides = vec![sides];
+
+        Pool { numbers, sides, dice }
     }
 
     pub fn new_from_arrays(number: &[u8], sides: &[u8]) -> Self {
         let mut dice = vec![];
-        let mut max_sides = 0;
 
         for (&n, &s) in number.iter().zip(sides.iter()) {
             for _ in 0..n {
                 dice.push(Die::roll(s));
-                if s > max_sides { max_sides = s; }
             }
         }
 
-        Pool { sides: max_sides, dice }
+        Pool { numbers: number.to_vec(), sides: sides.to_vec(), dice }
     }
 
     pub fn new_dice_array(number: u8, sides: &[u8]) -> Self {
@@ -51,16 +53,46 @@ impl Pool {
         Pool::new(number_single, sides)
     }
 
+    pub fn new_from_dice(dice: &[Die]) -> Self {
+        let mut dice_sorted = dice.to_vec();
+        dice_sorted.sort_unstable_by_key(|d| d.result);
+
+        let mut numbers = vec![];
+        let mut sides = vec![];
+
+        let mut n = 0;
+        for die in dice_sorted {
+            if !sides.contains(&die.sides) {
+                if n != 0 { numbers.push(n); }
+                sides.push(die.sides);
+                n = 1;
+            } else {
+                n += 1;
+            }
+        }
+        numbers.push(n);
+
+        Pool { numbers, sides, dice: dice.to_vec() }
+    }
+
     pub fn dice(&self) -> &Vec<Die> {
         &self.dice
     }
 
-    pub fn number(&self) -> u8 {
+    pub fn total_number(&self) -> u8 {
         self.dice().len() as u8
     }
 
-    pub fn sides(&self) -> u8 {
-        self.sides
+    pub fn numbers(&self) -> &[u8] {
+        &self.numbers
+    }
+
+    pub fn sides(&self) -> &[u8] {
+        &self.sides
+    }
+
+    pub fn sides_max(&self) -> u8 {
+        *self.sides.iter().max().unwrap_or(&0)
     }
 
     pub fn total(&self) -> u16 {
@@ -102,7 +134,7 @@ impl Pool {
             for die in dice_to_explode.iter().filter(|d| d.equals(n)) {
                 new_dice.push(die.explode());
             }
-            exploded_pools.push(Pool { dice: new_dice.clone(), ..*self });
+            exploded_pools.push(Pool::new_from_dice(&new_dice));
             if !recursive { break; }
             dice_to_explode = new_dice;
         }
@@ -140,7 +172,7 @@ impl Pool {
             for die in dice_to_explode.iter().filter(|d| d.is_in(range)) {
                 new_dice.push(die.explode());
             }
-            exploded_pools.push(Pool { dice: new_dice.clone(), ..*self });
+            exploded_pools.push(Pool::new_from_dice(&new_dice));
             if !recursive { break; }
             dice_to_explode = new_dice;
         }
@@ -174,25 +206,25 @@ impl Pool {
             kept_dice.push(*die);
         }
 
-        Pool { dice: kept_dice, ..*self }
+        Pool::new_from_dice(&kept_dice)
     }
 
     pub fn keep_highest(&self, argument: u8) -> Self {
         let mut dice_sorted = self.dice.clone();
         dice_sorted.sort_unstable();
 
-        let min_index = if argument > self.number() { 0 } else { (self.number() - argument) as usize };
+        let min_index = if argument > self.total_number() { 0 } else { (self.total_number() - argument) as usize };
 
-        Pool { dice: dice_sorted[min_index..].to_vec(), ..*self }
+        Pool::new_from_dice(&dice_sorted[min_index..])
     }
 
     pub fn keep_lowest(&self, argument: u8) -> Self {
         let mut dice_sorted = self.dice.clone();
         dice_sorted.sort_unstable();
 
-        let max_index = if argument > self.number() { self.number() as usize } else { argument as usize };
+        let max_index = if argument > self.total_number() { self.total_number() as usize } else { argument as usize };
 
-        Pool { dice: dice_sorted[..max_index].to_vec(), ..*self }
+        Pool::new_from_dice(&dice_sorted[..max_index])
     }
 
     #[allow(dead_code)]
@@ -208,7 +240,7 @@ impl Pool {
             die.reroll();
             new_rolls.push(*die);
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_n_better(&mut self, n: u8) -> Pool {
@@ -216,7 +248,7 @@ impl Pool {
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
             new_rolls.push(die.reroll_better());
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_n_worse(&mut self, n: u8) -> Pool {
@@ -224,7 +256,7 @@ impl Pool {
         for die in self.dice.iter_mut().filter(|d| d.equals(n)) {
             new_rolls.push(die.reroll_worse());
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_n_recursive(&mut self, n: u8) -> Pool {
@@ -233,7 +265,7 @@ impl Pool {
             die.reroll_excluding_single(n);
             new_rolls.push(*die);
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_specific(&mut self, range: &[u8]) -> Pool {
@@ -242,7 +274,7 @@ impl Pool {
             die.reroll();
             new_rolls.push(*die);
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_specific_better(&mut self, range: &[u8]) -> Pool {
@@ -251,7 +283,7 @@ impl Pool {
             die.reroll_better();
             new_rolls.push(*die);
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_specific_worse(&mut self, range: &[u8]) -> Pool {
@@ -260,7 +292,7 @@ impl Pool {
             die.reroll_worse();
             new_rolls.push(*die);
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     pub fn reroll_specific_recursive(&mut self, range: &[u8]) -> Pool {
@@ -269,7 +301,7 @@ impl Pool {
             die.reroll_excluding_range(range);
             new_rolls.push(*die);
         }
-        Pool { dice: new_rolls, ..*self }
+        Pool { dice: new_rolls, ..self.clone() }
     }
 
     #[allow(dead_code)]

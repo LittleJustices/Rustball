@@ -65,7 +65,19 @@ impl Dice {
 
     pub fn description(&self) -> String {
         let pool = self.pool.as_ref().expect("Tried to print a dice operation that wasn't resolved yet!");
-        format!("Rolled {}d{}", pool.number(), pool.sides())
+
+        let (numbers, sides) = (pool.numbers(), pool.sides());
+
+        match numbers.len() {
+            1 => match sides.len() {
+                1 => format!("Rolled {}d{}", numbers[0], sides[0]),
+                _ => format!("Rolled {}d{:?}", numbers[0], sides)
+            },
+            _ => match sides.len() {
+                1 => format!("Rolled {:?}d{}", numbers, sides[0]),
+                _ => format!("Rolled {:?}d{:?}", numbers, sides)
+            }
+        }
     }
 
     pub fn verbose(&self) -> String {
@@ -90,7 +102,21 @@ impl FromStr for Dice {
 impl fmt::Display for Dice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let pool = self.pool.as_ref().expect("Tried to print a dice operation that wasn't resolved yet!");
-        write!(f, "{}d{} -> {}", pool.number(), pool.sides(), pool)
+
+        let (numbers, sides) = (pool.numbers(), pool.sides());
+
+        let dice_code = match numbers.len() {
+            1 => match sides.len() {
+                1 => format!("{}d{}", numbers[0], sides[0]),
+                _ => format!("{}d{:?}", numbers[0], sides)
+            },
+            _ => match sides.len() {
+                1 => format!("{:?}d{}", numbers, sides[0]),
+                _ => format!("{:?}d{:?}", numbers, sides)
+            }
+        };
+
+        write!(f, "{} -> {}", dice_code, pool)
     }
 }
 
@@ -310,8 +336,8 @@ impl Explode {
                 };
                 // Skip the first value, which is the base pool
                 for pool in results.iter().skip(1) {
-                    if pool.number() == 0 {continue;}
-                    summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.number(), pool);
+                    if pool.total_number() == 0 {continue;}
+                    summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.total_number(), pool);
                 }
                 summary = match summary.len() {
                     0 => format!("No exploded dice -> {}", total),
@@ -322,7 +348,7 @@ impl Explode {
             Explode::Once { arg: _, res } => {
                 match res.len() {
                     1 => format!("No exploded dice -> {}", res[0]),
-                    2 => format!("Explode {} di(c)e -> {}, total: {}", res[1].number(), res[1], res[0].add(&res[1])),
+                    2 => format!("Explode {} di(c)e -> {}, total: {}", res[1].total_number(), res[1], res[0].add(&res[1])),
                     _ => "Something went wrong! Please let the boss know!".into()
                 }
             },
@@ -330,8 +356,8 @@ impl Explode {
                 let mut summary = String::new();
                 // Skip the first value, which is the base pool
                 for pool in res.iter().skip(1) {
-                    if pool.number() == 0 {continue;}
-                    summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.number(), pool);
+                    if pool.total_number() == 0 {continue;}
+                    summary = format!("{}Explode {} di(c)e -> {}\n", summary, pool.total_number(), pool);
                 }
                 summary = match summary.len() {
                     0 => format!("No exploded dice -> {}", res[0]),
@@ -577,7 +603,7 @@ impl Reroll {
             Reroll::Better { arg: _, res, rerolls } => {
                 format!(
                     "Reroll {} di(c)e -> {}, result: {}", 
-                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).total_number(),
                     rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
@@ -585,7 +611,7 @@ impl Reroll {
             Reroll::Once { arg: _, res, rerolls } => {
                 format!(
                     "Reroll {} di(c)e -> {}, result: {}", 
-                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).total_number(),
                     rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
@@ -593,7 +619,7 @@ impl Reroll {
             Reroll::Recursive { arg: _, res, rerolls } => {
                 format!(
                     "Reroll {} di(c)e -> {}, result: {}", 
-                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).total_number(),
                     rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
@@ -601,7 +627,7 @@ impl Reroll {
             Reroll::Worse { arg: _, res, rerolls } => {
                 format!(
                     "Reroll {} di(c)e -> {}, result: {}", 
-                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).number(),
+                    rerolls.as_ref().unwrap_or(&Pool::new(0, 0)).total_number(),
                     rerolls.as_ref().unwrap_or(&Pool::new(0, 0)),
                     res.as_ref().unwrap_or(&Pool::new(0, 0))
                 )
@@ -668,7 +694,7 @@ impl Target {
                     Argument::Array(threshold_array) => {
                         match self {
                             Target::Success { arg: _, pool: _, sux: _ } => {
-                                let max_sides = target.clone().pool()?.sides() as usize;
+                                let max_sides = target.clone().pool()?.sides_max() as usize;
                                 let mut tns = vec![0; max_sides];
                                 if tns.len() >= threshold_array.len() {
                                     tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
@@ -681,7 +707,7 @@ impl Target {
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let max_sides = target.clone().pool()?.sides() as usize;
+                                let max_sides = target.clone().pool()?.sides_max() as usize;
                                 let mut tns = vec![0; max_sides];
                                 if tns.len() >= threshold_array.len() {
                                     tns[..threshold_array.len()].copy_from_slice(&threshold_array);
@@ -715,7 +741,7 @@ impl Target {
                     Argument::Array(threshold_array) => {
                         match self {
                             Target::Success { arg: _, pool: _, sux: _ } => {
-                                let max_sides = dice.clone().pool()?.sides() as usize;
+                                let max_sides = dice.clone().pool()?.sides_max() as usize;
                                 let mut tns = vec![0; max_sides];
                                 if tns.len() >= threshold_array.len() {
                                     tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
@@ -728,7 +754,7 @@ impl Target {
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let max_sides = dice.clone().pool()?.sides() as usize;
+                                let max_sides = dice.clone().pool()?.sides_max() as usize;
                                 let mut tns = vec![0; max_sides];
                                 if tns.len() >= threshold_array.len() {
                                     tns[..threshold_array.len()].copy_from_slice(&threshold_array);
@@ -762,7 +788,7 @@ impl Target {
                     Argument::Array(threshold_array) => {
                         match self {
                             Target::Success { arg: _, pool: _, sux: _ } => {
-                                let max_sides = operator.clone().pool()?.sides() as usize;
+                                let max_sides = operator.clone().pool()?.sides_max() as usize;
                                 let mut tns = vec![0; max_sides];
                                 if tns.len() >= threshold_array.len() {
                                     tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
@@ -775,7 +801,7 @@ impl Target {
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let max_sides = operator.clone().pool()?.sides() as usize;
+                                let max_sides = operator.clone().pool()?.sides_max() as usize;
                                 let mut tns = vec![0; max_sides];
                                 if tns.len() >= threshold_array.len() {
                                     tns[..threshold_array.len()].copy_from_slice(&threshold_array);
