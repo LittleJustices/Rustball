@@ -41,16 +41,16 @@ pub struct Dice{pub pool: Option<Pool>}
 
 impl Dice {
     pub fn apply(&self, left: Argument, right: Argument) -> Result<Self, RollError> {
-        let number = match left {
-            Argument::Single(no) => no,
-            Argument::Array(_) => return Err(RollError::PlaceholderError)
+        let pool = match left {
+            Argument::Single(number) => match right {
+                Argument::Single(sides) => Some(Pool::new(number, sides)),
+                Argument::Array(sides) => Some(Pool::new_dice_array(number, &sides)),
+            },
+            Argument::Array(number) => match right {
+                Argument::Single(sides) => Some(Pool::new_numbers_array(&number, sides)),
+                Argument::Array(sides) => Some(Pool::new_from_arrays(&number, &sides)),
+            },
         };
-        let sides = match right {
-            Argument::Single(no) => no,
-            Argument::Array(_) => return Err(RollError::PlaceholderError)
-        };
-
-        let pool = Some(Pool::new(number, sides));
 
         Ok(Dice{ pool })
     }

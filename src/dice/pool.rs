@@ -25,7 +25,32 @@ impl Pool {
         Pool { sides, dice }
     }
 
-    #[allow(dead_code)]
+    pub fn new_from_arrays(number: &[u8], sides: &[u8]) -> Self {
+        let mut dice = vec![];
+        let mut max_sides = 0;
+
+        for (&n, &s) in number.iter().zip(sides.iter()) {
+            for _ in 0..n {
+                dice.push(Die::roll(s));
+                if s > max_sides { max_sides = s; }
+            }
+        }
+
+        Pool { sides: max_sides, dice }
+    }
+
+    pub fn new_dice_array(number: u8, sides: &[u8]) -> Self {
+        let number_arr = vec![number; sides.len()];
+
+        Pool::new_from_arrays(&number_arr, sides)
+    }
+
+    pub fn new_numbers_array(number: &[u8], sides: u8) -> Self {
+        let number_single = number.iter().fold(0, |n, s| n + s);
+
+        Pool::new(number_single, sides)
+    }
+
     pub fn dice(&self) -> &Vec<Die> {
         &self.dice
     }
