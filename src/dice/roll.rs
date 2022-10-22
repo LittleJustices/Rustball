@@ -21,12 +21,13 @@ impl Roll {
     pub fn new(expression: &str, comment: &str, roller: &str) -> Result<Self, RollError> {
         let command = expression.to_string();
         let owner = roller.to_string();
+        let comment = comment.to_string();
         let timestamp = Utc::now();
 
         let operations = RollStack::evaluate_string(expression)?;
         let result = operations.final_result.value()?;
 
-        Ok(Roll { command, comment: comment.into(), operations, result, owner, timestamp })
+        Ok(Roll { command, comment, operations, result, owner, timestamp })
     }
 
     #[allow(dead_code)]
