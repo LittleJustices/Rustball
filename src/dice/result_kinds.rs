@@ -1,16 +1,17 @@
-// use super::{
-//     dice_errors::RollError,
-//     roll_result::RollResult,
-//     roll_stack::RollStack,
-// };
+use super::{
+    dice_errors::RollError,
+    roll_stack::RollStack,
+};
 
 #[derive(Debug)]
-pub struct SumDice {
+pub struct NumericResult {
     pub result: f64,
 }
 
-impl SumDice {
-    fn new() -> Self {
-        SumDice { result: 0.0 }
+impl NumericResult {
+    pub fn evaluate(roll_stack: &RollStack) -> Result<Self, RollError> {
+        let result = roll_stack.final_result.value()?;
+
+        Ok(NumericResult { result })
     }
 }

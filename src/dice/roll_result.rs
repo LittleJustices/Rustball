@@ -5,5 +5,11 @@ use super::{
 };
 
 pub enum RollResult {
-    SumDice(SumDice),
+    Numeric(NumericResult),
+}
+
+impl RollResult {
+    pub fn evaluate(roll_stack: &RollStack) -> Result<Self, RollError> {
+        Ok(RollResult::Numeric(NumericResult::evaluate(roll_stack)?))
+    }
 }
