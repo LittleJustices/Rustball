@@ -128,11 +128,11 @@ pub enum Operator {
 }
 
 impl Operator {
-    pub fn apply(&self, pool: Pool, argument: Argument) -> Result<Self, RollError> {
+    pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
         match self {
-            Operator::Explode(explode) => Ok(Operator::Explode(explode.apply(pool, argument)?)),
-            Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(pool, argument)?)),
-            Operator::Reroll(reroll) => Ok(Operator::Reroll(reroll.apply(pool, argument)?)),
+            Operator::Explode(explode) => Ok(Operator::Explode(explode.apply(token.pool()?, argument)?)),
+            Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(token.pool()?, argument)?)),
+            Operator::Reroll(reroll) => Ok(Operator::Reroll(reroll.apply(token.pool()?, argument)?)),
         }
     }
 

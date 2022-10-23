@@ -57,7 +57,7 @@ impl RollStack {
                 RollToken::Operator(operator) => {
                     let right = stack.pop().ok_or(RollError::PlaceholderError)?;
                     let left = stack.pop().ok_or(RollError::PlaceholderError)?;
-                    let operator_resolved = operator.apply(left.pool()?, right.argument()?)?;
+                    let operator_resolved = operator.apply(left, right.argument()?)?;
                     operations.push(RollToken::Operator(operator_resolved.clone()));
                     stack.push(RollToken::Operator(operator_resolved));
                 },
