@@ -125,6 +125,7 @@ pub enum Operator {
     Explode(Explode),
     Keep(Keep),
     Reroll(Reroll),
+    Target(Target),
 }
 
 impl Operator {
@@ -133,6 +134,7 @@ impl Operator {
             Operator::Explode(explode) => Ok(Operator::Explode(explode.apply(token.pool()?, argument)?)),
             Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(token.pool()?, argument)?)),
             Operator::Reroll(reroll) => Ok(Operator::Reroll(reroll.apply(token.pool()?, argument)?)),
+            Operator::Target(target) => Ok(Operator::Target(target.apply(token, argument)?)),
         }
     }
 
@@ -141,6 +143,7 @@ impl Operator {
             Operator::Explode(explode) => explode.pool(),
             Operator::Keep(keep) => keep.pool(),
             Operator::Reroll(reroll) => reroll.pool(),
+            Operator::Target(target) => target.pool(),
         }
     }
 
@@ -149,6 +152,7 @@ impl Operator {
             Operator::Explode(explode) => explode.value(),
             Operator::Keep(keep) => keep.value(),
             Operator::Reroll(reroll) => reroll.value(),
+            Operator::Target(target) => Ok(target.value()),
         }
     }
 
@@ -157,6 +161,7 @@ impl Operator {
             Operator::Explode(explode) => explode.description(),
             Operator::Keep(keep) => keep.description(),
             Operator::Reroll(reroll) => reroll.description(),
+            Operator::Target(target) => target.description(),
         }
     }
 
@@ -165,6 +170,7 @@ impl Operator {
             Operator::Explode(explode) => explode.verbose(),
             Operator::Keep(keep) => keep.verbose(),
             Operator::Reroll(reroll) => reroll.verbose(),
+            Operator::Target(target) => target.verbose(),
         }
     }
 }
@@ -179,7 +185,9 @@ impl FromStr for Operator {
             Ok(Operator::Keep(keep))
         } else if let Ok(reroll) = s.parse() {            // Attempt to parse into reroll token
             Ok(Operator::Reroll(reroll))
-        } else {                                                  // If all these fail, error out
+        } /* */ else if let Ok(target) = s.parse() {
+            Ok(Operator::Target(target))
+        } /* */ else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
     }
@@ -191,6 +199,7 @@ impl fmt::Display for Operator {
             Operator::Explode(explode) => write!(f, "{}", explode),
             Operator::Keep(keep) => write!(f, "{}", keep),
             Operator::Reroll(reroll) => write!(f, "{}", reroll),
+            Operator::Target(target) => write!(f, "{}", target),
         }
     }
 }
@@ -772,15 +781,19 @@ impl Target {
             },
             RollToken::Operator(operator) => {
                 let pool = Some(operator.clone().pool()?);
+                let base_sux = match &operator {
+                    Operator::Target(target) => target.value() as i16,
+                    _ => 0,
+                };
                 match argument {
                     Argument::Single(threshold) => {
                         match self {
                             Target::Success { arg: _, pool: _, sux: _ } => {
-                                let sux = operator.pool()?.count_dice_over(threshold) as i16;
+                                let sux = base_sux + operator.pool()?.count_dice_over(threshold) as i16;
                                 Ok(Target::Success { arg, pool, sux })
                             },
                             Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let sux = - (operator.pool()?.count_dice_under(threshold) as i16);
+                                let sux = base_sux - (operator.pool()?.count_dice_under(threshold) as i16);
                                 Ok(Target::Botch { arg, pool, sux })
                             },
                         }
