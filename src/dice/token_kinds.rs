@@ -683,154 +683,54 @@ pub enum Target {
 impl Target {
     pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
         let arg = Some(argument.clone());
-
-        match token {
-            RollToken::Conversion(Conversion::Target(target)) => {
-                let pool = Some(target.clone().pool()?);
-                match argument {
-                    Argument::Single(threshold) => {
-                        match self {
-                            Target::Success { arg: _, pool: _, sux: _ } => {
-                                let sux = target.value() as i16 + target.pool()?.count_dice_over(threshold) as i16;
-                                Ok(Target::Success { arg, pool, sux })
-                            },
-                            Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let sux = target.value() as i16 - (target.pool()?.count_dice_under(threshold) as i16);
-                                Ok(Target::Botch { arg, pool, sux })
-                            },
-                        }
+        let pool = Some(token.clone().pool()?);
+        let base_sux = match &token {
+            RollToken::Operator(Operator::Target(target)) => target.value() as i16,
+            _ => 0,
+        };
+        match argument {
+            Argument::Single(threshold) => {
+                match self {
+                    Target::Success { arg: _, pool: _, sux: _ } => {
+                        let sux = base_sux + token.pool()?.count_dice_over(threshold) as i16;
+                        Ok(Target::Success { arg, pool, sux })
                     },
-                    Argument::Array(threshold_array) => {
-                        match self {
-                            Target::Success { arg: _, pool: _, sux: _ } => {
-                                let max_sides = target.clone().pool()?.sides_max() as usize;
-                                let mut tns = vec![0; max_sides];
-                                if tns.len() >= threshold_array.len() {
-                                    tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
-                                } else {
-                                    tns.copy_from_slice(&threshold_array[..max_sides]);
-                                }
-                                
-                                let sux = target.value() as i16 + target.pool()?.count_successes(&tns) as i16;
-                                let arg = Some(Argument::Array(tns));
-                                Ok(Target::Success { arg, pool, sux })
-                            },
-                            Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let max_sides = target.clone().pool()?.sides_max() as usize;
-                                let mut tns = vec![0; max_sides];
-                                if tns.len() >= threshold_array.len() {
-                                    tns[..threshold_array.len()].copy_from_slice(&threshold_array);
-                                } else {
-                                    tns.copy_from_slice(&threshold_array[..max_sides]);
-                                }
-
-                                let sux = target.value() as i16 - target.pool()?.count_successes(&tns) as i16;
-                                let arg = Some(Argument::Array(tns));
-                                Ok(Target::Botch { arg, pool, sux })
-                            },
-                        }
+                    Target::Botch { arg: _, pool: _, sux: _ } => {
+                        let sux = base_sux - (token.pool()?.count_dice_under(threshold) as i16);
+                        Ok(Target::Botch { arg, pool, sux })
                     },
                 }
             },
-            RollToken::Dice(dice) => {
-                let pool = Some(dice.clone().pool()?);
-                match argument {
-                    Argument::Single(threshold) => {
-                        match self {
-                            Target::Success { arg: _, pool: _, sux: _ } => {
-                                let sux = dice.pool()?.count_dice_over(threshold) as i16;
-                                Ok(Target::Success { arg, pool, sux })
-                            },
-                            Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let sux = - (dice.pool()?.count_dice_under(threshold) as i16);
-                                Ok(Target::Botch { arg, pool, sux })
-                            },
+            Argument::Array(threshold_array) => {
+                match self {
+                    Target::Success { arg: _, pool: _, sux: _ } => {
+                        let max_sides = token.clone().pool()?.sides_max() as usize;
+                        let mut tns = vec![0; max_sides];
+                        if tns.len() >= threshold_array.len() {
+                            tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
+                        } else {
+                            tns.copy_from_slice(&threshold_array[..max_sides]);
                         }
+
+                        let sux = token.pool()?.count_successes(&tns) as i16;
+                        let arg = Some(Argument::Array(tns));
+                        Ok(Target::Success { arg, pool, sux })
                     },
-                    Argument::Array(threshold_array) => {
-                        match self {
-                            Target::Success { arg: _, pool: _, sux: _ } => {
-                                let max_sides = dice.clone().pool()?.sides_max() as usize;
-                                let mut tns = vec![0; max_sides];
-                                if tns.len() >= threshold_array.len() {
-                                    tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
-                                } else {
-                                    tns.copy_from_slice(&threshold_array[..max_sides]);
-                                }
-
-                                let sux = dice.pool()?.count_successes(&tns) as i16;
-                                let arg = Some(Argument::Array(tns));
-                                Ok(Target::Success { arg, pool, sux })
-                            },
-                            Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let max_sides = dice.clone().pool()?.sides_max() as usize;
-                                let mut tns = vec![0; max_sides];
-                                if tns.len() >= threshold_array.len() {
-                                    tns[..threshold_array.len()].copy_from_slice(&threshold_array);
-                                } else {
-                                    tns.copy_from_slice(&threshold_array[..max_sides]);
-                                }
-
-                                let sux = - (dice.pool()?.count_successes(&threshold_array) as i16);
-                                let arg = Some(Argument::Array(tns));
-                                Ok(Target::Botch { arg, pool, sux })
-                            },
+                    Target::Botch { arg: _, pool: _, sux: _ } => {
+                        let max_sides = token.clone().pool()?.sides_max() as usize;
+                        let mut tns = vec![0; max_sides];
+                        if tns.len() >= threshold_array.len() {
+                            tns[..threshold_array.len()].copy_from_slice(&threshold_array);
+                        } else {
+                            tns.copy_from_slice(&threshold_array[..max_sides]);
                         }
+
+                        let sux = - (token.pool()?.count_successes(&threshold_array) as i16);
+                        let arg = Some(Argument::Array(tns));
+                        Ok(Target::Botch { arg, pool, sux })
                     },
                 }
             },
-            RollToken::Operator(operator) => {
-                let pool = Some(operator.clone().pool()?);
-                let base_sux = match &operator {
-                    Operator::Target(target) => target.value() as i16,
-                    _ => 0,
-                };
-                match argument {
-                    Argument::Single(threshold) => {
-                        match self {
-                            Target::Success { arg: _, pool: _, sux: _ } => {
-                                let sux = base_sux + operator.pool()?.count_dice_over(threshold) as i16;
-                                Ok(Target::Success { arg, pool, sux })
-                            },
-                            Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let sux = base_sux - (operator.pool()?.count_dice_under(threshold) as i16);
-                                Ok(Target::Botch { arg, pool, sux })
-                            },
-                        }
-                    },
-                    Argument::Array(threshold_array) => {
-                        match self {
-                            Target::Success { arg: _, pool: _, sux: _ } => {
-                                let max_sides = operator.clone().pool()?.sides_max() as usize;
-                                let mut tns = vec![0; max_sides];
-                                if tns.len() >= threshold_array.len() {
-                                    tns[max_sides - threshold_array.len()..].copy_from_slice(&threshold_array);
-                                } else {
-                                    tns.copy_from_slice(&threshold_array[..max_sides]);
-                                }
-
-                                let sux = operator.pool()?.count_successes(&tns) as i16;
-                                let arg = Some(Argument::Array(tns));
-                                Ok(Target::Success { arg, pool, sux })
-                            },
-                            Target::Botch { arg: _, pool: _, sux: _ } => {
-                                let max_sides = operator.clone().pool()?.sides_max() as usize;
-                                let mut tns = vec![0; max_sides];
-                                if tns.len() >= threshold_array.len() {
-                                    tns[..threshold_array.len()].copy_from_slice(&threshold_array);
-                                } else {
-                                    tns.copy_from_slice(&threshold_array[..max_sides]);
-                                }
-
-                                let sux = - (operator.pool()?.count_successes(&threshold_array) as i16);
-                                let arg = Some(Argument::Array(tns));
-                                Ok(Target::Botch { arg, pool, sux })
-                            },
-                        }
-                    },
-                }
-            },
-            _ => Err(RollError::PlaceholderError)
         }
     }
 
