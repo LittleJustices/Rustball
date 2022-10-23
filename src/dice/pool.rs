@@ -22,6 +22,7 @@ impl Pool {
             let die = Die::roll(sides);
             dice.push(die);
         }
+        // Don't need to order by sides here because there is only one type of dice
 
         let numbers = vec![number];
         let sides = vec![sides];
@@ -37,6 +38,9 @@ impl Pool {
                 dice.push(Die::roll(s));
             }
         }
+        // Order by sides. This lets the rest of the code assume that pools will always be ordered from smallest to biggest die
+        // (But unordered within each die size)
+        dice.sort_by(|d, e| d.sides.cmp(&e.sides));
 
         Pool { numbers: number.to_vec(), sides: sides.to_vec(), dice }
     }
@@ -54,14 +58,16 @@ impl Pool {
     }
 
     pub fn new_from_dice(dice: &[Die]) -> Self {
-        let mut dice_sorted = dice.to_vec();
-        dice_sorted.sort_unstable_by_key(|d| d.result);
+        let mut dice = dice.to_vec();
+        // Order by sides. This lets the rest of the code assume that pools will always be ordered from smallest to biggest die
+        // (But unordered within each die size)
+        dice.sort_by(|d, e| d.sides.cmp(&e.sides));
 
         let mut numbers = vec![];
         let mut sides = vec![];
 
         let mut n = 0;
-        for die in dice_sorted {
+        for die in &dice {
             if !sides.contains(&die.sides) {
                 if n != 0 { numbers.push(n); }
                 sides.push(die.sides);
@@ -72,7 +78,7 @@ impl Pool {
         }
         numbers.push(n);
 
-        Pool { numbers, sides, dice: dice.to_vec() }
+        Pool { numbers, sides, dice }
     }
 
     pub fn dice(&self) -> &Vec<Die> {
@@ -105,11 +111,9 @@ impl Pool {
     }
 
     pub fn add(&self, other: &Pool) -> Pool {
-        let mut new_pool = self.clone();
-        for die in &other.dice {
-            new_pool.dice.push(*die);
-        }
-        new_pool
+        let mut new_dice = self.dice.clone();
+        new_dice.extend_from_slice(&other.dice);
+        Pool::new_from_dice(&new_dice)
     }
 
     pub fn count_dice_over(&self, target: u8) -> u8 {
@@ -211,7 +215,7 @@ impl Pool {
 
     pub fn keep_highest(&self, argument: u8) -> Self {
         let mut dice_sorted = self.dice.clone();
-        dice_sorted.sort_unstable();
+        dice_sorted.sort_by(|d, e| d.result.cmp(&e.result));
 
         let min_index = if argument > self.total_number() { 0 } else { (self.total_number() - argument) as usize };
 
@@ -220,7 +224,7 @@ impl Pool {
 
     pub fn keep_lowest(&self, argument: u8) -> Self {
         let mut dice_sorted = self.dice.clone();
-        dice_sorted.sort_unstable();
+        dice_sorted.sort_by(|d, e| d.result.cmp(&e.result));
 
         let max_index = if argument > self.total_number() { self.total_number() as usize } else { argument as usize };
 
