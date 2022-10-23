@@ -121,6 +121,150 @@ impl fmt::Display for Dice {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub enum Combination {
+    Merge,
+}
+
+impl Combination {
+    pub fn apply(&self, left: RollToken, right: RollToken) -> Result<Self, RollError> {
+        todo!()
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        todo!()
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        todo!()
+    }
+
+    pub fn description(&self) -> String {
+        todo!()
+    }
+
+    pub fn verbose(&self) -> String {
+        todo!()
+    }
+}
+
+impl FromStr for Combination {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
+}
+
+impl fmt::Display for Combination {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Conversion {
+    Genesys(GenesysDice),
+}
+
+impl Conversion {
+    pub fn apply(&self, token: RollToken) -> Result<Self, RollError> {
+        match self {
+            Conversion::Genesys(g_dice) => Ok(Conversion::Genesys(g_dice.apply(token.pool()?)?)),
+        }
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        match self {
+            Conversion::Genesys(g_dice) => g_dice.pool()
+        }
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        match self {
+            Conversion::Genesys(g_dice) => g_dice.value(),
+        }
+    }
+
+    pub fn description(&self) -> String {
+        match self {
+            Conversion::Genesys(g_dice) => g_dice.description(),
+        }
+    }
+
+    pub fn verbose(&self) -> String {
+        match self {
+            Conversion::Genesys(g_dice) => g_dice.verbose(),
+        }
+    }
+}
+
+impl FromStr for Conversion {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(g_dice) = s.parse() {
+            Ok(Conversion::Genesys(g_dice))
+        } else {
+            Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+impl fmt::Display for Conversion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Conversion::Genesys(g_dice) => write!(f, "{}", g_dice),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum GenesysDice {
+    Boost,
+    Setback,
+    Ability,
+    Difficulty,
+    Proficiency,
+    Challenge,
+}
+
+impl GenesysDice {
+    pub fn apply(&self, pool: Pool) -> Result<Self, RollError> {
+        todo!()
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        todo!()
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        todo!()
+    }
+
+    pub fn description(&self) -> String {
+        todo!()
+    }
+
+    pub fn verbose(&self) -> String {
+        todo!()
+    }
+}
+
+impl FromStr for GenesysDice {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        todo!()
+    }
+}
+
+impl fmt::Display for GenesysDice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!()
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub enum Operator {
     Explode(Explode),
     Keep(Keep),
@@ -200,63 +344,6 @@ impl fmt::Display for Operator {
             Operator::Keep(keep) => write!(f, "{}", keep),
             Operator::Reroll(reroll) => write!(f, "{}", reroll),
             Operator::Target(target) => write!(f, "{}", target),
-        }
-    }
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum Conversion {
-    Target(Target),
-}
-
-impl Conversion {
-    pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
-        match self {
-            Conversion::Target(target) => Ok(Conversion::Target(target.apply(token, argument)?)),
-        }
-    }
-
-    pub fn pool(self) -> Result<Pool, RollError> {
-        match self {
-            Conversion::Target(target) => target.pool()
-        }
-    }
-
-    pub fn value(&self) -> Result<f64, RollError> {
-        match self {
-            Conversion::Target(target) => Ok(target.value()),
-        }
-    }
-
-    pub fn description(&self) -> String {
-        match self {
-            Conversion::Target(target) => target.description(),
-        }
-    }
-
-    pub fn verbose(&self) -> String {
-        match self {
-            Conversion::Target(target) => target.verbose(),
-        }
-    }
-}
-
-impl FromStr for Conversion {
-    type Err = RollError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(target) = s.parse() {
-            Ok(Conversion::Target(target))
-        } else {
-            Err(RollError::PlaceholderError)
-        }
-    }
-}
-
-impl fmt::Display for Conversion {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Conversion::Target(target) => write!(f, "{}", target),
         }
     }
 }

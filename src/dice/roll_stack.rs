@@ -62,12 +62,18 @@ impl RollStack {
                     stack.push(RollToken::Operator(operator_resolved));
                 },
                 RollToken::Conversion(conversion) => {
-                    let right = stack.pop().ok_or(RollError::PlaceholderError)?;
-                    let left = stack.pop().ok_or(RollError::PlaceholderError)?;
-                    let conversion_resolved = conversion.apply(left, right.argument()?)?;
+                    let token = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let conversion_resolved = conversion.apply(token)?;
                     operations.push(RollToken::Conversion(conversion_resolved.clone()));
                     stack.push(RollToken::Conversion(conversion_resolved));
                 },
+                RollToken::Combination(combination) => {
+                    let right = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let left = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let combination_resolved = combination.apply(left, right)?;
+                    operations.push(RollToken::Combination(combination_resolved.clone()));
+                    stack.push(RollToken::Combination(combination_resolved));
+                }
             }
         }
 

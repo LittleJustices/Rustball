@@ -20,6 +20,7 @@ pub enum RollToken {
     Dice(Dice),
     Argument(Argument),
     Operator(Operator),
+    Combination(Combination),
     Conversion(Conversion),
 }
 
@@ -36,6 +37,7 @@ impl RollToken {
         match self {
             RollToken::Dice(dice) => dice.description(),
             RollToken::Operator(operator) => operator.description(),
+            RollToken::Combination(combination) => combination.description(),
             RollToken::Conversion(conversion) => conversion.description(),
             _ => "Placeholder description".into()
         }
@@ -45,6 +47,7 @@ impl RollToken {
         match self {
             RollToken::Dice(dice) => dice.verbose(),
             RollToken::Operator(operator) => operator.verbose(),
+            RollToken::Combination(combination) => combination.verbose(),
             RollToken::Conversion(conversion) => conversion.verbose(),
             _ => "Placeholder description".into()
         }
@@ -65,6 +68,7 @@ impl RollToken {
             },
             RollToken::Dice(dice) => dice.clone().value(),
             RollToken::Operator(operator) => operator.value(),
+            RollToken::Combination(combination) => combination.value(),
             RollToken::Conversion(conversion) => conversion.value(),
         }
     }
@@ -82,6 +86,7 @@ impl RollToken {
         match self {
             RollToken::Dice(dice) => dice.pool(),
             RollToken::Operator(operator) => operator.pool(),
+            RollToken::Combination(combination) => combination.pool(),
             RollToken::Conversion(conversion) => conversion.pool(),
             _ => Err(RollError::PlaceholderError)
         }
@@ -143,7 +148,7 @@ impl RollToken {
                     }
                     token_stack.push(token);
                 },
-                RollToken::Operator(_) | RollToken::Conversion(_) => {
+                RollToken::Operator(_) | RollToken::Conversion(_) | RollToken::Combination(_) => {
                     while let Some(top_of_stack) = token_stack.last() {
                         match top_of_stack {
                             RollToken::Dice(_) | RollToken::Operator(_) | RollToken::Conversion(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
@@ -197,6 +202,7 @@ impl TryFrom<RollToken> for RpnToken {
                     Argument::Single(number)      => Ok(RpnToken::Number(number.into()))
                 }
             },
+            RollToken::Combination(combination) => Ok(RpnToken::Number(combination.value().or(Err(MathError::PlaceholderError))?))
         }
     }
 }
