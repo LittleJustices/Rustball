@@ -2,7 +2,7 @@ use std::{str::FromStr, fmt};
 use super::{
     dice_errors::RollError,
     pool::Pool,
-    roll_token::RollToken,
+    roll_token::RollToken, genesymbols::GeneSymbol,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -220,12 +220,12 @@ impl fmt::Display for Conversion {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum GenesysDice {
-    Boost,
-    Setback,
-    Ability,
-    Difficulty,
-    Proficiency,
-    Challenge,
+    Boost{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Setback{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Ability{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Difficulty{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Proficiency{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Challenge{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
 }
 
 impl GenesysDice {
@@ -329,9 +329,9 @@ impl FromStr for Operator {
             Ok(Operator::Keep(keep))
         } else if let Ok(reroll) = s.parse() {            // Attempt to parse into reroll token
             Ok(Operator::Reroll(reroll))
-        } /* */ else if let Ok(target) = s.parse() {
+        } else if let Ok(target) = s.parse() {
             Ok(Operator::Target(target))
-        } /* */ else {                                                  // If all these fail, error out
+        } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
     }
