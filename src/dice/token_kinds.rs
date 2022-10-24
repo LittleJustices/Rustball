@@ -230,23 +230,23 @@ pub enum GenesysDice {
 
 impl GenesysDice {
     pub fn apply(&self, pool: Pool) -> Result<Self, RollError> {
-        todo!()
+        Err(RollError::NotImplementedError)
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        todo!()
+        Err(RollError::NotImplementedError)
     }
 
     pub fn value(&self) -> Result<f64, RollError> {
-        todo!()
+        Err(RollError::NotImplementedError)
     }
 
     pub fn description(&self) -> String {
-        todo!()
+        String::from("Not implemented yet")
     }
 
     pub fn verbose(&self) -> String {
-        todo!()
+        String::from("Not implemented yet")
     }
 }
 
@@ -254,7 +254,19 @@ impl FromStr for GenesysDice {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        if let Some(kind) = s.trim().strip_prefix('g') {
+            match kind {
+                "b" => Ok(GenesysDice::Boost { pool: None, res: vec![] }),
+                "s" => Ok(GenesysDice::Setback { pool: None, res: vec![] }),
+                "a" => Ok(GenesysDice::Ability { pool: None, res: vec![] }),
+                "d" => Ok(GenesysDice::Difficulty { pool: None, res: vec![] }),
+                "p" => Ok(GenesysDice::Proficiency { pool: None, res: vec![] }),
+                "c" => Ok(GenesysDice::Challenge { pool: None, res: vec![] }),
+                _ => Err(RollError::PlaceholderError),
+            }
+        } else {
+                Err(RollError::PlaceholderError)
+            }
     }
 }
 

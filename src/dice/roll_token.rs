@@ -217,11 +217,13 @@ impl FromStr for RollToken {
             Ok(RollToken::Math(rpn_token))
         } else if let Ok(dice) = s.parse() {                // Attempt to parse into pool token
             Ok(RollToken::Dice(dice))
-        } else if let Ok(operator) = s.parse() {          // Attempt to parse into operator
+        } else if let Ok(operator) = s.parse() {        // Attempt to parse into operator
             Ok(RollToken::Operator(operator))
-        } /*  else if let Ok(conversion) = s.parse() {          // Attempt to parse into operator
+        } else if let Ok(conversion) = s.parse() {    // Attempt to parse into conversion
             Ok(RollToken::Conversion(conversion))
-        } */ else {                                                  // If all these fail, error out
+        } else if let Ok(combination) = s.parse() {  // Attempt to parse into combination
+            Ok(RollToken::Combination(combination))
+        } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
     }

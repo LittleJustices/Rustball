@@ -13,6 +13,8 @@ const DICE_TOKEN_STRING: &str = r"
     |
     e[aor]?             # Explode
     |
+    g[bsadpc]           # Genesys dice
+    |
     \[.*?\]             # Array
 ";
 
