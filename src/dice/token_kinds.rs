@@ -220,17 +220,56 @@ impl fmt::Display for Conversion {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum GenesysDice {
-    Boost{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
-    Setback{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
-    Ability{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
-    Difficulty{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
-    Proficiency{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
-    Challenge{pool: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Boost{base: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Setback{base: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Ability{base: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Difficulty{base: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Proficiency{base: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
+    Challenge{base: Option<Pool>, res: Vec<Vec<GeneSymbol>>},
 }
 
 impl GenesysDice {
     pub fn apply(&self, pool: Pool) -> Result<Self, RollError> {
-        Err(RollError::NotImplementedError)
+        let mut res = vec![];
+
+        match self {
+            GenesysDice::Boost { base: _, res: _ } => {
+                for die in pool.dice() {
+                    res.push(GeneSymbol::boost(*die));
+                }
+                Ok(GenesysDice::Boost { base: Some(pool), res })
+            },
+            GenesysDice::Setback { base: _, res: _ } => {
+                for die in pool.dice() {
+                    res.push(GeneSymbol::setback(*die));
+                }
+                Ok(GenesysDice::Setback { base: Some(pool), res })
+            },
+            GenesysDice::Ability { base: _, res: _ } => {
+                for die in pool.dice() {
+                    res.push(GeneSymbol::ability(*die));
+                }
+                Ok(GenesysDice::Ability { base: Some(pool), res })
+            },
+            GenesysDice::Difficulty { base: _, res: _ } => {
+                for die in pool.dice() {
+                    res.push(GeneSymbol::difficulty(*die));
+                }
+                Ok(GenesysDice::Difficulty { base: Some(pool), res })
+            },
+            GenesysDice::Proficiency { base: _, res: _ } => {
+                for die in pool.dice() {
+                    res.push(GeneSymbol::proficiency(*die));
+                }
+                Ok(GenesysDice::Proficiency { base: Some(pool), res })
+            },
+            GenesysDice::Challenge { base: _, res: _ } => {
+                for die in pool.dice() {
+                    res.push(GeneSymbol::challenge(*die));
+                }
+                Ok(GenesysDice::Challenge { base: Some(pool), res })
+            },
+        }
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
@@ -256,12 +295,12 @@ impl FromStr for GenesysDice {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Some(kind) = s.trim().strip_prefix('g') {
             match kind {
-                "b" => Ok(GenesysDice::Boost { pool: None, res: vec![] }),
-                "s" => Ok(GenesysDice::Setback { pool: None, res: vec![] }),
-                "a" => Ok(GenesysDice::Ability { pool: None, res: vec![] }),
-                "d" => Ok(GenesysDice::Difficulty { pool: None, res: vec![] }),
-                "p" => Ok(GenesysDice::Proficiency { pool: None, res: vec![] }),
-                "c" => Ok(GenesysDice::Challenge { pool: None, res: vec![] }),
+                "b" => Ok(GenesysDice::Boost { base: None, res: vec![] }),
+                "s" => Ok(GenesysDice::Setback { base: None, res: vec![] }),
+                "a" => Ok(GenesysDice::Ability { base: None, res: vec![] }),
+                "d" => Ok(GenesysDice::Difficulty { base: None, res: vec![] }),
+                "p" => Ok(GenesysDice::Proficiency { base: None, res: vec![] }),
+                "c" => Ok(GenesysDice::Challenge { base: None, res: vec![] }),
                 _ => Err(RollError::PlaceholderError),
             }
         } else {
