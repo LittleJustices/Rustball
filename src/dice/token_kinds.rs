@@ -219,7 +219,7 @@ impl FromStr for Merge {
 
 impl fmt::Display for Merge {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!()
+        write!(f, "Not implemented yet")
     }
 }
 
@@ -373,7 +373,7 @@ impl FromStr for GenesysDice {
 
 impl fmt::Display for GenesysDice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!()
+        write!(f, "Not implemented yet")
     }
 }
 
