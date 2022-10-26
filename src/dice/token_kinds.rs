@@ -122,28 +122,38 @@ impl fmt::Display for Dice {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Combination {
-    Merge,
+    Merge(Merge),
 }
 
 impl Combination {
     pub fn apply(&self, left: RollToken, right: RollToken) -> Result<Self, RollError> {
-        todo!()
+        match self {
+            Combination::Merge(merge) => Ok(Combination::Merge(merge.apply(left, right)?)),
+        }
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        todo!()
+        match self {
+            Combination::Merge(merge) => merge.pool(),
+        }
     }
 
     pub fn value(&self) -> Result<f64, RollError> {
-        todo!()
+        match self {
+            Combination::Merge(merge) => merge.value(),
+        }
     }
 
     pub fn description(&self) -> String {
-        todo!()
+        match self {
+            Combination::Merge(merge) => merge.description(),
+        }
     }
 
     pub fn verbose(&self) -> String {
-        todo!()
+        match self {
+            Combination::Merge(merge) => merge.verbose(),
+        }
     }
 }
 
@@ -151,11 +161,63 @@ impl FromStr for Combination {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        todo!()
+        if let Ok(merge) = s.parse() {
+            Ok(Combination::Merge(merge))
+        } else {
+            Err(RollError::PlaceholderError)
+        }
     }
 }
 
 impl fmt::Display for Combination {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Combination::Merge(merge) => write!(f, "{}", merge),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Merge {
+    pub left: Option<Box<RollToken>>,
+    pub right: Option<Box<RollToken>>,
+}
+
+impl Merge {
+    pub fn apply(&self, left: RollToken, right: RollToken) -> Result<Self, RollError> {
+        Ok(Merge { left: Some(Box::new(left)), right: Some(Box::new(right)) })
+    }
+
+    pub fn pool(self) -> Result<Pool, RollError> {
+        Err(RollError::NotImplementedError)
+    }
+
+    pub fn value(&self) -> Result<f64, RollError> {
+        Err(RollError::NotImplementedError)
+    }
+
+    pub fn description(&self) -> String {
+        String::from("Not implemented yet")
+    }
+
+    pub fn verbose(&self) -> String {
+        String::from("Not implemented yet")
+    }
+}
+
+impl FromStr for Merge {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.trim() == "&" {
+            Ok(Merge { left: None, right: None })
+        } else {
+            Err(RollError::PlaceholderError)
+        }
+    }
+}
+
+impl fmt::Display for Merge {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         todo!()
     }
