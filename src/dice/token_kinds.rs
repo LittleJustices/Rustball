@@ -189,11 +189,15 @@ impl Merge {
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        Err(RollError::NotImplementedError)
+        let left_pool = self.left.ok_or(RollError::PlaceholderError)?.pool()?;
+        let right_pool = self.right.ok_or(RollError::PlaceholderError)?.pool()?;
+        Ok(left_pool.add(&right_pool))
     }
 
     pub fn value(&self) -> Result<f64, RollError> {
-        Err(RollError::NotImplementedError)
+        let left_value = self.left.as_ref().ok_or(RollError::PlaceholderError)?.value()?;
+        let right_value = self.right.as_ref().ok_or(RollError::PlaceholderError)?.value()?;
+        Ok(left_value + right_value)
     }
 
     pub fn description(&self) -> String {
