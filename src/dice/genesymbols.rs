@@ -236,6 +236,6 @@ impl std::fmt::Display for GenesysResults {
             details_str = String::from("No dice");
         }
 
-        write!(f, "{}\n{}", tally_str.trim_end_matches(", "), details_str.trim_end_matches("; "))
+        write!(f, "{}\nDetails: ||{}||", tally_str.trim_end_matches(", "), details_str.trim_end_matches("; "))
     }
 }
