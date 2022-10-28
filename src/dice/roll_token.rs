@@ -20,6 +20,7 @@ pub enum RollToken {
     Dice(Dice),
     Argument(Argument),
     Operator(Operator),
+    Combination(Combination),
     Conversion(Conversion),
 }
 
@@ -32,10 +33,21 @@ impl RollToken {
         }
     }
 
+    pub fn description(&self) -> String {
+        match self {
+            RollToken::Dice(dice) => dice.description(),
+            RollToken::Operator(operator) => operator.description(),
+            RollToken::Combination(combination) => combination.description(),
+            RollToken::Conversion(conversion) => conversion.description(),
+            _ => "Placeholder description".into()
+        }
+    }
+
     pub fn verbose(&self) -> String {
         match self {
             RollToken::Dice(dice) => dice.verbose(),
             RollToken::Operator(operator) => operator.verbose(),
+            RollToken::Combination(combination) => combination.verbose(),
             RollToken::Conversion(conversion) => conversion.verbose(),
             _ => "Placeholder description".into()
         }
@@ -56,6 +68,7 @@ impl RollToken {
             },
             RollToken::Dice(dice) => dice.clone().value(),
             RollToken::Operator(operator) => operator.value(),
+            RollToken::Combination(combination) => combination.value(),
             RollToken::Conversion(conversion) => conversion.value(),
         }
     }
@@ -73,6 +86,7 @@ impl RollToken {
         match self {
             RollToken::Dice(dice) => dice.pool(),
             RollToken::Operator(operator) => operator.pool(),
+            RollToken::Combination(combination) => combination.pool(),
             RollToken::Conversion(conversion) => conversion.pool(),
             _ => Err(RollError::PlaceholderError)
         }
@@ -103,8 +117,12 @@ impl RollToken {
                             if top_token == RollToken::Math(RpnToken::LParen) { break; };
                             postfix_queue.push(top_token);
                         }
+                        if let Some(RollToken::Math(RpnToken::MathFn(_))) = token_stack.last() {
+                            postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                        }
                     },
                     RpnToken::Number(_) => postfix_queue.push(token),
+                    RpnToken::MathFn(_) => token_stack.push(token),
                     RpnToken::Operator(right_operator) => {
                         while let Some(top_of_stack) = token_stack.last() {
                             match top_of_stack {
@@ -130,7 +148,7 @@ impl RollToken {
                     }
                     token_stack.push(token);
                 },
-                RollToken::Operator(_) | RollToken::Conversion(_) => {
+                RollToken::Operator(_) | RollToken::Conversion(_) | RollToken::Combination(_) => {
                     while let Some(top_of_stack) = token_stack.last() {
                         match top_of_stack {
                             RollToken::Dice(_) | RollToken::Operator(_) | RollToken::Conversion(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
@@ -155,10 +173,16 @@ impl RollToken {
 
 impl From<RpnToken> for RollToken {
     fn from(rpn_token: RpnToken) -> Self {
-        if let RpnToken::Number(number) = rpn_token {
-            RollToken::Argument(Argument::Single(number as u8))
-        } else {
-            RollToken::Math(rpn_token)
+        match rpn_token {
+            RpnToken::Number(number) => {
+                let number_as_argument = number as u8;
+                if number == number_as_argument as f64 {
+                    RollToken::Argument(Argument::Single(number_as_argument))
+                } else {
+                    RollToken::Math(rpn_token)
+                }
+            },
+            _ => RollToken::Math(rpn_token),
         }
     }
 }
@@ -178,6 +202,7 @@ impl TryFrom<RollToken> for RpnToken {
                     Argument::Single(number)      => Ok(RpnToken::Number(number.into()))
                 }
             },
+            RollToken::Combination(combination) => Ok(RpnToken::Number(combination.value().or(Err(MathError::PlaceholderError))?))
         }
     }
 }
@@ -192,10 +217,12 @@ impl FromStr for RollToken {
             Ok(RollToken::Math(rpn_token))
         } else if let Ok(dice) = s.parse() {                // Attempt to parse into pool token
             Ok(RollToken::Dice(dice))
-        } else if let Ok(operator) = s.parse() {          // Attempt to parse into operator
+        } else if let Ok(operator) = s.parse() {        // Attempt to parse into operator
             Ok(RollToken::Operator(operator))
-        } else if let Ok(conversion) = s.parse() {          // Attempt to parse into operator
+        } else if let Ok(conversion) = s.parse() {    // Attempt to parse into conversion
             Ok(RollToken::Conversion(conversion))
+        } else if let Ok(combination) = s.parse() {  // Attempt to parse into combination
+            Ok(RollToken::Combination(combination))
         } else {                                                  // If all these fail, error out
             Err(RollError::PlaceholderError)
         }
@@ -252,7 +279,7 @@ mod tests {
             RollToken::Argument(Argument::Single(6)),
             RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Array(vec![1, 2])),
-            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None })),
+            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None, rerolls: None })),
             RollToken::Math(RpnToken::Number(1.5)),
             RollToken::Math(RpnToken::Operator(rpn_token::Operator::Mul)),
             RollToken::Argument(Argument::Single(2)),
@@ -289,7 +316,7 @@ mod tests {
             RollToken::Argument(Argument::Single(6)),
             RollToken::Dice(Dice{ pool: None }),
             RollToken::Argument(Argument::Single(1)),
-            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None })),
+            RollToken::Operator(Operator::Reroll(Reroll::Once { arg: None , res: None, rerolls: None })),
             RollToken::Argument(Argument::Single(3)),
             RollToken::Operator(Operator::Keep(Keep::High { arg: None, res: None })),
         ];

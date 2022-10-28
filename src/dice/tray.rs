@@ -17,8 +17,8 @@ impl Tray {
     }
 
     // Take a roll command and return the fully formatted result string (or an error)
-    pub fn process_roll_command(&mut self, roll_command: &str, roll_comment: &str) -> Result<(f64, String), SixballError> {
-        let new_roll = self.add_roll_from_command(roll_command, roll_comment)?;
+    pub fn process_roll_command(&mut self, roll_command: &str, roll_comment: &str, roller: &str) -> Result<(f64, String), SixballError> {
+        let new_roll = self.add_roll_from_command(roll_command, roll_comment, roller)?;
 
         let final_result = new_roll.result();
         let compact_breakdown = format!("{}", new_roll);
@@ -49,12 +49,12 @@ impl Tray {
     }
 
     // Take the command, turn it into a roll, add that to the tray, and return the infix expression that should be passed to the calculator
-    fn add_roll_from_command(&mut self, roll_command: &str, roll_comment: &str) -> Result<&Roll, RollError> {
+    fn add_roll_from_command(&mut self, roll_command: &str, roll_comment: &str, roller: &str) -> Result<&Roll, RollError> {
          // If Rolls queue is full, remove the oldest element
         while self.rolls.len() >= CAPACITY { self.rolls.pop_front(); }
 
         // Make a new empty roll
-        let new_roll = Roll::new(roll_command, roll_comment)?;
+        let new_roll = Roll::new(roll_command, roll_comment, roller)?;
 
         // Add new roll to tray
         self.rolls.push_back(new_roll);

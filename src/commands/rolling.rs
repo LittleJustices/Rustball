@@ -37,6 +37,7 @@ Additional dice operations to be added. Please wait warmly!"]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let roll_command;
     let roll_comment;
+    let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
     {
         let config_data = ctx.data.read().await;
@@ -74,7 +75,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let result;
     let compact_breakdown;
-    match tray.process_roll_command(roll_command, roll_comment) {
+    match tray.process_roll_command(&roll_command.to_lowercase(), roll_comment, &roller) {
         Ok(res) => (result, compact_breakdown) = res,
         Err(why) => {
             let roll_error = format!("{}", why);
@@ -99,7 +100,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     } else {
         let annotation = match roll_comment.trim() {
             "" => "".to_owned(),
-            _ => format!(" ({})", roll_comment.trim())
+            other => format!(" ({})", other)
         };
         let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, result, compact_breakdown);
         msg.reply_ping(&ctx.http, message).await?;
@@ -193,8 +194,8 @@ async fn verbose(ctx: &Context, msg: &Message) -> CommandResult {
                 let title = format!("{}{}", latest_roll.command(), annotation);
                 e.title(title);
                 for operation in latest_roll.operations() {
-                    let name = operation.verbose();
-                    let value = format!("{}", operation);
+                    let name = operation.description();
+                    let value = operation.verbose();
                     e.field(name, value, false);
                 }
                 e.field("Total", latest_roll.result(), false);
@@ -241,6 +242,78 @@ async fn sr(ctx: &Context, msg: &Message) -> CommandResult {
 async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
     let roll = format!("{} I'm not epic enough for that yet!", msg.author);
     msg.channel_id.say(&ctx.http, roll).await?;
+
+    Ok(())
+}
+
+#[command]
+#[aliases("gr", "genesys", "groll")]
+async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    use crate::dice::{
+        dice_re::GENESYS_TOKEN_RE,
+        genesymbols::{GenesysDie, GenesysResults},
+    };
+    let roll_command;
+    let roll_comment;
+    // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
+    {
+        let config_data = ctx.data.read().await;
+        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+
+        (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
+            Some(res) => res,
+            None => (args.message(), "")
+        };
+    }
+
+    if roll_command == "" {
+        let no_args_error = "What do you want me to roll?";
+        msg.reply_ping(&ctx.http, no_args_error).await?;
+        return Ok(());
+    }
+
+    let mut dice_vector: Vec<GenesysDie> = vec![];
+    let mut results_vector = vec![];
+    for caps in GENESYS_TOKEN_RE.captures_iter(roll_command) {
+        let number: u8 = match &caps["number"].parse() {
+            Ok(num) => *num,
+            Err(why) => {
+                msg.reply_ping(&ctx.http, format!("I don't know what {} is! {}", &caps["number"], why)).await?;
+                return Ok(());
+            },
+        };
+        for _ in 0..number {
+            let die = match &caps["kind"].parse() {
+                Ok(d) => *d,
+                Err(why) => {
+                    msg.reply_ping(&ctx.http, format!("I don't know what {} is! {}", &caps["kind"], why)).await?;
+                    return Ok(());
+                }
+            };
+            dice_vector.push(die);
+        }
+    }
+    let results = GenesysResults::new(&dice_vector);
+
+    for die in dice_vector {
+        for symbol in die.result() {
+            results_vector.push(symbol);
+        }
+    }
+    
+    let annotation = match roll_comment.trim() {
+        "" => "".to_owned(),
+        other => format!(" ({})", other)
+    };
+    
+    let message = format!(
+        "`{}` {}:\n{}",
+        roll_command.trim(),
+        annotation,
+        results
+    );
+
+    msg.reply_ping(&ctx.http, message).await?;
 
     Ok(())
 }

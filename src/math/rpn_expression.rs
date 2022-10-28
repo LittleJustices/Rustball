@@ -28,6 +28,7 @@ impl RpnExpression {
             match &token {
                 RpnToken::Number(_) => postfix_queue.push(token),
                 // When/if functions are implemented: If token is a function, push onto stack
+                RpnToken::MathFn(_) => token_stack.push(token),
                 RpnToken::Operator(right_operator) => {
                     while let Some(RpnToken::Operator(left_operator)) = token_stack.last() {
                         if (left_operator.precedence() > right_operator.precedence()) | 
@@ -46,6 +47,9 @@ impl RpnExpression {
                         postfix_queue.push(operator);
                     }
                     // If there is a function token at the top of the stack, pop it onto the queue
+                    if let Some(RpnToken::MathFn(_)) = token_stack.last() {
+                        postfix_queue.push(token_stack.pop().ok_or(MathError::PlaceholderError)?);
+                    }
                 }
             }
         }
