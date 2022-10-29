@@ -3,7 +3,7 @@ use super::{
 };
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum RollValue {
     Decimal(f64),
     Successes(i16),
@@ -37,5 +37,13 @@ impl fmt::Display for RollValue {
             RollValue::Decimal(number) => write!(f, "{}", number),
             RollValue::Successes(sux) => write!(f, "{}", sux),
         }
+    }
+}
+
+impl<T> From<T> for RollValue
+    where T: Into<f64>
+{
+    fn from(number: T) -> Self {
+        RollValue::Decimal(number.into())
     }
 }

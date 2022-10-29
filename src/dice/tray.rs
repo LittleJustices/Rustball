@@ -1,6 +1,9 @@
 use std::collections::VecDeque;
-use super::dice_errors::RollError;
-use super::roll::Roll;
+use super::{
+    dice_errors::RollError,
+    roll::Roll,
+    roll_value::RollValue,
+};
 use crate::sixball_errors::SixballError;
 
 const CAPACITY: usize = 10;
@@ -17,10 +20,10 @@ impl Tray {
     }
 
     // Take a roll command and return the fully formatted result string (or an error)
-    pub fn process_roll_command(&mut self, roll_command: &str, roll_comment: &str, roller: &str) -> Result<(f64, String), SixballError> {
+    pub fn process_roll_command(&mut self, roll_command: &str, roll_comment: &str, roller: &str) -> Result<(RollValue, String), SixballError> {
         let new_roll = self.add_roll_from_command(roll_command, roll_comment, roller)?;
 
-        let final_result = new_roll.result();
+        let final_result = new_roll.result().clone();
         let compact_breakdown = format!("{}", new_roll);
 
         Ok((final_result, compact_breakdown))

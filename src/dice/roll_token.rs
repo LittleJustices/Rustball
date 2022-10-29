@@ -11,6 +11,7 @@ use super::{
     dice_errors::RollError,
     dice_re::DICE_TOKEN_RE,
     pool::Pool,
+    roll_value::RollValue,
 };
 pub use super::token_kinds::*;
 
@@ -53,10 +54,10 @@ impl RollToken {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
             RollToken::Math(rpn_token) => match rpn_token {
-                RpnToken::Number(value) => Ok(*value),
+                RpnToken::Number(value) => Ok(RollValue::Decimal(*value)),
                 _ => Err(RollError::PlaceholderError),
             },
             RollToken::Argument(argument) => match argument {
@@ -76,8 +77,8 @@ impl RollToken {
     pub fn argument(self) -> Result<Argument, RollError> {
         match self {
             RollToken::Argument(argument) => Ok(argument),
-            RollToken::Dice(dice) => Ok(Argument::Single(dice.value()? as u8)),
-            RollToken::Operator(operator) => Ok(Argument::Single(operator.value()? as u8)),
+            RollToken::Dice(dice) => Ok(Argument::Single(dice.value()?.to_decimal()? as u8)),
+            RollToken::Operator(operator) => Ok(Argument::Single(operator.value()?.to_decimal()? as u8)),
             _ => Err(RollError::PlaceholderError)
         }
     }
@@ -193,16 +194,14 @@ impl TryFrom<RollToken> for RpnToken {
     fn try_from(value: RollToken) -> Result<Self, Self::Error> {
         match value {
             RollToken::Math(rpn_token)      => Ok(rpn_token),
-            RollToken::Dice(dice)   => Ok(RpnToken::Number(dice.value().or(Err(MathError::PlaceholderError))?)),
-            RollToken::Operator(operator)   => Ok(RpnToken::Number(operator.value().or(Err(MathError::PlaceholderError))?)),
-            RollToken::Conversion(conversion)   => Ok(RpnToken::Number(conversion.value().or(Err(MathError::PlaceholderError))?)),
-            RollToken::Argument(argument)   => {
-                match argument {
-                    Argument::Array(_)                => Err(MathError::PlaceholderError),
-                    Argument::Single(number)      => Ok(RpnToken::Number(number.into()))
-                }
+            RollToken::Dice(dice)   => Ok(RpnToken::Number(dice.value().or(Err(MathError::PlaceholderError))?.to_decimal().or(Err(MathError::PlaceholderError))?)),
+            RollToken::Operator(operator)   => Ok(RpnToken::Number(operator.value().or(Err(MathError::PlaceholderError))?.to_decimal().or(Err(MathError::PlaceholderError))?)),
+            RollToken::Conversion(conversion)   => Ok(RpnToken::Number(conversion.value().or(Err(MathError::PlaceholderError))?.to_decimal().or(Err(MathError::PlaceholderError))?)),
+            RollToken::Argument(argument)   => match argument {
+                Argument::Array(_)                => Err(MathError::PlaceholderError),
+                Argument::Single(number)      => Ok(RpnToken::Number(number.into()))
             },
-            RollToken::Combination(combination) => Ok(RpnToken::Number(combination.value().or(Err(MathError::PlaceholderError))?))
+            RollToken::Combination(combination) => Ok(RpnToken::Number(combination.value().or(Err(MathError::PlaceholderError))?.to_decimal().or(Err(MathError::PlaceholderError))?))
         }
     }
 }
