@@ -73,20 +73,18 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
-    let result;
-    let compact_breakdown;
-    match tray.process_roll_command(&roll_command.to_lowercase(), roll_comment, &roller) {
-        Ok(res) => (result, compact_breakdown) = res,
-        Err(why) => {
-            let roll_error = format!("{}", why);
-            msg.reply_ping(&ctx.http, roll_error).await?;
-            return Ok(());
-        }
-    };
+    let roll = match tray.add_roll_from_command(&roll_command.to_lowercase(), roll_comment, &roller) {
+    Ok(r) => r,
+    Err(why) => {
+        let roll_error = format!("{}", why);
+        msg.reply_ping(&ctx.http, roll_error).await?;
+        return Ok(());
+    },
+};
 
     if verbose {
         let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}: {}", msg.author, roll_command, result);
+        let message = format!("{} rolled {}: {}", msg.author, roll_command, roll.result());
         msg.channel_id.send_message(&ctx.http, |m| {
             m.content(message);
             m.embed(|e| {
@@ -102,7 +100,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             "" => "".to_owned(),
             other => format!(" ({})", other)
         };
-        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, result, compact_breakdown);
+        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, roll.result(), roll);
         msg.reply_ping(&ctx.http, message).await?;
     }
 
