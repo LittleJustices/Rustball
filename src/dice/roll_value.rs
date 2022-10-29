@@ -1,5 +1,6 @@
 use super::{
     dice_errors::RollError,
+    result_kinds::*,
 };
 use std::fmt;
 
@@ -7,6 +8,7 @@ use std::fmt;
 pub enum RollValue {
     Decimal(f64),
     Successes(i16),
+    Genesys(GenesysValue),
 }
 
 impl RollValue {
@@ -14,6 +16,7 @@ impl RollValue {
         match self {
             RollValue::Decimal(number) => Ok(number),
             RollValue::Successes(sux) => Ok(sux as f64),
+            _ => Err(RollError::PlaceholderError),
         }
     }
 
@@ -22,10 +25,16 @@ impl RollValue {
             RollValue::Decimal(left) => match other {
                 RollValue::Decimal(right) => Ok(RollValue::Decimal(left + right)),
                 RollValue::Successes(right) => Ok(RollValue::Decimal(left + (right as f64))),
+                _ => Err(RollError::PlaceholderError),
             },
             RollValue::Successes(left) => match other {
                 RollValue::Decimal(right) => Ok(RollValue::Decimal((left as f64) + right)),
                 RollValue::Successes(right) => Ok(RollValue::Successes(left + right)),
+                _ => Err(RollError::PlaceholderError),
+            },
+            RollValue::Genesys(left) => match other {
+                RollValue::Genesys(right) => Ok(RollValue::Genesys(left.add(right))),
+                _ => Err(RollError::PlaceholderError),
             },
         }
     }
@@ -36,6 +45,7 @@ impl fmt::Display for RollValue {
         match self {
             RollValue::Decimal(number) => write!(f, "{}", number),
             RollValue::Successes(sux) => write!(f, "{}", sux),
+            RollValue::Genesys(gen_val) => write!(f, "{}", gen_val),
         }
     }
 }

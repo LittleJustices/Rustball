@@ -4,6 +4,7 @@ use super::{
     pool::Pool,
     roll_token::RollToken,
     roll_value::RollValue,
+    result_kinds::*,
     genesymbols::GeneSymbol,
 };
 
@@ -341,11 +342,25 @@ impl GenesysDice {
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        Err(RollError::NotImplementedError)
+        match self {
+            GenesysDice::Boost { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Setback { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Ability { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Difficulty { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Proficiency { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Challenge { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+        }
     }
 
     pub fn value(&self) -> Result<RollValue, RollError> {
-        Err(RollError::NotImplementedError)
+        match self {
+            GenesysDice::Boost { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Setback { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Ability { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Difficulty { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Proficiency { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Challenge { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+        }
     }
 
     pub fn description(&self) -> String {
