@@ -4,14 +4,14 @@ use super::{
 };
 
 #[derive(Debug)]
-pub struct NumericResult {
+pub struct DecimalValue {
     pub result: f64,
 }
 
-impl NumericResult {
+impl DecimalValue {
     pub fn evaluate(roll_stack: &RollStack) -> Result<Self, RollError> {
         let result = roll_stack.final_result.value()?;
 
-        Ok(NumericResult { result })
+        Ok(DecimalValue { result })
     }
 }
