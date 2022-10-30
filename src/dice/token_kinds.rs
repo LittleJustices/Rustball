@@ -394,7 +394,14 @@ impl FromStr for GenesysDice {
 
 impl fmt::Display for GenesysDice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Not implemented yet")
+        match self {
+            GenesysDice::Boost { base: _, res } => write!(f, "Boost: {:?}", res),
+            GenesysDice::Setback { base: _, res } => write!(f, "Setback: {:?}", res),
+            GenesysDice::Ability { base: _, res } => write!(f, "Ability: {:?}", res),
+            GenesysDice::Difficulty { base: _, res } => write!(f, "Difficulty: {:?}", res),
+            GenesysDice::Proficiency { base: _, res } => write!(f, "Proficiency: {:?}", res),
+            GenesysDice::Challenge { base: _, res } => write!(f, "Challenge: {:?}", res),
+        }
     }
 }
 
