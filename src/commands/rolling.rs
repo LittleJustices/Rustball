@@ -37,7 +37,7 @@ Additional dice operations to be added. Please wait warmly!"]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let roll_command;
     let roll_comment;
-    let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
+
     // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
     {
         let config_data = ctx.data.read().await;
@@ -49,7 +49,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         };
     }
 
-    let response = match new_roll_output(&ctx, &msg, &roll_command, roll_comment, &roller, true).await {
+    let response = match new_roll_output(&ctx, &msg, &roll_command, roll_comment, true).await {
         Ok(res) => format!("{}", res),
         Err(why) => format!("{}", why),
     };
@@ -279,7 +279,7 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_comment: &str, roller: &str, breakdown: bool) -> Result<String, SixballError> {
+async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_comment: &str, breakdown: bool) -> Result<String, SixballError> {
     // Get config data with write permission to manipulate the tray
     let mut tray_data = ctx.data.write().await;
     let mut tray_map = tray_data
@@ -295,8 +295,9 @@ async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_
             tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
         }
     };
+    let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
 
-    let roll = tray.add_roll_from_command(roll_command, roll_comment, roller)?;
+    let roll = tray.add_roll_from_command(roll_command, roll_comment, &roller)?;
     
     let annotation = match roll_comment.trim() {
         "" => "".to_owned(),
