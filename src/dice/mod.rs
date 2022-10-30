@@ -10,3 +10,4 @@ pub mod genesymbols;
 pub mod roll_value;
 pub mod result_kinds;
 pub mod roll_stack;
+pub mod command_translations;
