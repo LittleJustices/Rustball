@@ -250,12 +250,12 @@ Format the command like this: `[kind of die][number of dice]`. The different kin
 For example: `~genroll a2 p2 d3` -> 2 Ability dice, 2 Proficiency dice, 3 Difficulty dice
 You can even have the same kind of die multiple times if you want, for example to keep track of different sources of dice! I'll add them all up for you.\n
 The dice codes are:
-\t•b: Boost
-\t•a: Ability
-\t•p: Proficiency
-\t•s: Setback
-\t•d: Difficulty
-\t•c: Challenge\n
+\t• b: Boost
+\t• a: Ability
+\t• p: Proficiency
+\t• s: Setback
+\t• d: Difficulty
+\t• c: Challenge\n
 Note that this functionality is still in development, so I can't add Genesys rolls to the tray and perform introspection on them just yet. ｺﾞﾒ─(lll-ω-)─ﾝ Please wait warmly!"]
 #[aliases("gr", "genesys", "groll")]
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
