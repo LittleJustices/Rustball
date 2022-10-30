@@ -31,7 +31,7 @@ pub enum TrayId {
 #[command]
 #[description="The basic roll command! Currently under construction.\n
 Use standard die roll notation of the form `XdY`. I can roll up to 255 dice with up to 255 sides at once!\n
-I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice into any math expression, e.g. `1d20+5`. All die rolls are resolved before any math is handled, so don't try to get cute with nested die rolls or something like `(X+Y)dZ`! Other than that, if the `calc` command can handle it, so can the `roll` command!\n
+I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice into any math expression, e.g. `1d20+5`. If the `calc` command can handle it, so can the `roll` command!\n
 Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
@@ -73,20 +73,18 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         }
     };
 
-    let result;
-    let compact_breakdown;
-    match tray.process_roll_command(&roll_command.to_lowercase(), roll_comment, &roller) {
-        Ok(res) => (result, compact_breakdown) = res,
-        Err(why) => {
-            let roll_error = format!("{}", why);
-            msg.reply_ping(&ctx.http, roll_error).await?;
-            return Ok(());
-        }
-    };
+    let roll = match tray.add_roll_from_command(&roll_command.to_lowercase(), roll_comment, &roller) {
+    Ok(r) => r,
+    Err(why) => {
+        let roll_error = format!("{}", why);
+        msg.reply_ping(&ctx.http, roll_error).await?;
+        return Ok(());
+    },
+};
 
     if verbose {
         let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}: {}", msg.author, roll_command, result);
+        let message = format!("{} rolled {}: {}", msg.author, roll_command, roll.result());
         msg.channel_id.send_message(&ctx.http, |m| {
             m.content(message);
             m.embed(|e| {
@@ -102,7 +100,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             "" => "".to_owned(),
             other => format!(" ({})", other)
         };
-        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, result, compact_breakdown);
+        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, roll.result(), roll);
         msg.reply_ping(&ctx.http, message).await?;
     }
 
@@ -247,6 +245,18 @@ async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
+#[description="This command is for rolling Genesys narrative dice! Just tell me how many of which kinds to roll and I'll handle the rest under the hood! Σd(≧▽≦*) Currently under construction.
+Format the command like this: `[kind of die][number of dice]`. The different kinds of dice can be in any order, and you can put as many spaces as you want between them if it helps you organize the roll.
+For example: `~genroll a2 p2 d3` -> 2 Ability dice, 2 Proficiency dice, 3 Difficulty dice
+You can even have the same kind of die multiple times if you want, for example to keep track of different sources of dice! I'll add them all up for you.\n
+The dice codes are:
+\t•b: Boost
+\t•a: Ability
+\t•p: Proficiency
+\t•s: Setback
+\t•d: Difficulty
+\t•c: Challenge\n
+Note that this functionality is still in development, so I can't add Genesys rolls to the tray and perform introspection on them just yet. ｺﾞﾒ─(lll-ω-)─ﾝ Please wait warmly!"]
 #[aliases("gr", "genesys", "groll")]
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     use crate::dice::{

@@ -2,7 +2,10 @@ use std::{str::FromStr, fmt};
 use super::{
     dice_errors::RollError,
     pool::Pool,
-    roll_token::RollToken, genesymbols::GeneSymbol,
+    roll_token::RollToken,
+    roll_value::RollValue,
+    result_kinds::*,
+    genesymbols::GeneSymbol,
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -59,7 +62,7 @@ impl Dice {
         self.pool.ok_or(RollError::PlaceholderError)
     }
 
-    pub fn value(self) -> Result<f64, RollError> {
+    pub fn value(self) -> Result<RollValue, RollError> {
         Ok(self.pool()?.total().into())
     }
 
@@ -138,7 +141,7 @@ impl Combination {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
             Combination::Merge(merge) => merge.value(),
         }
@@ -194,10 +197,10 @@ impl Merge {
         Ok(left_pool.add(&right_pool))
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         let left_value = self.left.as_ref().ok_or(RollError::PlaceholderError)?.value()?;
         let right_value = self.right.as_ref().ok_or(RollError::PlaceholderError)?.value()?;
-        Ok(left_value + right_value)
+        left_value.add(right_value)
     }
 
     pub fn description(&self) -> String {
@@ -245,7 +248,7 @@ impl Conversion {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
             Conversion::Genesys(g_dice) => g_dice.value(),
         }
@@ -339,11 +342,25 @@ impl GenesysDice {
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        Err(RollError::NotImplementedError)
+        match self {
+            GenesysDice::Boost { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Setback { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Ability { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Difficulty { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Proficiency { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Challenge { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+        }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
-        Err(RollError::NotImplementedError)
+    pub fn value(&self) -> Result<RollValue, RollError> {
+        match self {
+            GenesysDice::Boost { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Setback { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Ability { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Difficulty { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Proficiency { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+            GenesysDice::Challenge { base: _, res } => Ok(RollValue::Genesys(GenesysValue::new(res))),
+        }
     }
 
     pub fn description(&self) -> String {
@@ -408,7 +425,7 @@ impl Operator {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
             Operator::Explode(explode) => explode.value(),
             Operator::Keep(keep) => keep.value(),
@@ -526,7 +543,7 @@ impl Explode {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         Ok(self.clone().pool()?.total().into())
     }
 
@@ -655,7 +672,7 @@ impl Keep {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
             Keep::Exact { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
             Keep::High { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
@@ -793,7 +810,7 @@ impl Reroll {
         }
     }
 
-    pub fn value(&self) -> Result<f64, RollError> {
+    pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
             Reroll::Better { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
             Reroll::Once { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
@@ -889,7 +906,7 @@ impl Target {
         let arg = Some(argument.clone());
         let pool = Some(token.clone().pool()?);
         let base_sux = match &token {
-            RollToken::Operator(Operator::Target(target)) => target.value() as i16,
+            RollToken::Operator(Operator::Target(target)) => target.value().to_decimal()? as i16,
             _ => 0,
         };
         match argument {
@@ -945,10 +962,10 @@ impl Target {
         }
     }
 
-    pub fn value(&self) -> f64 {
+    pub fn value(&self) -> RollValue {
         match self {
-            Target::Success { arg: _, pool: _, sux } => *sux as f64,
-            Target::Botch { arg: _, pool: _, sux } => *sux as f64,
+            Target::Success { arg: _, pool: _, sux } => RollValue::Successes(*sux),
+            Target::Botch { arg: _, pool: _, sux } => RollValue::Successes(*sux),
         }
     }
 

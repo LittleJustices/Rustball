@@ -37,11 +37,11 @@ impl RollStack {
                         RpnToken::Operator(operator) => {
                             let right = stack.pop().ok_or(RollError::PlaceholderError)?;
                             let left = stack.pop().ok_or(RollError::PlaceholderError)?;
-                            stack.push(RpnToken::Number(operator.apply(left.value()?, right.value()?)).into());
+                            stack.push(RpnToken::Number(operator.apply(left.value()?.to_decimal()?, right.value()?.to_decimal()?)).into());
                         },
                         RpnToken::MathFn(math_fn) => {
                             let arg = stack.pop().ok_or(RollError::PlaceholderError)?;
-                            stack.push(RpnToken::Number(math_fn.apply(arg.value()?)).into());
+                            stack.push(RpnToken::Number(math_fn.apply(arg.value()?.to_decimal()?)).into());
                         },
                         _ => return Err(RollError::PlaceholderError),
                     }

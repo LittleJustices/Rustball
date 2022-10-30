@@ -5,6 +5,7 @@ use super::{
     dice_errors::RollError,
     roll_stack::RollStack,
     roll_token::RollToken,
+    roll_value::RollValue,
 };
 
 #[derive(Debug)]
@@ -12,7 +13,7 @@ pub struct Roll {
     command: String,
     comment: String,
     operations: RollStack,
-    result: f64,
+    result: RollValue,
     owner: String,
     timestamp: DateTime<Utc>,
 }
@@ -47,8 +48,8 @@ impl Roll {
         &self.operations.operations
     }
 
-    pub fn result(&self) -> f64 {
-        self.result
+    pub fn result(&self) -> &RollValue {
+        &self.result
     }
 
     pub fn roller(&self) -> &str {
