@@ -77,7 +77,18 @@ impl fmt::Display for GenesysValue {
         }
 
         let tally_str = self.tally.iter().fold(
-            String::new(), |s, (key, val)| format!("{}{} {:?}, ", s, val, key)
+            String::new(), |s, (key, val)| {
+                if *val == 0 { s } else {
+                    let plural = match val {
+                        1 => "",
+                        _ => match key {
+                            GeneSymbol::Success => "es",
+                            _ => "s"
+                        }
+                    };
+                    format!("{}{} {:?}{}, ", s, val, key, plural)
+                }
+            }
         );
 
         write!(f, "{}", tally_str.trim_end_matches(", "))
