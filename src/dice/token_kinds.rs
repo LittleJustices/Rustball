@@ -4,7 +4,7 @@ use super::{
     pool::Pool,
     roll_token::RollToken,
     roll_value::RollValue,
-    result_kinds::*,
+    value_kinds::*,
     genesymbols::GeneSymbol,
 };
 

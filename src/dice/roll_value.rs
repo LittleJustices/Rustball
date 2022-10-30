@@ -1,6 +1,6 @@
 use super::{
     dice_errors::RollError,
-    result_kinds::*,
+    value_kinds::*,
 };
 use std::fmt;
 
