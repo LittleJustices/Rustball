@@ -18,7 +18,13 @@ use serenity::{
     prelude::*,
 };
 use std::collections::HashMap;
-use crate::{dice::tray::Tray, sixball_errors::SixballError};
+use crate::{
+    dice::{
+        command_translations,
+        tray::Tray
+    }, 
+    sixball_errors::SixballError
+};
 
 pub type TrayMap = HashMap<TrayId, Tray>;
 
@@ -36,8 +42,9 @@ Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let (roll_command, roll_comment) = extract_arguments(ctx, args).await;
+    let in_command = &roll_command;
 
-    let response = match new_roll_output(&ctx, &msg, &roll_command, &roll_comment, true).await {
+    let response = match new_roll_output(&ctx, &msg, &in_command, &roll_command, &roll_comment, true).await {
         Ok(res) => format!("{}", res),
         Err(why) => format!("{}", why),
     };
@@ -198,71 +205,16 @@ The dice codes are:
 Note that this functionality is still in development, so I can't add Genesys rolls to the tray and perform introspection on them just yet. ｺﾞﾒ─(lll-ω-)─ﾝ Please wait warmly!"]
 #[aliases("gr", "genesys", "groll")]
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    use crate::dice::{
-        dice_re::GENESYS_TOKEN_RE,
-        genesymbols::{GenesysDie, GenesysResults},
+    let (in_command, roll_comment) = extract_arguments(ctx, args).await;
+
+    let response = match command_translations::genesys(&in_command) {
+        Ok(roll_command) => match new_roll_output(&ctx, &msg, &in_command, &roll_command, &roll_comment, false).await {
+            Ok(res) => format!("{}", res),
+            Err(why) => format!("{}", why),
+        },
+        Err(why) => format!("{}", SixballError::RollError(why)),
     };
-    let roll_command;
-    let roll_comment;
-    // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
-    {
-        let config_data = ctx.data.read().await;
-        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
-
-        (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
-            Some(res) => res,
-            None => (args.message(), "")
-        };
-    }
-
-    if roll_command == "" {
-        let no_args_error = "What do you want me to roll?";
-        msg.reply_ping(&ctx.http, no_args_error).await?;
-        return Ok(());
-    }
-
-    let mut dice_vector: Vec<GenesysDie> = vec![];
-    let mut results_vector = vec![];
-    for caps in GENESYS_TOKEN_RE.captures_iter(roll_command) {
-        let number: u8 = match &caps["number"].parse() {
-            Ok(num) => *num,
-            Err(why) => {
-                msg.reply_ping(&ctx.http, format!("I don't know what {} is! {}", &caps["number"], why)).await?;
-                return Ok(());
-            },
-        };
-        for _ in 0..number {
-            let die = match &caps["kind"].parse() {
-                Ok(d) => *d,
-                Err(why) => {
-                    msg.reply_ping(&ctx.http, format!("I don't know what {} is! {}", &caps["kind"], why)).await?;
-                    return Ok(());
-                }
-            };
-            dice_vector.push(die);
-        }
-    }
-    let results = GenesysResults::new(&dice_vector);
-
-    for die in dice_vector {
-        for symbol in die.result() {
-            results_vector.push(symbol);
-        }
-    }
-    
-    let annotation = match roll_comment.trim() {
-        "" => "".to_owned(),
-        other => format!(" ({})", other)
-    };
-    
-    let message = format!(
-        "`{}` {}:\n{}",
-        roll_command.trim(),
-        annotation,
-        results
-    );
-
-    msg.reply_ping(&ctx.http, message).await?;
+    msg.reply_ping(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -278,7 +230,7 @@ async fn extract_arguments(ctx: &Context, args: Args) -> (String, String) {
     }
 }
 
-async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_comment: &str, breakdown: bool) -> Result<String, SixballError> {
+async fn new_roll_output(ctx: &Context, msg: &Message, in_command: &str, roll_command: &str, roll_comment: &str, breakdown: bool) -> Result<String, SixballError> {
     // Get config data with write permission to manipulate the tray
     let mut tray_data = ctx.data.write().await;
     let mut tray_map = tray_data
@@ -304,8 +256,8 @@ async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_
     };
 
     match breakdown {
-        true => Ok(format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, roll.result(), roll)),
-        false => Ok(format!("`{}`{}:\n**{}** (use `verbose` command for details)", roll_command.trim(), annotation, roll.result())),
+        true => Ok(format!("`{}`{}:\n**{}** ({})", in_command.trim(), annotation, roll.result(), roll)),
+        false => Ok(format!("`{}`{}:\n**{}** (use `verbose` or `tray` commands for details)", in_command.trim(), annotation, roll.result())),
     }
 }
 
