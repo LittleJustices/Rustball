@@ -18,7 +18,7 @@ use serenity::{
     prelude::*,
 };
 use std::collections::HashMap;
-use crate::dice::tray::Tray;
+use crate::{dice::tray::Tray, sixball_errors::SixballError};
 
 pub type TrayMap = HashMap<TrayId, Tray>;
 
@@ -44,65 +44,16 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
 
         (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
-            Some(res) => res,
-            None => (args.message(), "")
+            Some((command, comment)) => (command.to_lowercase(), comment),
+            None => (args.message().to_lowercase(), "")
         };
     }
 
-    if roll_command == "" {
-        let no_args_error = "What do you want me to roll?";
-        msg.reply_ping(&ctx.http, no_args_error).await?;
-        return Ok(());
-    }
-
-    let verbose = false; // to be set inside the roll
-
-    // Get config data with write permission to manipulate the tray
-    let mut tray_data = ctx.data.write().await;
-    let mut tray_map = tray_data
-        .get_mut::<crate::TrayKey>()
-        .expect("Failed to retrieve tray map!")
-        .lock().await;
-    
-    let tray = match tray_map.get_mut(&make_tray_id(msg)) {
-        Some(extant_tray) => extant_tray,
-        None => {
-            let new_tray = Tray::new();
-            tray_map.insert(make_tray_id(msg), new_tray);
-            tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
-        }
+    let response = match new_roll_output(&ctx, &msg, &roll_command, roll_comment, &roller, true).await {
+        Ok(res) => format!("{}", res),
+        Err(why) => format!("{}", why),
     };
-
-    let roll = match tray.add_roll_from_command(&roll_command.to_lowercase(), roll_comment, &roller) {
-    Ok(r) => r,
-    Err(why) => {
-        let roll_error = format!("{}", why);
-        msg.reply_ping(&ctx.http, roll_error).await?;
-        return Ok(());
-    },
-};
-
-    if verbose {
-        let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}: {}", msg.author, roll_command, roll.result());
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.content(message);
-            m.embed(|e| {
-                e.title(roll_comment);
-                e.description(breakdown);
-    
-                e
-            });
-            m
-        }).await?;
-    } else {
-        let annotation = match roll_comment.trim() {
-            "" => "".to_owned(),
-            other => format!(" ({})", other)
-        };
-        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, roll.result(), roll);
-        msg.reply_ping(&ctx.http, message).await?;
-    }
+    msg.reply_ping(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -326,6 +277,36 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     msg.reply_ping(&ctx.http, message).await?;
 
     Ok(())
+}
+
+async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_comment: &str, roller: &str, breakdown: bool) -> Result<String, SixballError> {
+    // Get config data with write permission to manipulate the tray
+    let mut tray_data = ctx.data.write().await;
+    let mut tray_map = tray_data
+        .get_mut::<crate::TrayKey>()
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+    
+    let tray = match tray_map.get_mut(&make_tray_id(msg)) {
+        Some(extant_tray) => extant_tray,
+        None => {
+            let new_tray = Tray::new();
+            tray_map.insert(make_tray_id(msg), new_tray);
+            tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
+        }
+    };
+
+    let roll = tray.add_roll_from_command(roll_command, roll_comment, roller)?;
+    
+    let annotation = match roll_comment.trim() {
+        "" => "".to_owned(),
+        other => format!(" ({})", other)
+    };
+
+    match breakdown {
+        true => Ok(format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, roll.result(), roll)),
+        false => Ok(format!("`{}`{}:\n**{}** (use `verbose` command for details)", roll_command.trim(), annotation, roll.result())),
+    }
 }
 
 fn make_tray_id(msg: &Message) -> TrayId {
