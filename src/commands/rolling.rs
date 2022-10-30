@@ -35,21 +35,9 @@ I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice in
 Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let roll_command;
-    let roll_comment;
+    let (roll_command, roll_comment) = extract_arguments(ctx, args).await;
 
-    // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
-    {
-        let config_data = ctx.data.read().await;
-        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
-
-        (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
-            Some((command, comment)) => (command.to_lowercase(), comment),
-            None => (args.message().to_lowercase(), "")
-        };
-    }
-
-    let response = match new_roll_output(&ctx, &msg, &roll_command, roll_comment, true).await {
+    let response = match new_roll_output(&ctx, &msg, &roll_command, &roll_comment, true).await {
         Ok(res) => format!("{}", res),
         Err(why) => format!("{}", why),
     };
@@ -277,6 +265,17 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     msg.reply_ping(&ctx.http, message).await?;
 
     Ok(())
+}
+
+async fn extract_arguments(ctx: &Context, args: Args) -> (String, String) {
+    // Get config data as read-only to look up the comment separator. It is then freed up when we move out of the function
+    let config_data = ctx.data.read().await;
+    let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+
+    match args.message().split_once(&cfg.comment_separator) {
+        Some((command, comment)) => (command.to_lowercase(), comment.into()),
+        None => (args.message().to_lowercase(), "".into())
+    }
 }
 
 async fn new_roll_output(ctx: &Context, msg: &Message, roll_command: &str, roll_comment: &str, breakdown: bool) -> Result<String, SixballError> {
