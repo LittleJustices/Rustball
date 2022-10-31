@@ -42,6 +42,8 @@ pub fn dailydose() -> &'static str {
         "https://www.pixiv.net/artworks/44898062",
         "https://twitter.com/k0mamid0ri/status/815561664477073411",
         "https://twitter.com/smalllightAON/status/1532765221240160261",
+        "https://twitter.com/smalllightAON/status/1140648588097331200",
+        "https://twitter.com/smalllightAON/status/1310000932634218497",
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1562432126091268097",
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1561344299702165504",
         "https://twitter.com/Vtcsku3HJBR2eZw/status/1566211831143604225",
