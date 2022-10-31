@@ -13,7 +13,7 @@ pub fn genesys(in_command: &str) -> Result<String, RollError> {
             "b" | "s" => "6",
             "a" | "d" => "8",
             "p" | "c" => "12",
-            _ => return Err(RollError::PlaceholderError),
+            other => return Err(RollError::TranslationError(other.into())),
         };
 
         out_command = format!("{}{}d{}g{}", out_command, number, sides, kind);

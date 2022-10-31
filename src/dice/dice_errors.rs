@@ -13,6 +13,7 @@ pub enum RollError {
     PlaceholderError,
     ParseError(num::ParseIntError),
     RetrieveError(String),
+    TranslationError(String),
 }
 
 impl Error for RollError {}
@@ -24,6 +25,7 @@ impl fmt::Display for RollError {
             RollError::PlaceholderError => write!(f, "Error handling TBA"),
             RollError::ParseError(why) => write!(f, "☢ ((((；´ﾟДﾟ))) These dice are too spicy for me! ☢ ({})", why),
             RollError::RetrieveError(why) => write!(f, "Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… ({})", why),
+            RollError::TranslationError(why) => write!(f, "{} σ(・ω・,,｀)？ I don't know what that means in this context!", why),
         }
     }
 }
