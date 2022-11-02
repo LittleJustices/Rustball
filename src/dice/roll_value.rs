@@ -16,7 +16,7 @@ impl RollValue {
         match self {
             RollValue::Decimal(number) => Ok(number),
             RollValue::Successes(sux) => Ok(sux as f64),
-            _ => Err(RollError::PlaceholderError),
+            _ => Err(RollError::NotANumberError),
         }
     }
 
@@ -25,16 +25,16 @@ impl RollValue {
             RollValue::Decimal(left) => match other {
                 RollValue::Decimal(right) => Ok(RollValue::Decimal(left + right)),
                 RollValue::Successes(right) => Ok(RollValue::Decimal(left + (right as f64))),
-                _ => Err(RollError::PlaceholderError),
+                _ => Err(RollError::NotANumberError),
             },
             RollValue::Successes(left) => match other {
                 RollValue::Decimal(right) => Ok(RollValue::Decimal((left as f64) + right)),
                 RollValue::Successes(right) => Ok(RollValue::Successes(left + right)),
-                _ => Err(RollError::PlaceholderError),
+                _ => Err(RollError::NotANumberError),
             },
             RollValue::Genesys(left) => match other {
                 RollValue::Genesys(right) => Ok(RollValue::Genesys(left.add(right))),
-                _ => Err(RollError::PlaceholderError),
+                _ => Err(RollError::NotANumberError),
             },
         }
     }

@@ -9,6 +9,7 @@ pub struct PlaceholderError;
 
 #[derive(Debug)]
 pub enum RollError {
+    NotANumberError,
     NotImplementedError,
     PlaceholderError,
     ParseError(num::ParseIntError),
@@ -21,6 +22,7 @@ impl Error for RollError {}
 impl fmt::Display for RollError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            RollError::NotANumberError => write!(f, "Hold up, that's not a number! ヾ(｡｀Д´｡)ﾉ彡☆ﾌﾞｰﾌﾞｰｯ!! (Tried to treat a non-numerical value as a number)"),
             RollError::NotImplementedError => write!(f, "I'm sorry, I can't actually do that yet... (m´・ω・｀)m ｺﾞﾒﾝ…"),
             RollError::PlaceholderError => write!(f, "Error handling TBA"),
             RollError::ParseError(why) => write!(f, "☢ ((((；´ﾟДﾟ))) These dice are too spicy for me! ☢ ({})", why),
