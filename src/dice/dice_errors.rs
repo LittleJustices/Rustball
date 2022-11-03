@@ -11,6 +11,7 @@ pub struct PlaceholderError;
 #[derive(Debug)]
 pub enum RollError {
     ArgumentError,
+    BlockedExplosionError,
     FBomb,
     MathError(MathError),
     MissingPoolError,
@@ -30,6 +31,7 @@ impl fmt::Display for RollError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             RollError::ArgumentError => write!(f, "ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument)"),
+            RollError::BlockedExplosionError => write!(f, "Okay, let's slow down here... (｡･_･｡)ﾉ ﾁｮｲﾏﾁ｡ That's too explosive for my tastes! (Be nice and don't try to go infinite)"),
             RollError::FBomb => write!(f, "What the fuck"),
             RollError::MathError(why) => write!(f, "{}", why),
             RollError::MissingPoolError => write!(f, "Where'd the dice go!? !!!∑(ﾟﾛﾟ!(ﾟﾍﾟ?)??? I swear I was looking... (Failed to find a dicepool)"),

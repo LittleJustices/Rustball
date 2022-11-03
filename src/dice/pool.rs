@@ -128,7 +128,8 @@ impl Pool {
         self.dice.iter().fold(0, |sum, die| sum + die.count_successes(tns) as u16)
     }
 
-    pub fn explode_n(&self, n: u8, recursive: bool) -> Vec<Self> {
+    pub fn explode_n(&self, n: u8, recursive: bool) -> Result<Vec<Self>, RollError> {
+        if recursive && self.sides_max() == 1 { return Err(RollError::BlockedExplosionError); }
         let mut exploded_pools = vec![];
         exploded_pools.push(self.clone());
 
@@ -143,11 +144,11 @@ impl Pool {
             dice_to_explode = new_dice;
         }
 
-        exploded_pools
+        Ok(exploded_pools)
     }
 
-    pub fn explode_n_additive(&self, n: u8, recursive: bool) -> Vec<Self> {
-        let mut exploded_pools = self.explode_n(n, recursive);
+    pub fn explode_n_additive(&self, n: u8, recursive: bool) -> Result<Vec<Self>, RollError> {
+        let mut exploded_pools = self.explode_n(n, recursive)?;
         let mut result_vector = exploded_pools.clone();
         println!("Exploded pools: {:?}", exploded_pools);
 
@@ -163,10 +164,11 @@ impl Pool {
 
         result_vector.push(exploded_pools.pop().unwrap());
 
-        result_vector
+        Ok(result_vector)
     }
 
-    pub fn explode_specific(&self, range: &[u8], recursive: bool) -> Vec<Self> {
+    pub fn explode_specific(&self, range: &[u8], recursive: bool) -> Result<Vec<Self>, RollError> {
+        if recursive && range.len() > (self.sides_max() / 2).into() { return  Err(RollError::BlockedExplosionError); }
         let mut exploded_pools = vec![];
         exploded_pools.push(self.clone());
 
@@ -181,11 +183,11 @@ impl Pool {
             dice_to_explode = new_dice;
         }
 
-        exploded_pools
+        Ok(exploded_pools)
     }
 
-    pub fn explode_specific_additive(&self, range: &[u8], recursive: bool) -> Vec<Self> {
-        let mut exploded_pools = self.explode_specific(range, recursive);
+    pub fn explode_specific_additive(&self, range: &[u8], recursive: bool) -> Result<Vec<Self>, RollError> {
+        let mut exploded_pools = self.explode_specific(range, recursive)?;
         let mut result_vector = exploded_pools.clone();
         println!("Exploded pools: {:?}", exploded_pools);
 
@@ -201,7 +203,7 @@ impl Pool {
 
         result_vector.push(exploded_pools.pop().unwrap());
 
-        result_vector
+        Ok(result_vector)
     }
 
     pub fn keep_exact(&self, range: &[u8]) -> Self {

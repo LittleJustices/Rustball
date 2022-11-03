@@ -503,22 +503,22 @@ impl Explode {
         match self {
             Explode::Additive { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => pool.explode_n_additive(explode_number, true),
-                    Argument::Array(explode_array) => pool.explode_specific_additive(&explode_array, true),
+                    Argument::Single(explode_number) => pool.explode_n_additive(explode_number, true)?,
+                    Argument::Array(explode_array) => pool.explode_specific_additive(&explode_array, true)?,
                 };
                 Ok(Explode::Additive { arg, res })
             },
             Explode::Once { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => pool.explode_n(explode_number, false),
-                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, false),
+                    Argument::Single(explode_number) => pool.explode_n(explode_number, false)?,
+                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, false)?,
                 };
                 Ok(Explode::Once { arg, res })
             },
             Explode::Recursive { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => pool.explode_n(explode_number, true),
-                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, true),
+                    Argument::Single(explode_number) => pool.explode_n(explode_number, true)?,
+                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, true)?,
                 };
                 Ok(Explode::Recursive { arg, res })
             },
