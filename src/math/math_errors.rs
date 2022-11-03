@@ -8,6 +8,7 @@ pub enum MathError {
     PlaceholderError,           // placeholder
     ExpressionError(String),    // Malformed expression
     ImpossibleError,            // Error which shouldn't be possible
+    ParensError,
     SymbolError(String),        // Illegal symbols in expression
     TokenError(ParseFloatError),         // Fail to parse RPN token
 }
@@ -20,6 +21,7 @@ impl fmt::Display for MathError {
             MathError::PlaceholderError     => write!(f, "Error handling TBA"),
             MathError::ExpressionError(why) => write!(f, "Something's wrong with that expression ! ∑(✘Д✘๑ ) {}", why),
             MathError::ImpossibleError => write!(f, "Congratulations, you managed to break me in a way the boss didn't think was possible! (유Д유〣) Please get their attention and describe exactly what you did."),
+            MathError::ParensError => write!(f, "There's either too many or too few parentheses here! ∑(✘Д✘๑ ) Can you double check your expression?"),
             MathError::SymbolError(why)     => write!(f, "`{}` Σ(・艸・○) What's this? I can't do math with that!", why),
             MathError::TokenError(why) => write!(f, "Some symbols must've gotten mixed up! Can you check your math? {}", why),
         }

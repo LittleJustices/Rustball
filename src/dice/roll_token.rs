@@ -58,7 +58,7 @@ impl RollToken {
         match self {
             RollToken::Math(rpn_token) => match rpn_token {
                 RpnToken::Number(value) => Ok(RollValue::Decimal(*value)),
-                _ => Err(RollError::PlaceholderError),
+                _ => Err(RollError::NotANumberError),
             },
             RollToken::Argument(argument) => match argument {
                 Argument::Array(_) => Err(RollError::NotImplementedError),
@@ -79,7 +79,7 @@ impl RollToken {
             RollToken::Argument(argument) => Ok(argument),
             RollToken::Dice(dice) => Ok(Argument::Single(dice.value()?.to_decimal()? as u8)),
             RollToken::Operator(operator) => Ok(Argument::Single(operator.value()?.to_decimal()? as u8)),
-            _ => Err(RollError::PlaceholderError)
+            _ => Err(RollError::ArgumentError)
         }
     }
 
@@ -89,7 +89,7 @@ impl RollToken {
             RollToken::Operator(operator) => operator.pool(),
             RollToken::Combination(combination) => combination.pool(),
             RollToken::Conversion(conversion) => conversion.pool(),
-            _ => Err(RollError::PlaceholderError)
+            _ => Err(RollError::MissingPoolError)
         }
     }
 
@@ -119,7 +119,7 @@ impl RollToken {
                             postfix_queue.push(top_token);
                         }
                         if let Some(RollToken::Math(RpnToken::MathFn(_))) = token_stack.last() {
-                            postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                            postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?);
                         }
                     },
                     RpnToken::Number(_) => postfix_queue.push(token),
@@ -130,12 +130,12 @@ impl RollToken {
                                 RollToken::Math(RpnToken::Operator(left_operator)) => {
                                     if (left_operator.precedence() > right_operator.precedence()) |
                                     ((left_operator.precedence() == right_operator.precedence()) && (right_operator.left_associative())) {
-                                        postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                                        postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?);
                                     } else {
                                         break;
                                     }
                                 },
-                                RollToken::Dice(_) | RollToken::Operator(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
+                                RollToken::Dice(_) | RollToken::Operator(_) => postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?),
                                 _ => break
                             }
                         }
@@ -145,14 +145,14 @@ impl RollToken {
                 RollToken::Argument(_) => postfix_queue.push(token),
                 RollToken::Dice(_) => {
                     while let Some(RollToken::Dice(_)) = token_stack.last() {
-                        postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?);
+                        postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?);
                     }
                     token_stack.push(token);
                 },
                 RollToken::Operator(_) | RollToken::Conversion(_) | RollToken::Combination(_) => {
                     while let Some(top_of_stack) = token_stack.last() {
                         match top_of_stack {
-                            RollToken::Dice(_) | RollToken::Operator(_) | RollToken::Conversion(_) => postfix_queue.push(token_stack.pop().ok_or(RollError::PlaceholderError)?),
+                            RollToken::Dice(_) | RollToken::Operator(_) | RollToken::Conversion(_) => postfix_queue.push(token_stack.pop().ok_or(MathError::ImpossibleError)?),
                             _ => break
                         }
                     }
@@ -163,7 +163,7 @@ impl RollToken {
 
         while let Some(token) = token_stack.pop() {
             match token {
-                RollToken::Math(RpnToken::LParen) | RollToken::Math(RpnToken::RParen) => return Err(RollError::PlaceholderError),
+                RollToken::Math(RpnToken::LParen) | RollToken::Math(RpnToken::RParen) => return Err(RollError::MathError(MathError::ParensError)),
                 other => postfix_queue.push(other)
             }
         }
@@ -223,7 +223,7 @@ impl FromStr for RollToken {
         } else if let Ok(combination) = s.parse() {  // Attempt to parse into combination
             Ok(RollToken::Combination(combination))
         } else {                                                  // If all these fail, error out
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
