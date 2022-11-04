@@ -204,11 +204,11 @@ impl Merge {
     }
 
     pub fn description(&self) -> String {
-        String::from("Not implemented yet")
+        String::from("Oops, you're not supposed to see this! Please let the boss know! (Tried to get description for merge operator)")
     }
 
     pub fn verbose(&self) -> String {
-        String::from("Not implemented yet")
+        String::from("Oops, you're not supposed to see this! Please let the boss know! (Tried to get verbose string for merge operator)")
     }
 }
 

@@ -71,7 +71,8 @@ impl RollStack {
                     let right = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                     let left = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                     let combination_resolved = combination.apply(left, right)?;
-                    operations.push(RollToken::Combination(combination_resolved.clone()));
+                    // Might uncomment this if hypothetical future combinations need to be displayed
+                    // operations.push(RollToken::Combination(combination_resolved.clone()));
                     stack.push(RollToken::Combination(combination_resolved));
                 }
             }
