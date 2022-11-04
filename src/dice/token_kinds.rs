@@ -375,7 +375,14 @@ impl GenesysDice {
     }
 
     pub fn verbose(&self) -> String {
-        String::from("Not implemented yet")
+        match self {
+            GenesysDice::Boost { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Setback { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Ability { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Difficulty { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Proficiency { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Challenge { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+        }
     }
 }
 
