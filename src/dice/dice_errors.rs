@@ -39,7 +39,7 @@ impl fmt::Display for RollError {
             RollError::NotImplementedError => write!(f, "I'm sorry, I can't actually do that yet... (m´・ω・｀)m ｺﾞﾒﾝ…"),
             RollError::NotResolvedError => write!(f, "Hooold up! (｡･_･｡)ﾉ ﾁｮｲﾏﾁ｡ Something's happening out of order here?? (Tried to use an operator before resolving it)"),
             RollError::PlaceholderError => write!(f, "Error handling TBA"),
-            RollError::ParseError(why) => write!(f, "☢ ((((；´ﾟДﾟ))) These dice are too spicy for me! ☢ ({})", why),
+            RollError::ParseError(why) => write!(f, "((((；´ﾟДﾟ))) These dice are too spicy for me! ({})", why),
             RollError::RetrieveError(why) => write!(f, "Sorry, I lost your dice (m´・ω・｀)m ｺﾞﾒﾝ… ({})", why),
             RollError::SymbolError(why) => write!(f, "{} Σ(・艸・○) What's this? I can't roll dice with that!", why),
             RollError::TranslationError(why) => write!(f, "{} σ(・ω・,,｀)？ I don't know what that means in this context!", why),
