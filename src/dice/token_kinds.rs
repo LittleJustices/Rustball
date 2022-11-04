@@ -364,7 +364,14 @@ impl GenesysDice {
     }
 
     pub fn description(&self) -> String {
-        String::from("Not implemented yet")
+        match self {
+            GenesysDice::Boost { base: _, res: _ } => String::from("Convert numeric results to boost die values"),
+            GenesysDice::Setback { base: _, res: _ } => String::from("Convert numeric results to setback die values"),
+            GenesysDice::Ability { base: _, res: _ } => String::from("Convert numeric results to ability die values"),
+            GenesysDice::Difficulty { base: _, res: _ } => String::from("Convert numeric results to difficulty die values"),
+            GenesysDice::Proficiency { base: _, res: _ } => String::from("Convert numeric results to proficiency die values"),
+            GenesysDice::Challenge { base: _, res: _ } => String::from("Convert numeric results to challenge die values"),
+        }
     }
 
     pub fn verbose(&self) -> String {
