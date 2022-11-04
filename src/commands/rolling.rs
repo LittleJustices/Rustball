@@ -18,7 +18,13 @@ use serenity::{
     prelude::*,
 };
 use std::collections::HashMap;
-use crate::dice::tray::Tray;
+use crate::{
+    dice::{
+        command_translations,
+        tray::Tray
+    }, 
+    sixball_errors::SixballError
+};
 
 pub type TrayMap = HashMap<TrayId, Tray>;
 
@@ -35,74 +41,14 @@ I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice in
 Additional dice operations to be added. Please wait warmly!"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let roll_command;
-    let roll_comment;
-    let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
-    // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
-    {
-        let config_data = ctx.data.read().await;
-        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+    let (roll_command, roll_comment) = extract_arguments(ctx, args).await;
+    let in_command = &roll_command;
 
-        (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
-            Some(res) => res,
-            None => (args.message(), "")
-        };
-    }
-
-    if roll_command == "" {
-        let no_args_error = "What do you want me to roll?";
-        msg.reply_ping(&ctx.http, no_args_error).await?;
-        return Ok(());
-    }
-
-    let verbose = false; // to be set inside the roll
-
-    // Get config data with write permission to manipulate the tray
-    let mut tray_data = ctx.data.write().await;
-    let mut tray_map = tray_data
-        .get_mut::<crate::TrayKey>()
-        .expect("Failed to retrieve tray map!")
-        .lock().await;
-    
-    let tray = match tray_map.get_mut(&make_tray_id(msg)) {
-        Some(extant_tray) => extant_tray,
-        None => {
-            let new_tray = Tray::new();
-            tray_map.insert(make_tray_id(msg), new_tray);
-            tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
-        }
+    let response = match new_roll_output(&ctx, &msg, &in_command, &roll_command, &roll_comment, true).await {
+        Ok(res) => format!("{}", res),
+        Err(why) => format!("{}", why),
     };
-
-    let roll = match tray.add_roll_from_command(&roll_command.to_lowercase(), roll_comment, &roller) {
-    Ok(r) => r,
-    Err(why) => {
-        let roll_error = format!("{}", why);
-        msg.reply_ping(&ctx.http, roll_error).await?;
-        return Ok(());
-    },
-};
-
-    if verbose {
-        let breakdown = "VERBOSE ROLL BREAKDOWN GOES HERE";
-        let message = format!("{} rolled {}: {}", msg.author, roll_command, roll.result());
-        msg.channel_id.send_message(&ctx.http, |m| {
-            m.content(message);
-            m.embed(|e| {
-                e.title(roll_comment);
-                e.description(breakdown);
-    
-                e
-            });
-            m
-        }).await?;
-    } else {
-        let annotation = match roll_comment.trim() {
-            "" => "".to_owned(),
-            other => format!(" ({})", other)
-        };
-        let message = format!("`{}`{}:\n**{}** ({})", roll_command.trim(), annotation, roll.result(), roll);
-        msg.reply_ping(&ctx.http, message).await?;
-    }
+    msg.reply_ping(&ctx.http, response).await?;
 
     Ok(())
 }
@@ -245,87 +191,73 @@ async fn exroll(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[description="This command is for rolling Genesys narrative dice! Just tell me how many of which kinds to roll and I'll handle the rest under the hood! Σd(≧▽≦*) Currently under construction.
+#[description="This command is for rolling Genesys narrative dice! Just tell me how many of which kinds to roll and I'll handle the rest under the hood! Σd(≧▽≦*)
 Format the command like this: `[kind of die][number of dice]`. The different kinds of dice can be in any order, and you can put as many spaces as you want between them if it helps you organize the roll.
 For example: `~genroll a2 p2 d3` -> 2 Ability dice, 2 Proficiency dice, 3 Difficulty dice
 You can even have the same kind of die multiple times if you want, for example to keep track of different sources of dice! I'll add them all up for you.\n
 The dice codes are:
-\t•b: Boost
-\t•a: Ability
-\t•p: Proficiency
-\t•s: Setback
-\t•d: Difficulty
-\t•c: Challenge\n
-Note that this functionality is still in development, so I can't add Genesys rolls to the tray and perform introspection on them just yet. ｺﾞﾒ─(lll-ω-)─ﾝ Please wait warmly!"]
+\t• b: Boost
+\t• a: Ability
+\t• p: Proficiency
+\t• s: Setback
+\t• d: Difficulty
+\t• c: Challenge"]
 #[aliases("gr", "genesys", "groll")]
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    use crate::dice::{
-        dice_re::GENESYS_TOKEN_RE,
-        genesymbols::{GenesysDie, GenesysResults},
+    let (in_command, roll_comment) = extract_arguments(ctx, args).await;
+
+    let response = match command_translations::genesys(&in_command) {
+        Ok(roll_command) => match new_roll_output(&ctx, &msg, &in_command, &roll_command, &roll_comment, false).await {
+            Ok(res) => format!("{}", res),
+            Err(why) => format!("{}", why),
+        },
+        Err(why) => format!("{}", SixballError::RollError(why)),
     };
-    let roll_command;
-    let roll_comment;
-    // Get config data as read-only to look up the comment separator. It is then freed up at the end of the subscope
-    {
-        let config_data = ctx.data.read().await;
-        let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+    msg.reply_ping(&ctx.http, response).await?;
 
-        (roll_command, roll_comment) = match args.message().split_once(&cfg.comment_separator) {
-            Some(res) => res,
-            None => (args.message(), "")
-        };
+    Ok(())
+}
+
+async fn extract_arguments(ctx: &Context, args: Args) -> (String, String) {
+    // Get config data as read-only to look up the comment separator. It is then freed up when we move out of the function
+    let config_data = ctx.data.read().await;
+    let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
+
+    match args.message().split_once(&cfg.comment_separator) {
+        Some((command, comment)) => (command.to_lowercase(), comment.into()),
+        None => (args.message().to_lowercase(), "".into())
     }
+}
 
-    if roll_command == "" {
-        let no_args_error = "What do you want me to roll?";
-        msg.reply_ping(&ctx.http, no_args_error).await?;
-        return Ok(());
-    }
-
-    let mut dice_vector: Vec<GenesysDie> = vec![];
-    let mut results_vector = vec![];
-    for caps in GENESYS_TOKEN_RE.captures_iter(roll_command) {
-        let number: u8 = match &caps["number"].parse() {
-            Ok(num) => *num,
-            Err(why) => {
-                msg.reply_ping(&ctx.http, format!("I don't know what {} is! {}", &caps["number"], why)).await?;
-                return Ok(());
-            },
-        };
-        for _ in 0..number {
-            let die = match &caps["kind"].parse() {
-                Ok(d) => *d,
-                Err(why) => {
-                    msg.reply_ping(&ctx.http, format!("I don't know what {} is! {}", &caps["kind"], why)).await?;
-                    return Ok(());
-                }
-            };
-            dice_vector.push(die);
+async fn new_roll_output(ctx: &Context, msg: &Message, in_command: &str, roll_command: &str, roll_comment: &str, breakdown: bool) -> Result<String, SixballError> {
+    // Get config data with write permission to manipulate the tray
+    let mut tray_data = ctx.data.write().await;
+    let mut tray_map = tray_data
+        .get_mut::<crate::TrayKey>()
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+    
+    let tray = match tray_map.get_mut(&make_tray_id(msg)) {
+        Some(extant_tray) => extant_tray,
+        None => {
+            let new_tray = Tray::new();
+            tray_map.insert(make_tray_id(msg), new_tray);
+            tray_map.get_mut(&make_tray_id(msg)).expect("Failed to get tray we literally just inserted!")
         }
-    }
-    let results = GenesysResults::new(&dice_vector);
+    };
+    let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
 
-    for die in dice_vector {
-        for symbol in die.result() {
-            results_vector.push(symbol);
-        }
-    }
+    let roll = tray.add_roll_from_command(roll_command, roll_comment, &roller)?;
     
     let annotation = match roll_comment.trim() {
         "" => "".to_owned(),
         other => format!(" ({})", other)
     };
-    
-    let message = format!(
-        "`{}` {}:\n{}",
-        roll_command.trim(),
-        annotation,
-        results
-    );
 
-    msg.reply_ping(&ctx.http, message).await?;
-
-    Ok(())
+    match breakdown {
+        true => Ok(format!("`{}`{}:\n**{}** ({})", in_command.trim(), annotation, roll.result(), roll)),
+        false => Ok(format!("`{}`{}:\n**{}** (use `verbose` or `tray` commands for details)", in_command.trim(), annotation, roll.result())),
+    }
 }
 
 fn make_tray_id(msg: &Message) -> TrayId {

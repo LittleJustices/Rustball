@@ -1,4 +1,4 @@
-use crate::math::rpn_token::RpnToken;
+use crate::math::{rpn_token::RpnToken, math_errors::MathError};
 use super::{
     dice_errors::RollError,
     roll_token::RollToken,
@@ -35,52 +35,53 @@ impl RollStack {
                     match rpn_token {
                         RpnToken::Number(_) => stack.push(token),
                         RpnToken::Operator(operator) => {
-                            let right = stack.pop().ok_or(RollError::PlaceholderError)?;
-                            let left = stack.pop().ok_or(RollError::PlaceholderError)?;
+                            let right = stack.pop().ok_or(MathError::OperatorMismatchError)?;
+                            let left = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                             stack.push(RpnToken::Number(operator.apply(left.value()?.to_decimal()?, right.value()?.to_decimal()?)).into());
                         },
                         RpnToken::MathFn(math_fn) => {
-                            let arg = stack.pop().ok_or(RollError::PlaceholderError)?;
+                            let arg = stack.pop().ok_or(MathError::FnMismatchError)?;
                             stack.push(RpnToken::Number(math_fn.apply(arg.value()?.to_decimal()?)).into());
                         },
-                        _ => return Err(RollError::PlaceholderError),
+                        _ => return Err(RollError::MathError(MathError::MisplacedTokenError(rpn_token.clone()))),
                     }
                 },
                 RollToken::Argument(_) => stack.push(token),
                 RollToken::Dice(dice) => {
-                    let right = stack.pop().ok_or(RollError::PlaceholderError)?;
-                    let left = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let right = stack.pop().ok_or(MathError::OperatorMismatchError)?;
+                    let left = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                     let dice_resolved = dice.apply(left.argument()?, right.argument()?)?;
                     operations.push(RollToken::Dice(dice_resolved.clone()));
                     stack.push(RollToken::Dice(dice_resolved));
                 },
                 RollToken::Operator(operator) => {
-                    let right = stack.pop().ok_or(RollError::PlaceholderError)?;
-                    let left = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let right = stack.pop().ok_or(MathError::OperatorMismatchError)?;
+                    let left = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                     let operator_resolved = operator.apply(left, right.argument()?)?;
                     operations.push(RollToken::Operator(operator_resolved.clone()));
                     stack.push(RollToken::Operator(operator_resolved));
                 },
                 RollToken::Conversion(conversion) => {
-                    let token = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let token = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                     let conversion_resolved = conversion.apply(token)?;
                     operations.push(RollToken::Conversion(conversion_resolved.clone()));
                     stack.push(RollToken::Conversion(conversion_resolved));
                 },
                 RollToken::Combination(combination) => {
-                    let right = stack.pop().ok_or(RollError::PlaceholderError)?;
-                    let left = stack.pop().ok_or(RollError::PlaceholderError)?;
+                    let right = stack.pop().ok_or(MathError::OperatorMismatchError)?;
+                    let left = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                     let combination_resolved = combination.apply(left, right)?;
-                    operations.push(RollToken::Combination(combination_resolved.clone()));
+                    // Might uncomment this if hypothetical future combinations need to be displayed
+                    // operations.push(RollToken::Combination(combination_resolved.clone()));
                     stack.push(RollToken::Combination(combination_resolved));
                 }
             }
         }
 
         if stack.len() != 1 {
-            Err(RollError::PlaceholderError)
+            Err(RollError::MathError(MathError::TrailingTokensError))
         } else {
-            let final_result = stack.last().ok_or(RollError::PlaceholderError)?.clone();
+            let final_result = stack.last().ok_or(MathError::ImpossibleError)?.clone();
             Ok(RollStack { operations, stack, final_result })
         }
     }

@@ -4,7 +4,7 @@ use super::{
     pool::Pool,
     roll_token::RollToken,
     roll_value::RollValue,
-    result_kinds::*,
+    value_kinds::*,
     genesymbols::GeneSymbol,
 };
 
@@ -59,7 +59,7 @@ impl Dice {
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        self.pool.ok_or(RollError::PlaceholderError)
+        self.pool.ok_or(RollError::MissingPoolError)
     }
 
     pub fn value(self) -> Result<RollValue, RollError> {
@@ -97,7 +97,7 @@ impl FromStr for Dice {
         } else if let Ok(pool) = s.parse() {  // If it can be parsed into a pool, return that pool
             Ok(Dice{ pool: Some(pool) })
         } else {                                    // Otherwise error
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -167,7 +167,7 @@ impl FromStr for Combination {
         if let Ok(merge) = s.parse() {
             Ok(Combination::Merge(merge))
         } else {
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -192,23 +192,23 @@ impl Merge {
     }
 
     pub fn pool(self) -> Result<Pool, RollError> {
-        let left_pool = self.left.ok_or(RollError::PlaceholderError)?.pool()?;
-        let right_pool = self.right.ok_or(RollError::PlaceholderError)?.pool()?;
+        let left_pool = self.left.ok_or(RollError::NotResolvedError)?.pool()?;
+        let right_pool = self.right.ok_or(RollError::NotResolvedError)?.pool()?;
         Ok(left_pool.add(&right_pool))
     }
 
     pub fn value(&self) -> Result<RollValue, RollError> {
-        let left_value = self.left.as_ref().ok_or(RollError::PlaceholderError)?.value()?;
-        let right_value = self.right.as_ref().ok_or(RollError::PlaceholderError)?.value()?;
+        let left_value = self.left.as_ref().ok_or(RollError::NotResolvedError)?.value()?;
+        let right_value = self.right.as_ref().ok_or(RollError::NotResolvedError)?.value()?;
         left_value.add(right_value)
     }
 
     pub fn description(&self) -> String {
-        String::from("Not implemented yet")
+        String::from("Oops, you're not supposed to see this! Please let the boss know! (Tried to get description for merge operator)")
     }
 
     pub fn verbose(&self) -> String {
-        String::from("Not implemented yet")
+        String::from("Oops, you're not supposed to see this! Please let the boss know! (Tried to get verbose string for merge operator)")
     }
 }
 
@@ -219,7 +219,7 @@ impl FromStr for Merge {
         if s.trim() == "&" {
             Ok(Merge { left: None, right: None })
         } else {
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -274,7 +274,7 @@ impl FromStr for Conversion {
         if let Ok(g_dice) = s.parse() {
             Ok(Conversion::Genesys(g_dice))
         } else {
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -343,12 +343,12 @@ impl GenesysDice {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            GenesysDice::Boost { base, res: _ } => base.ok_or(RollError::PlaceholderError),
-            GenesysDice::Setback { base, res: _ } => base.ok_or(RollError::PlaceholderError),
-            GenesysDice::Ability { base, res: _ } => base.ok_or(RollError::PlaceholderError),
-            GenesysDice::Difficulty { base, res: _ } => base.ok_or(RollError::PlaceholderError),
-            GenesysDice::Proficiency { base, res: _ } => base.ok_or(RollError::PlaceholderError),
-            GenesysDice::Challenge { base, res: _ } => base.ok_or(RollError::PlaceholderError),
+            GenesysDice::Boost { base, res: _ } => base.ok_or(RollError::NotResolvedError),
+            GenesysDice::Setback { base, res: _ } => base.ok_or(RollError::NotResolvedError),
+            GenesysDice::Ability { base, res: _ } => base.ok_or(RollError::NotResolvedError),
+            GenesysDice::Difficulty { base, res: _ } => base.ok_or(RollError::NotResolvedError),
+            GenesysDice::Proficiency { base, res: _ } => base.ok_or(RollError::NotResolvedError),
+            GenesysDice::Challenge { base, res: _ } => base.ok_or(RollError::NotResolvedError),
         }
     }
 
@@ -364,11 +364,25 @@ impl GenesysDice {
     }
 
     pub fn description(&self) -> String {
-        String::from("Not implemented yet")
+        match self {
+            GenesysDice::Boost { base: _, res: _ } => String::from("Convert numeric results to boost die values"),
+            GenesysDice::Setback { base: _, res: _ } => String::from("Convert numeric results to setback die values"),
+            GenesysDice::Ability { base: _, res: _ } => String::from("Convert numeric results to ability die values"),
+            GenesysDice::Difficulty { base: _, res: _ } => String::from("Convert numeric results to difficulty die values"),
+            GenesysDice::Proficiency { base: _, res: _ } => String::from("Convert numeric results to proficiency die values"),
+            GenesysDice::Challenge { base: _, res: _ } => String::from("Convert numeric results to challenge die values"),
+        }
     }
 
     pub fn verbose(&self) -> String {
-        String::from("Not implemented yet")
+        match self {
+            GenesysDice::Boost { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Setback { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Ability { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Difficulty { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Proficiency { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+            GenesysDice::Challenge { base, res } => format!("{} -> {:?}", base.as_ref().unwrap_or(&Pool::new(0, 0)), res),
+        }
     }
 }
 
@@ -384,17 +398,24 @@ impl FromStr for GenesysDice {
                 "d" => Ok(GenesysDice::Difficulty { base: None, res: vec![] }),
                 "p" => Ok(GenesysDice::Proficiency { base: None, res: vec![] }),
                 "c" => Ok(GenesysDice::Challenge { base: None, res: vec![] }),
-                _ => Err(RollError::PlaceholderError),
+                _ => Err(RollError::SymbolError(s.into())),
             }
         } else {
-                Err(RollError::PlaceholderError)
+                Err(RollError::SymbolError(s.into()))
             }
     }
 }
 
 impl fmt::Display for GenesysDice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Not implemented yet")
+        match self {
+            GenesysDice::Boost { base: _, res } => write!(f, "Boost: {:?}", res),
+            GenesysDice::Setback { base: _, res } => write!(f, "Setback: {:?}", res),
+            GenesysDice::Ability { base: _, res } => write!(f, "Ability: {:?}", res),
+            GenesysDice::Difficulty { base: _, res } => write!(f, "Difficulty: {:?}", res),
+            GenesysDice::Proficiency { base: _, res } => write!(f, "Proficiency: {:?}", res),
+            GenesysDice::Challenge { base: _, res } => write!(f, "Challenge: {:?}", res),
+        }
     }
 }
 
@@ -466,7 +487,7 @@ impl FromStr for Operator {
         } else if let Ok(target) = s.parse() {
             Ok(Operator::Target(target))
         } else {                                                  // If all these fail, error out
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -496,22 +517,22 @@ impl Explode {
         match self {
             Explode::Additive { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => pool.explode_n_additive(explode_number, true),
-                    Argument::Array(explode_array) => pool.explode_specific_additive(&explode_array, true),
+                    Argument::Single(explode_number) => pool.explode_n_additive(explode_number, true)?,
+                    Argument::Array(explode_array) => pool.explode_specific_additive(&explode_array, true)?,
                 };
                 Ok(Explode::Additive { arg, res })
             },
             Explode::Once { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => pool.explode_n(explode_number, false),
-                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, false),
+                    Argument::Single(explode_number) => pool.explode_n(explode_number, false)?,
+                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, false)?,
                 };
                 Ok(Explode::Once { arg, res })
             },
             Explode::Recursive { arg: _, res: _ } => {
                 let res = match argument {
-                    Argument::Single(explode_number) => pool.explode_n(explode_number, true),
-                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, true),
+                    Argument::Single(explode_number) => pool.explode_n(explode_number, true)?,
+                    Argument::Array(explode_array) => pool.explode_specific(&explode_array, true)?,
                 };
                 Ok(Explode::Recursive { arg, res })
             },
@@ -522,21 +543,21 @@ impl Explode {
         match self {
             Explode::Additive { arg: _, res } => {
                 match res.len() {
-                    0 => Err(RollError::PlaceholderError),
+                    0 => Err(RollError::MissingPoolError),
                     _ => Ok(res.last().unwrap_or(&Pool::new(0, 0)).clone()),
                 }
             },
             Explode::Once { arg: _, res } => {
                 match res.len() {
-                    0 => Err(RollError::PlaceholderError),
+                    0 => Err(RollError::MissingPoolError),
                     1 => Ok(res[0].clone()),
                     2 => Ok(res[0].add(&res[1])),
-                    _ => Err(RollError::PlaceholderError),
+                    _ => Err(RollError::FBomb),
                 }
             },
             Explode::Recursive { arg: _, res } => {
                 match res.len() {
-                    0 => Err(RollError::PlaceholderError),
+                    0 => Err(RollError::MissingPoolError),
                     _ => Ok(res.iter().fold(Pool::new(0, 0), |final_pool, pool| final_pool.add(pool)))
                 }
             },
@@ -608,10 +629,10 @@ impl FromStr for Explode {
                 "" | "o"    => Ok(Explode::Once { arg: None, res: vec![] }),
                 "r"         => Ok(Explode::Recursive { arg: None, res: vec![] }),
                 "a"         => Ok(Explode::Additive { arg: None, res: vec![] }),
-                _           => Err(RollError::PlaceholderError)
+                _           => Err(RollError::SymbolError(s.into()))
             }
         } else {
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -648,7 +669,7 @@ impl Keep {
             Keep::High { arg: _, res: _ } => {
                 let res = match argument {
                     Argument::Array(keep_array) if keep_array.len() == 1 => Some(pool.keep_highest(keep_array[0])),
-                    Argument::Array(_) => return Err(RollError::PlaceholderError),
+                    Argument::Array(_) => return Err(RollError::ArgumentError),
                     Argument::Single(keep_amount) => Some(pool.keep_highest(keep_amount))
                 };
                 Ok(Keep::High { arg, res })
@@ -656,7 +677,7 @@ impl Keep {
             Keep::Low { arg: _, res: _ } => {
                 let res = match argument {
                     Argument::Array(keep_array) if keep_array.len() == 1 => Some(pool.keep_lowest(keep_array[0])),
-                    Argument::Array(_) => return Err(RollError::PlaceholderError),
+                    Argument::Array(_) => return Err(RollError::ArgumentError),
                     Argument::Single(keep_amount) => Some(pool.keep_lowest(keep_amount))
                 };
                 Ok(Keep::Low { arg, res })
@@ -666,17 +687,17 @@ impl Keep {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            Keep::Exact { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Keep::High { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
-            Keep::Low { arg: _, res: pool } => pool.ok_or(RollError::PlaceholderError),
+            Keep::Exact { arg: _, res: pool } => pool.ok_or(RollError::NotResolvedError),
+            Keep::High { arg: _, res: pool } => pool.ok_or(RollError::NotResolvedError),
+            Keep::Low { arg: _, res: pool } => pool.ok_or(RollError::NotResolvedError),
         }
     }
 
     pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
-            Keep::Exact { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Keep::High { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Keep::Low { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Keep::Exact { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
+            Keep::High { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
+            Keep::Low { arg: _, res: pool } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
         }
     }
 
@@ -718,10 +739,10 @@ impl FromStr for Keep {
                 "" | "h"    => Ok(Keep::High { arg: None, res: None }),
                 "l"         => Ok(Keep::Low { arg: None, res: None }),
                 "e"         => Ok(Keep::Exact { arg: None, res: None }),
-                _           => Err(RollError::PlaceholderError)
+                _           => Err(RollError::SymbolError(s.into()))
             }
         } else {
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -803,19 +824,19 @@ impl Reroll {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            Reroll::Better { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
-            Reroll::Once { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
-            Reroll::Recursive { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
-            Reroll::Worse { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::PlaceholderError),
+            Reroll::Better { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::NotResolvedError),
+            Reroll::Once { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::NotResolvedError),
+            Reroll::Recursive { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::NotResolvedError),
+            Reroll::Worse { arg: _, res: pool, rerolls: _ } => pool.ok_or(RollError::NotResolvedError),
         }
     }
 
     pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
-            Reroll::Better { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Reroll::Once { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Reroll::Recursive { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
-            Reroll::Worse { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::PlaceholderError)?.total().into()),
+            Reroll::Better { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
+            Reroll::Once { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
+            Reroll::Recursive { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
+            Reroll::Worse { arg: _, res: pool, rerolls: _ } => Ok(pool.as_ref().ok_or(RollError::NotResolvedError)?.total().into()),
         }
     }
 
@@ -876,10 +897,10 @@ impl FromStr for Reroll {
                 "r"         => Ok(Reroll::Recursive { arg: None , res: None, rerolls: None }),
                 "b"         => Ok(Reroll::Better { arg: None , res: None, rerolls: None }),
                 "w"         => Ok(Reroll::Worse { arg: None , res: None, rerolls: None }),
-                _           => Err(RollError::PlaceholderError)
+                _           => Err(RollError::SymbolError(s.into()))
             }
         } else {
-            Err(RollError::PlaceholderError)
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }
@@ -957,8 +978,8 @@ impl Target {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
-            Target::Success { arg: _, pool, sux: _ } => pool.ok_or(RollError::PlaceholderError),
-            Target::Botch { arg: _, pool, sux: _ } => pool.ok_or(RollError::PlaceholderError),
+            Target::Success { arg: _, pool, sux: _ } => pool.ok_or(RollError::MissingPoolError),
+            Target::Botch { arg: _, pool, sux: _ } => pool.ok_or(RollError::MissingPoolError),
         }
     }
 
@@ -991,7 +1012,7 @@ impl FromStr for Target {
         match s {
             "t" => Ok(Target::Success { arg: None, pool: None, sux: 0 }),
             "b" => Ok(Target::Botch { arg: None, pool: None, sux: 0 }),
-            _   => Err(RollError::PlaceholderError)
+            _   => Err(RollError::SymbolError(s.into()))
         }
     }
 }

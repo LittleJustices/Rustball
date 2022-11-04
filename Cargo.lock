@@ -934,7 +934,7 @@ dependencies = [
 
 [[package]]
 name = "rustball"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "chrono",
  "lazy_static",

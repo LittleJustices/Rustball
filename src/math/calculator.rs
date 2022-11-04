@@ -27,20 +27,20 @@ pub fn resolve_rpn(postfix_expression: &[RpnToken]) -> Result<f64, MathError> {
         match token {
             RpnToken::Number(number) => stack.push(number),
             RpnToken::Operator(operator) => {
-                let right = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
-                let left = stack.pop().ok_or(MathError::ExpressionError("Can you check if the operators and operands line up?".into()))?;
+                let right = stack.pop().ok_or(MathError::OperatorMismatchError)?;
+                let left = stack.pop().ok_or(MathError::OperatorMismatchError)?;
                 stack.push(operator.apply(left, right));
             },
             RpnToken::MathFn(math_fn) => {
-                let arg = stack.pop().ok_or(MathError::ExpressionError("Can you check if the functions and arguments line up?".into()))?;
+                let arg = stack.pop().ok_or(MathError::FnMismatchError)?;
                 stack.push(math_fn.apply(arg));
             },
-            _ => return Err(MathError::PlaceholderError)
+            _ => return Err(MathError::MisplacedTokenError(token))
         }
     }
 
     if stack.len() != 1 {
-        Err(MathError::ExpressionError("This math has too many elements left over!".into()))
+        Err(MathError::TrailingTokensError)
     } else {
         stack.pop().ok_or(MathError::ImpossibleError)
     }
