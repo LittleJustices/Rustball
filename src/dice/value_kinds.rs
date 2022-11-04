@@ -72,10 +72,6 @@ impl GenesysValue {
 
 impl fmt::Display for GenesysValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.tally.len() == 0 {
-            return write!(f, "No dice rolled");
-        }
-
         let tally_str = self.tally.iter().fold(
             String::new(), |s, (key, val)| {
                 if *val == 0 { s } else {
