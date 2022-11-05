@@ -33,3 +33,7 @@ TBA
 ### Miscellany
 
 TBA
+
+## Contact
+
+Realistically, if you're reading this at all, you probably know me personally and can reach me wherever you normally reach me. Otherwise, the best way to get my attention is probably to raise an issue.
