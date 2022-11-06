@@ -139,9 +139,9 @@ But:
 > 22 (6d6 -> [5, 2, 4, 6, 2, 3])
 
 This may also affect output:
-> ~roll sin(1d6*pi/2)  
+> ~roll sin(1d6\*pi/2)  
 > Output:  
-> sin(1d6*pi/2):  
+> sin(1d6\*pi/2):  
 > -0.00000000000000024492935982947064 (1d6 -> [4])
 
 You have to try pretty hard to make this happen in general, however.
