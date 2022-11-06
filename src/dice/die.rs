@@ -41,6 +41,7 @@ impl Die {
     pub fn reroll_excluding_range(&mut self, excluded: &[u8]) {
         let mut rng = thread_rng();
         let possible_values: Vec<u8> = (1..=self.sides).filter(|x| !excluded.contains(x)).collect();
+        if possible_values.len() == 0 { return; }   // Leave the die alone if there are no possible values to reroll to
         let random_index = rng.gen_range(0..possible_values.len());
         self.set(possible_values[random_index]);
     }
