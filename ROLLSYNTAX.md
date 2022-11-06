@@ -94,6 +94,100 @@ Each roll command has **aliases**, which are commands that Sixball treats as equ
 
 ## Operations in Detail
 
+This section is an in-depth explanation of each roll operation and how it works. I use "operation" here to mean both everything you can do in general and a specific type of thing you can do with dice in particular because I haven't straightened out my terminology yet and "tokens" seems less intuitive if you don't know the code backend. Suggestions welcome.
+
+Fundamentally, dice operations work similarly to mathematical ones. You have a left-hand argument, an operator, and a right-hand argument. This expression resolves to some value that can be used as the argument for another operator. When an operation is to be resolved, Sixball looks at the arguments it has and attempts to convert them as necessary. If it can't, it aborts and throws an error.
+
+The distinction between different operations may seem arbitrary because the way I've named them frames them as conceptual categories, but on a technical level, they're really defined by what arguments they take:
+
+ - **Mathematical operations** and **Dice** take two numerical arguments, one on the left and one on the right.
+ - **Operations** take one dicepool (on the left) and one numerical argument (on the right).
+ - **Conversions** take one dicepool (on the left) and no numerical arguments.
+ - **Combinations** take two dicepools, one on the left and one on the right.
+
+### Arguments
+
+I am assuming here that mathematical operations are self-explanatory enough to skip. You use them exactly like you would in a calculator. The roll command supports all math the dedicated calc command does. However, while Sixball can theoretically process any number a computer can handle, you can't roll 1.5 dice, so the way the roll command works with numbers deserves some explanation. There is also an extra type of numerical argument, arrays, that rolls can use but calc doesn't support (yet?).
+
+#### Numbers
+
+So as to not bury the lede: **You can roll up to 255 dice at a time with up to 255 sides each.** Any numerical arguments given to roll operations similarly cap out at 255. However, the final output of a roll can be any number and you can do any math you like with the results of a roll. In other words:
+
+A-Ok:
+> ~roll sin(1d6\*pi/2)  
+> Output:  
+> sin(1d6\*pi/2):  
+> 1 (1d6 -> [1])
+
+No es bueno:
+> ~roll 69d(4/20)  
+> Output:  
+> ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
+
+More precisely, while the basic calculator treats all numbers the same, the roll command recognizes two kinds of numbers: Those which can be used as arguments for dice-related operations and all other numbers. What are the numbers allowed as arguments? Any positive integer between 0 and 255, inclusive. (Yes, Sixball will let you roll 0d0. No, it won't do anything.)
+
+Note: Sixball does its best to convert numbers and recognize valid arguments, but because of the way computers work, rarely an expression you might expect to evaluate to an integer isn't recognized as one due to rounding errors. For example:
+
+> ~roll 4.0d4  
+> Output:  
+> ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
+
+But:
+> ~roll (4.0+2.0)d6  
+> Output:  
+> (4.0+2.0)d6:  
+> 22 (6d6 -> [5, 2, 4, 6, 2, 3])
+
+This may also affect output:
+> ~roll sin(1d6*pi/2)  
+> Output:  
+> sin(1d6*pi/2):  
+> -0.00000000000000024492935982947064 (1d6 -> [4])
+
+You have to try pretty hard to make this happen in general, however.
+
+#### Arrays
+
+An array is a collection of numbers like a vector. Arrays are enclosed in brackets ([ and ]) and the numbers inside separated by commas (,). Currently, arrays can contain only integers between 0 and 255, inclusive. Example:
+
+> [1, 2, 3, 5, 7]
+
+The array syntax is a little stricter than the rest, in that it does not support nested math. That is, [1+2, 3] can't be parsed into [3, 3], it will just throw an error. Whitespace is still allowed.
+
+The point of arrays is to be able to pass more than one number at once as an argument to an operator. What exactly that means depends on the specific operation. When used this way, they go where you would otherwise put a single number:
+
+> 5d10r[3, 4]
+
+The above will roll 5d10 and then reroll any 3s and 4s in the pool once. This is **not** equivalent to
+
+> 5d10r3r4
+
+The above would roll 5d10, then reroll any 3s in that pool, then reroll any 4s in **that** pool, including any 4s that may have been the result of a 3 being rerolled.
+
+Note that several operations behave differently depending on whether their argument is a single number or an array, so a single number argument is also not necessarily equivalent to an array argument containing only one number.
+
+#### Dice as Arguments
+
+Dicepools, and all operations that act on a dicepool, can be treated as either a dicepool or a numerical argument, as demanded by context. That is to say, if a dicepool is on the left side of a dice operation, which expects a pool of dice, it will be treated as, well, a dicepool. If a dicepool is used in an addition, it will be treated like a number.
+
+Dicepools always convert to a single number and never to an array, even though they come with an array of numbers, so to speak, built in. This is because, in general, you expect to use the total result of a die roll as a number.
+
+That number is, by default, the sum of all results in the dicepool. This **can** be greater than 255, though if it goes on to be used as an argument for another dice operation it will be capped at 255. It won't be capped if all you do with it is normal math.
+
+### Dice
+
+TBA
+
+### Operations
+
+TBA
+
+### Conversions
+
+TBA
+
+### Combinations
+
 TBA
 
 ## Roll Commands
