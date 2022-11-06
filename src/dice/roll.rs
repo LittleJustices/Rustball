@@ -64,6 +64,9 @@ impl Roll {
 impl fmt::Display for Roll {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let operations = self.operations();
+
+        if operations.len() == 0 { return write!(f, "No dice rolled"); }
+
         let mut breakdown = format!("{}", operations[0]);
         for i in 1..operations.len() {
             match &operations[i] {
