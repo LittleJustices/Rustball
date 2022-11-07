@@ -9,6 +9,7 @@ pub struct Die {
 
 impl Die {
     pub fn roll(sides: u8) -> Die {
+        if sides == 0 { return Die { sides: 0, result: 0 }; }
         let mut rng = thread_rng();
         let result = rng.gen_range(1..=sides);
         Die { sides, result }

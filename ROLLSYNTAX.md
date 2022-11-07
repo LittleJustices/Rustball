@@ -124,7 +124,7 @@ No es bueno:
 > Output:  
 > ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
 
-More precisely, while the basic calculator treats all numbers the same, the roll command recognizes two kinds of numbers: Those which can be used as arguments for dice-related operations and all other numbers. What are the numbers allowed as arguments? Any positive integer between 0 and 255, inclusive. (Yes, Sixball will let you roll 0d0. No, it won't do anything.)
+More precisely, while the basic calculator treats all numbers the same, the roll command recognizes two kinds of numbers: Those which can be used as arguments for dice-related operations and all other numbers. What are the numbers allowed as arguments? Any positive integer between 0 and 255, inclusive. (Yes, Sixball will let you roll 0d0. It's just a 0 with extra steps.)
 
 Note: Sixball does its best to convert numbers and recognize valid arguments, but because of the way computers work, rarely an expression you might expect to evaluate to an integer isn't recognized as one due to rounding errors. For example:
 
@@ -144,7 +144,7 @@ This may also affect output:
 > sin(1d6\*pi/2):  
 > -0.00000000000000024492935982947064 (1d6 -> [4])
 
-You have to try pretty hard to make this happen in general, however.
+You have to try pretty hard to make this happen in general, however, as you might guess from my very contrived examples.
 
 #### Arrays
 
