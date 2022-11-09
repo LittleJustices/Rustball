@@ -192,7 +192,47 @@ TBA
 
 ## Roll Commands
 
-TBA
+### Genroll: Genesys Narrative Dice
+
+**Aliases:** gr, genesys, groll
+
+This command is for rolling narrative dice as used by various Genesys games. The command looks like this:
+
+> ~genroll a2 p2 d2 : 2 ability dice, 2 proficiency dice, 2 difficulty dice  
+> Output:  
+> a2 p2 d2 (2 ability dice, 2 proficiency dice, 2 difficulty dice):  
+> 1 Advantage, 1 Success (use verbose or tray commands for details)
+
+The scheme is a letter representing the type of die followed by a number representing the amount of that type you want to roll. As usual, whitespace is optional but allowed.
+
+The letters are as follows:
+
+ - b: Boost (Blue d6)
+ - a: Ability (Green d8)
+ - p: Proficiency (Yellow d12)
+ - s: Setback (Black d6)
+ - d: Difficulty (Purple d8)
+ - c: Challenge (Red d12)
+
+Sixball by design keeps track of all the rolls and conversions, which combined with the more complex than usual result format is likely to clutter the output, so the breakdown is hidden by default.
+
+Under the hood, this command takes each valid set of letter + number and converts it to
+
+> {number}d{sides}g{letter}
+
+For example,
+
+> a2 => 2d8ga
+
+Then it links all of them together with merge (&) operators, so all told, our original example
+
+> genroll a2 p2 d2
+
+becomes
+
+> roll 2d8ga&2d12gp&2d8gd
+
+To unpack, this will roll 2d8, then do a table lookup as per Genesys Core Rulebook p. 10 to convert the rolled numbers to the corresponding sides on the ability die. Then it does the same for 2d12 proficiency dice and 2d8 difficulty dice. Finally, all those results are merged together with the merge operator (simple addition won't do it since the results aren't numbers).
 
 ## On Randomness
 
