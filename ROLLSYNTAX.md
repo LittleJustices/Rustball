@@ -124,7 +124,7 @@ No es bueno:
 > Output:  
 > ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
 
-More precisely, while the basic calculator treats all numbers the same, the roll command recognizes two kinds of numbers: Those which can be used as arguments for dice-related operations and all other numbers. What are the numbers allowed as arguments? Any positive integer between 0 and 255, inclusive. (Yes, Sixball will let you roll 0d0. It's just a 0 with extra steps.)
+More precisely, while the basic calculator treats all numbers the same, the roll command recognizes two kinds of numbers: Those that can be used as arguments for dice-related operations and all other numbers. What are the numbers allowed as arguments? Any positive integer between 0 and 255, inclusive. (Yes, Sixball will let you roll 0d0. It's just a 0 with extra steps.)
 
 Note: Sixball does its best to convert numbers and recognize valid arguments, but because of the way computers work, rarely an expression you might expect to evaluate to an integer isn't recognized as one due to rounding errors. For example:
 
@@ -170,23 +170,54 @@ Note that several operations behave differently depending on whether their argum
 
 Dicepools, and all operations that act on a dicepool, can be treated as either a dicepool or a numerical argument, as demanded by context. That is to say, if a dicepool is on the left side of a dice operation, which expects a pool of dice, it will be treated as, well, a dicepool. If a dicepool is used in an addition, it will be treated like a number.
 
-Dicepools always convert to a single number and never to an array, even though they come with an array of numbers, so to speak, built in. This is because, in general, you expect to use the total result of a die roll as a number.
+Dicepools always convert to a single number and never to an array, even though they come with an array of numbers, so to speak, built in. This is because, in general, you expect to use the total result of a die roll as a number and Sixball isn't smart enough to judge when you might want to use it as an array instead.
 
 That number is, by default, the sum of all results in the dicepool. This **can** be greater than 255, though if it goes on to be used as an argument for another dice operation it will be capped at 255. It won't be capped if all you do with it is normal math.
 
 ### Dice
 
-TBA
+**Base notation:** d
+
+The dice operator is the basic notation for dicepools. There is only one variant of this operator, so no need to specify additional options. It can take either number or array arguments in any combination, but its behavior is different depending on which combination you're using:
+
+|  Operation   |  Example  |  Behavior  |
+--- | --- | ---|
+| {number}d{number} | 1d20 | Standard notation, rolls X Y-sided dice. In the example: roll a single d20 |
+| {number}d{array} | 1d[8, 10, 12] | Will roll the specified number of dice for each of the die sizes in the array. In the example: 1d8, 1d10, 1d12 as a single pool |
+| {array}d{number} | [1, 2, 3]d6 | Sums the values in the array together and rolls that many dice of the specified kind. The example is therefore equivalent to 6d6 |
+| {array}d{array} | [3, 3, 2]d[6, 8, 10] | Matches the elements of the first array to those of the second and rolls the specified number and kind of dice each time. In the example: 3d6, 3d8, 2d10 as a single pool |
+
+The result is always treated as a single dicepool. The array-based options can be thought of as a more compact notation for the merge operator, but the latter is more powerful since it allows manipulating the dice pools individually before merging them as well as telling apart, say, different sets of dice of the same size.
+
+Within a dicepool with different sizes of die, the dice are always ordered in ascending order of die size, but for dice with equal number of sides the order they were rolled in is preserved. NB: Because of this, if you use the keep operation with dice of multiple different sizes, larger dice (for keep high) or smaller ones (for keep low) will be prioritized. For example, if I roll 1d[8, 10, 12] and get [7, 7, 5] in order, keeping the highest of these will always give me the d10 that's showing a 7 and never the d8 with the same result. If this default behavior is undesired, you'll need to work out a more precise command using the merge operator, or just roll the dice and leave the keeping to human decision.
 
 ### Operations
+
+#### Explode
+
+TBA
+
+#### Keep
+
+TBA
+
+#### Reroll
+
+TBA
+
+#### Target
 
 TBA
 
 ### Conversions
 
+#### Genesys Dice
+
 TBA
 
 ### Combinations
+
+#### Merge
 
 TBA
 
