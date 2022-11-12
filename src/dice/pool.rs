@@ -150,14 +150,11 @@ impl Pool {
     pub fn explode_n_additive(&self, n: u8, recursive: bool) -> Result<Vec<Self>, RollError> {
         let mut exploded_pools = self.explode_n(n, recursive)?;
         let mut result_vector = exploded_pools.clone();
-        println!("Exploded pools: {:?}", exploded_pools);
 
         while exploded_pools.len() >= 2 {
             let mut explosions = exploded_pools.pop().unwrap_or(Pool::new(0, 0));
-            println!("Explosions: {}", explosions);
             for die in exploded_pools.last_mut().unwrap_or(&mut Pool::new(0, 0)).dice.iter_mut().rev().filter(|d| d.equals(n)) {
                 let exploded_die = explosions.dice.pop().unwrap_or(Die { sides: 0, result: 0});
-                println!("Add {} to {}", exploded_die, die);
                 die.set(die.result + exploded_die.result);
             }
         }
@@ -189,14 +186,11 @@ impl Pool {
     pub fn explode_specific_additive(&self, range: &[u8], recursive: bool) -> Result<Vec<Self>, RollError> {
         let mut exploded_pools = self.explode_specific(range, recursive)?;
         let mut result_vector = exploded_pools.clone();
-        println!("Exploded pools: {:?}", exploded_pools);
 
         while exploded_pools.len() >= 2 {
             let mut explosions = exploded_pools.pop().unwrap_or(Pool::new(0, 0));
-            println!("Explosions: {}", explosions);
             for die in exploded_pools.last_mut().unwrap_or(&mut Pool::new(0, 0)).dice.iter_mut().rev().filter(|d| d.is_in(range)) {
                 let exploded_die = explosions.dice.pop().unwrap_or(Die { sides: 0, result: 0});
-                println!("Add {} to {}", exploded_die, die);
                 die.set(die.result + exploded_die.result);
             }
         }
