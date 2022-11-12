@@ -55,7 +55,7 @@ Die rolls are always written as XdY. X and Y are usually single numbers, but may
 
 The dice operators need to come after a dicepool on the left and be followed by an argument on the right, like 4d6k3 (roll 4d6, keep highest 3). The result of a dice operation is another, modified dicepool, so you can chain them together as much as you like. All dice operators are written as a letter, and most allow you to further specify their behavior with optional extra letters. For example, "r" by default rerolls dice showing the specified number(s) once and replaces the old result with the new, while "rr" rerolls recursively, i.e. if you get the same result again, you keep rerolling until you get a different one.
 
-Conversions are notated the same way as dice operators but don't take an argument to their right, as their behavior is generally predefined.
+Conversions are notated the same way as other dice operators but don't take an argument to their right, as their behavior is generally predefined.
 
 #### Quick Reference
 
@@ -94,14 +94,14 @@ Each roll command has **aliases**, which are commands that Sixball treats as equ
 
 ## Operations in Detail
 
-This section is an in-depth explanation of each roll operation and how it works. I use "operation" here to mean both everything you can do in general and a specific type of thing you can do with dice in particular because I haven't straightened out my terminology yet and "tokens" seems less intuitive if you don't know the code backend. Suggestions welcome.
+This section is an in-depth explanation of each roll operation and how it works. 
 
 Fundamentally, dice operations work similarly to mathematical ones. You have a left-hand argument, an operator, and a right-hand argument. This expression resolves to some value that can be used as the argument for another operator. When an operation is to be resolved, Sixball looks at the arguments it has and attempts to convert them as necessary. If it can't, it aborts and throws an error.
 
 The distinction between different operations may seem arbitrary because the way I've named them frames them as conceptual categories, but on a technical level, they're really defined by what arguments they take:
 
  - **Mathematical operations** and **Dice** take two numerical arguments, one on the left and one on the right.
- - **Operations** take one dicepool (on the left) and one numerical argument (on the right).
+ - **Modifiers** take one dicepool (on the left) and one numerical argument (on the right).
  - **Conversions** take one dicepool (on the left) and no numerical arguments.
  - **Combinations** take two dicepools, one on the left and one on the right.
 
@@ -191,11 +191,87 @@ The result is always treated as a single dicepool. The array-based options can b
 
 Within a dicepool with different sizes of die, the dice are always ordered in ascending order of die size, but for dice with equal number of sides the order they were rolled in is preserved. NB: Because of this, if you use the keep operation with dice of multiple different sizes, larger dice (for keep high) or smaller ones (for keep low) will be prioritized. For example, if I roll 1d[8, 10, 12] and get [7, 7, 5] in order, keeping the highest of these will always give me the d10 that's showing a 7 and never the d8 with the same result. If this default behavior is undesired, you'll need to work out a more precise command using the merge operator, or just roll the dice and leave the keeping to human decision.
 
-### Operations
+### Modifiers
+
+Modifiers are dice operators that act on a pool of dice and modify it according to the numerical arguments given.
+
+It's important to note that modifiers are strictly applied in order and fully resolved before the next operation is applied. This is true of all operations, but it's especially important to keep in mind for modifiers that involve rerolling dice. For example, if I want to roll 5d10, reroll all 1s and explode all 10s, I can either reroll 1s and then explode 10s or the other way around. In the former case, if I rerolled any 1s into 10s, those will also explode, but if any 10s explode into 1s, those won't get a reroll. In the latter case, the opposite is true. If I really want to do it recursively, I would have to do so manually. You could approximate that behavior by chaining several redundant operators together, but there's no way to keep going indefinitely. I do plan to eventually add commands that will let you add operations to past rolls, but that's off in the future.
+
+There are four types of modifiers currently implemented:
+
+ - Explode (Roll extra dice and add them to the pool)
+ - Keep (Keep only specific dice from the pool and discard the rest)
+ - Reroll (Roll specific dice in the pool again, replacing the old result)
+ - Target (Modify the result of the pool by counting dice with specific values as successes or failures rather than adding all results)
 
 #### Explode
 
-TBA
+**Base notation:** e  
+**Sub-operations:** ea, eo, er
+
+The explode modifier takes the dicepool to its left and picks out those dice that show one of the numbers given by the argument on its right. For each of those dice, it will roll an extra die with the same number of sides and add it to the pool.
+
+The right-hand argument gives the number or numbers to be exploded. For example:
+
+> 5d6e6 -> Roll 5d6, explode all dice that came up 6
+> 6d10e[9, 10] -> Roll 6d10, explode all dice coming up either 9 or 10
+
+The explosion types currently supported are Additive (ea), Once (eo), and Recursive (er). If you just use e without a specifier, Sixball defaults to explode once (so e is equivalent to eo).
+
+As a reminder, chaining operations together (e.g. 6d10e9e10) and giving an array argument (e.g. 6d10e[9, 10]) are not equivalent. The former will be resolved in order from left to right (so the e10 would see any extra 10s resulting from the e9), while the latter will be resolved in one go.
+
+Because explosions actually increase the size of the dice pool, and recursive explosions in particular are theoretically unbounded, there are extra restrictions on them to prevent abuse. Sixball won't let you do a recursive or additive explosion if the number of arguments you give is greater than half the maximum die size in the target pool:
+
+> ~roll 4d4er[2, 3, 4]  
+> Output:  
+> ☢ Roll error! ☢ (Okay, let's slow down here... (｡･_･｡)ﾉ ﾁｮｲﾏﾁ｡ That's too explosive for my tastes! (Be nice and don't try to go infinite))
+
+If you really really need to do this for some reason, just do it manually.
+
+##### Additive
+
+**Notation:** ea
+
+Example:
+
+> ~roll 5d10ea10  
+> Output:  
+> 5d10ea10:  
+> 42 (5d10 -> [9, 9, 10, 4, 4], explode additive 10 -> [9, 9, 16, 4, 4])
+
+Explode additive adds the newly rolled die's result to that of the die that exploded instead of adding the die to the pool as a separate die. This can and usually does result in a die showing a result greater than the number of sides it has. This modifier is chiefly (exclusively, that I know of) used in Legend of the Five Rings up to 4th edition.
+
+Additive rerolls are also recursive, so if you get another 10, it will keep exploding and adding the result to the old die. 
+
+Additive rerolls are more computationally complex than they sound intuitively, so this operation can be fairly slow.
+
+##### Once
+
+**Notation:** eo or e
+
+Example:
+
+> ~roll 5d10e10  
+> Output:  
+> 5d10e10:  
+> 33 (5d10 -> [10, 2, 6, 1, 4], explode once 10 -> [10, 2, 6, 1, 4, 10])
+
+This is the default behavior for the explode modifier with no further specification. For each die in the original pool whose result matches one of the explode arguments, one extra die is rolled and added to the pool. That's it. If that extra die's result happens to match one of the arguments as well, it doesn't keep exploding.
+
+##### Recursive
+
+**Notation:** er
+
+Example:
+
+> ~roll 6d6er6  
+> Output:  
+> 6d6er6:  
+> 28 (6d6 -> [6, 4, 3, 1, 4, 3], explode recursive 6 -> [6, 4, 3, 1, 4, 3, 6, 1])
+
+Like all the other explode modifiers, this checks for dice that match one of its arguments and adds an extra die to the pool for each of those. If any of the extra dice also match one of the arguments, those dice explode again, and so on until the argument stops showing up.
+
+Only either indefinite recursion or no recursion at all (with eo) is supported. If you want to explode at most a finite number of times, I recommend chaining multiple explode-once operators, one for each "layer" of explosion.
 
 #### Keep
 
