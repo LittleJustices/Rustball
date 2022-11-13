@@ -243,7 +243,7 @@ Explode additive adds the newly rolled die's result to that of the die that expl
 
 Additive rerolls are also recursive, so if you get another 10, it will keep exploding and adding the result to the old die. 
 
-Additive rerolls are more computationally complex than they sound intuitively, so this operation can be fairly slow.
+Additive rerolls are more computationally complex than they sound intuitively, so this operation can be fairly slow—don't be surprised if Sixball takes a few seconds.
 
 ##### Once
 
@@ -275,7 +275,72 @@ Only either indefinite recursion or no recursion at all (with eo) is supported.
 
 #### Keep
 
-TBA
+**Base notation:** k  
+**Sub-operations:** ke, kh, kl
+
+The keep modifier selects specific dice in a pool and discards the rest, returning a smaller pool which consists only of the kept dice. For example:
+
+> 4d6k3 -> Roll 4d6, keep highest 3 results
+> 2d20k1 -> Roll 1d20 twice and keep the higher result
+
+The keep types currently supported are Exact (ke), High (kh), and Low (kl). If you just use k without a specifier, Sixball defaults to keep high (so k is equivalent to kh).
+
+Which dice are kept is determined by the sub-operation and the argument given to it. Note that the arguments don't work the same for all sub-operations, and not all sub-operations accept all arguments.
+
+##### Exact
+
+**Notation:** ke
+
+Keep exact keeps only those dice whose result exactly matches one of its right-hand arguments, regardless of how many dice that is. For example:
+
+> ~roll 5d4ke[2, 3]  
+> Output:  
+> 5d4ke[2, 3]:  
+> 8 (5d4 -> [3, 3, 4, 1, 2], keep exactly [2, 3] -> [3, 3, 2])
+
+Keep exact accepts both single numbers and arrays as arguments, and they work just like they do with explode and reroll modifiers: the argument(s) are those numbers a die's result has to match in order to be kept.
+
+##### High
+
+**Notation:** kh
+
+Keep high keeps the N dice showing the largest results, where N is the right-hand argument. For example:
+
+> ~roll 4d6kh3  
+> Output:  
+> 4d6kh3:  
+> 7 (4d6 -> [2, 2, 1, 3], keep highest 3 -> [2, 2, 3])
+
+Keep high only accepts a single number as its right-hand argument, as an array doesn't make a lot of sense with this operation:
+
+> ~roll 4d6kh[2, 3]  
+> Output:  
+> ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
+
+Because of the way Sixball stores dice, if there are dice of multiple different sizes in the pool, keep high will preferentially keep larger dice (i.e. dice with more sides) over smaller ones if it has to pick between dice that came up the same number. It will still return a smaller die showing a greater result before a larger die showing a lesser result.
+
+If you try to keep more dice than there are in the pool, keep high will just give back the entire pool unmodified. If you keep 0 dice, you get an empty pool.
+
+##### Low
+
+**Notation:** kl
+
+Keep low keeps the N dice showing the smallest results, where N is the right-hand argument. For example:
+
+> ~roll 2d20kl1  
+> Output:  
+> 2d20kl1:  
+> 7 (2d20 -> [20, 7], keep lowest 1 -> [7])
+
+Keep low only accepts a single number as its right-hand argument, as an array doesn't make a lot of sense with this operation:
+
+> ~roll 4d6kl[2, 3]  
+> Output:  
+> ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
+
+Because of the way Sixball stores dice, if there are dice of multiple different sizes in the pool, keep low will preferentially keep smaller dice (i.e. dice with fewer sides) over larger ones if it has to pick between dice that came up the same number. It will still return a larger die showing a lesser result before a smaller die showing a greater result.
+
+If you try to keep more dice than there are in the pool, keep low will just give back the entire pool unmodified. If you keep 0 dice, you get an empty pool.
 
 #### Reroll
 
