@@ -271,7 +271,7 @@ Example:
 
 Like all the other explode modifiers, this checks for dice that match one of its arguments and adds an extra die to the pool for each of those. If any of the extra dice also match one of the arguments, those dice explode again, and so on until the argument stops showing up.
 
-Only either indefinite recursion or no recursion at all (with eo) is supported. If you want to explode at most a finite number of times, I recommend chaining multiple explode-once operators, one for each "layer" of explosion.
+Only either indefinite recursion or no recursion at all (with eo) is supported.
 
 #### Keep
 
