@@ -291,12 +291,14 @@ Which dice are kept is determined by the sub-operation and the argument given to
 
 **Notation:** ke
 
-Keep exact keeps only those dice whose result exactly matches one of its right-hand arguments, regardless of how many dice that is. For example:
+Example:
 
 > ~roll 5d4ke[2, 3]  
 > Output:  
 > 5d4ke[2, 3]:  
 > 8 (5d4 -> [3, 3, 4, 1, 2], keep exactly [2, 3] -> [3, 3, 2])
+
+Keep exact keeps only those dice whose result exactly matches one of its right-hand arguments, regardless of how many dice that is. 
 
 Keep exact accepts both single numbers and arrays as arguments, and they work just like they do with explode and reroll modifiers: the argument(s) are those numbers a die's result has to match in order to be kept.
 
@@ -304,12 +306,14 @@ Keep exact accepts both single numbers and arrays as arguments, and they work ju
 
 **Notation:** kh
 
-Keep high keeps the N dice showing the largest results, where N is the right-hand argument. For example:
+Example:
 
 > ~roll 4d6kh3  
 > Output:  
 > 4d6kh3:  
 > 7 (4d6 -> [2, 2, 1, 3], keep highest 3 -> [2, 2, 3])
+
+Keep high keeps the N dice showing the largest results, where N is the right-hand argument.
 
 Keep high only accepts a single number as its right-hand argument, as an array doesn't make a lot of sense with this operation:
 
@@ -325,12 +329,14 @@ If you try to keep more dice than there are in the pool, keep high will just giv
 
 **Notation:** kl
 
-Keep low keeps the N dice showing the smallest results, where N is the right-hand argument. For example:
+Example:
 
 > ~roll 2d20kl1  
 > Output:  
 > 2d20kl1:  
 > 7 (2d20 -> [20, 7], keep lowest 1 -> [7])
+
+Keep low keeps the N dice showing the smallest results, where N is the right-hand argument.
 
 Keep low only accepts a single number as its right-hand argument, as an array doesn't make a lot of sense with this operation:
 
