@@ -344,7 +344,79 @@ If you try to keep more dice than there are in the pool, keep low will just give
 
 #### Reroll
 
-TBA
+**Base notation:** r  
+**Sub-operations:** rb, ro, rr, rw
+
+The reroll modifier takes specified dice in the dicepool to its left and rolls them again, replacing the previous result (or making a decision as to which result should be used).
+
+The right-hand argument gives the number or numbers that should be rerolled. For example:
+
+> 4d6r1 -> roll 4d6, and if any 1s appear, roll those dice again
+> 2d6r[1, 2] -> roll 2d6 and reroll any dice that come up 1 or 2
+
+The reroll types currently supported are Better (rb), Once (ro), Recursive (rr), and Worse (rw). If you just use r without a specifier, Sixball defaults to reroll once (so r is equivalent to ro).
+
+As a reminder, chaining operations together (e.g. 2d6r1r2) and giving an array argument (e.g. 2d6r[1, 2]) are not equivalent. The former will be resolved in order from left to right (so the r2 would see any 2s the r1 might have rerolled into), while the latter will be resolved in one go.
+
+Unlike explosions, rerolls are bounded and safe, so there are no restrictions on arguments (not even for recursive rerolls).
+
+##### Better
+
+**Notation:** rb
+
+Example:
+
+> ~roll 4d6rb1  
+> Output:  
+> 4d6rb1:  
+> 18 (4d6 -> [1, 6, 4, 3], reroll keep better 1 -> [5, 6, 4, 3])
+
+Reroll better rolls a die again and always uses the "better" of the two results. The terminology here assumes that higher is better, so strictly speaking it actually uses the roll with the greater result. If lower is better in your use case, you'll want reroll worse instead.
+
+The lesser result is discarded, so there's no way to check what both rolls were.
+
+##### Once
+
+**Notation:** ro
+
+Example:
+
+> ~roll 2d6ro[1, 2]  
+> Output:  
+> 2d6ro[1, 2]:  
+> 8 (2d6 -> [2, 1], reroll once [1, 2] -> [2, 6])
+
+This is the default behavior for the reroll modifier with no further specification. For each die in the original pool whose result matches one of the reroll arguments, that die is rolled again and its result replaced with the new one, regardless of what the new result is. The original result is discarded, but obviously, you know it was one of the reroll arguments.
+
+##### Recursive
+
+**Notation:** rr
+
+Example:
+
+> ~roll 5d10rr[3, 4]  
+> Output:  
+> 5d10rr[3, 4]:  
+> 38 (5d10 -> [2, 10, 10, 9, 4], reroll recursively [3, 4] -> [2, 10, 10, 9, 7])
+
+Recursive reroll finds dice whose results match one of its arguments and rerolls them, but guarantees that the new result won't match any of the arguments. This imitates the process of rerolling a physical die until it stops coming up a certain number or numbers, but in a single step. The resulting probability distribution can be shown to be identical.
+
+If you try to make Sixball recursively reroll all possible values a die can show, such as with 1d2rr[1, 2], it won't reroll the die at all.
+
+##### Worse
+
+**Notation:** rw
+
+Example:
+
+> ~roll 4d6rw6  
+> Output:  
+> 4d6rw6:  
+> 12 (4d6 -> [1, 5, 4, 6], reroll keep worse 6 -> [1, 5, 4, 2])
+
+Reroll worse rolls a die again and always uses the "worse" of the two results. The terminology here assumes that higher is better, so strictly speaking it actually uses the roll with the lesser result. If lower is better in your use case, you'll want reroll better instead.
+
+The greater result is discarded, so there's no way to check what both rolls were.
 
 #### Target
 
