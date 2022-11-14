@@ -426,7 +426,14 @@ The greater result is discarded, so there's no way to check what both rolls were
 
 #### Target
 
-TBA
+**Notation:** t, b
+
+The target modifier alters a roll such that its total value will be calculated from the number of dice that meet or exceed a certain target number or number(s). Use it for success-counting dicepool mechanics like World of Darkness or Shadowrun.
+
+> 6d6t5 -> Roll 6d6 and count 5 or higher as successes (Shadowrun 5e)
+> 5d10t[1, 1, 1, 2] -> Roll 5d10 and count 7-9 as 1 success and 10 as two (Exalted)
+
+There are two kinds of target modifier, Target (t) and Botch (b). They are identical, except that target treats its successes as positive numbers and botch as negative numbers (i.e. botch can subtract successes).
 
 ### Conversions
 
