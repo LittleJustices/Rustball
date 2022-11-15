@@ -357,7 +357,7 @@ The reroll modifier takes specified dice in the dicepool to its left and rolls t
 
 The right-hand argument gives the number or numbers that should be rerolled. For example:
 
-> 4d6r1 -> roll 4d6, and if any 1s appear, roll those dice again
+> 4d6r1 -> roll 4d6, and if any 1s appear, roll those dice again  
 > 2d6r[1, 2] -> roll 2d6 and reroll any dice that come up 1 or 2
 
 The reroll types currently supported are Better (rb), Once (ro), Recursive (rr), and Worse (rw). If you just use r without a specifier, Sixball defaults to reroll once (so r is equivalent to ro).
