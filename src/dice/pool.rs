@@ -117,11 +117,11 @@ impl Pool {
     }
 
     pub fn count_dice_over(&self, target: u8) -> u8 {
-        self.dice.iter().filter(|d| d.equal_or_greater(target)).fold(0, |sum, _| sum + 1)
+        self.dice.iter().filter(|d| d.equal_or_greater(target)).count() as u8
     }
 
     pub fn count_dice_under(&self, target: u8) -> u8 {
-        self.dice.iter().filter(|d| d.equal_or_less(target)).fold(0, |sum, _| sum + 1)
+        self.dice.iter().filter(|d| d.equal_or_less(target)).count() as u8
     }
 
     pub fn count_successes(&self, tns: &[u8]) -> u16 {
