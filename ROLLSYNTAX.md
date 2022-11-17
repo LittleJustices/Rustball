@@ -456,9 +456,43 @@ To simplify that notation a little, if you provide fewer values than the dice in
 
 ### Conversions
 
+Conversions take a dicepool and transform the way it behaves in some predefined fashion. They do not take a second argument and just go after any expression that results in a pool of dice. This category is originally intended for operations that alter a pool's return value (table lookups like dice with symbols instead of numbers on them or hit locations), hence the name, but other behavior could be implemented too, as long as it acts on a dicepool and doesn't need another argument.
+
+I don't expect you to use conversions with the roll command often; that is very much what specialized commands are for. But they're available.
+
 #### Genesys Dice
 
-TBA
+**Base notation:** g  
+**Sub-operations:** ga, gb, gc, gd, gp, gs
+
+Genesys Dice converts regular, everyday dice with numbers on them to the ~~weird special dice with symbols on them~~ narrative dice used in the Genesys system. The converted dicepool is modified such that instead of a number, its result is treated as a collection of symbols, which are calculated by comparing the numbers rolled on the dice with the table provided on page 10 of the Genesys Core Rulebook. For example:
+
+> ~roll 2d8ga  
+> Output:  
+> 2d8ga:  
+> 1 Success, 1 Advantage (2d8 -> [3, 5], Ability: [[Success], [Advantage]])
+
+The symbols will be added together and cancel out as per the rules for that. The breakdown lists each individual die's result in case you need to know.
+
+Each conversion operator needs to go with the correct kind of die (d8 for ability dice, etc) for correct results. Sixball won't stop you from converting arbitrary dice to the wrong kind of narrative dice, you just won't get the right results. Any die faces without a conversion defined in the table are treated as blank results.
+
+To roll multiple narrative dice together, you'll need to split them up into multiple pools (one for each kind) so Sixball can know which is which. Because narrative die results aren't numbers, they can't be added together, so you'll need to use the merge operator instead to combine all the pools into a single one **after** converting them to narrative dice, like so:
+
+> ~roll 2d8ga & 2d12gp & 2d8gd: 2 ability dice, 1 proficiency die, and 2 difficulty dice  
+> Output:  
+> 2d8ga & 2d12gp & 2d8gd (2 ability dice, 1 proficiency die, and 2 difficulty dice):  
+> 2 Advantages, 1 Success, 1 Triumph (2d8 -> [7, 5], Ability: [[Success, Advantage], [Advantage]]; 2d12 -> [9, 12], Proficiency: [[Success, Advantage], [Triumph]]; 2d8 -> [8, 1], Difficulty: [[Failure, Threat], [Blank]])
+
+This way, all the result symbols are added up and canceled out correctly. As you can see, this gets verbose quickly, so in general, you'll want to use [the dedicated genroll command](#genroll-genesys-narrative-dice) instead, which takes simplified input and translates it into this syntax for you.
+
+There is no default behavior for the g operator by itself without a specifier (it will return an error). The syntax for the different dice is:
+
+ - gb: Boost (Blue d6)
+ - ga: Ability (Green d8)
+ - gp: Proficiency (Yellow d12)
+ - gs: Setback (Black d6)
+ - gd: Difficulty (Purple d8)
+ - gc: Challenge (Red d12)
 
 ### Combinations
 
