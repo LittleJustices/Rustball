@@ -35,10 +35,12 @@ pub enum TrayId {
 }
 
 #[command]
-#[description="The basic roll command! Currently under construction.\n
+#[description="The basic roll command!\n
 Use standard die roll notation of the form `XdY`. I can roll up to 255 dice with up to 255 sides at once!\n
 I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice into any math expression, e.g. `1d20+5`. If the `calc` command can handle it, so can the `roll` command!\n
-Additional dice operations to be added. Please wait warmly!"]
+Additional dice operations are added as the Boss thinks of them and has time. Please wait warmly!\n
+For full documentation on roll syntax, check out the [readme](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md)!
+Or look over the [quick reference](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md#quick-reference) if you just need a refresher. (* ˘꒳˘)⁾⁾ｳﾝｳﾝ"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let (roll_command, roll_comment) = extract_arguments(ctx, args).await;
@@ -201,7 +203,8 @@ The dice codes are:
 \t• p: Proficiency (Yellow d12)
 \t• s: Setback (Black d6)
 \t• d: Difficulty (Purple d8)
-\t• c: Challenge (Red d12)"]
+\t• c: Challenge (Red d12)\n
+Documentation can be found [here](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md#genroll-genesys-narrative-dice)!"]
 #[aliases("gr", "genesys", "groll")]
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let (in_command, roll_comment) = extract_arguments(ctx, args).await;
