@@ -483,7 +483,7 @@ To roll multiple narrative dice together, you'll need to split them up into mult
 > 2d8ga & 2d12gp & 2d8gd (2 ability dice, 1 proficiency die, and 2 difficulty dice):  
 > 2 Advantages, 1 Success, 1 Triumph (2d8 -> [7, 5], Ability: [[Success, Advantage], [Advantage]]; 2d12 -> [9, 12], Proficiency: [[Success, Advantage], [Triumph]]; 2d8 -> [8, 1], Difficulty: [[Failure, Threat], [Blank]])
 
-This way, all the result symbols are added up and canceled out correctly. As you can see, this gets verbose quickly, so in general, you'll want to use [the dedicated genroll command](#genroll-genesys-narrative-dice) instead, which takes simplified input and translates it into this syntax for you.
+This way, all the result symbols are added up and canceled out correctly. As you can see, this gets verbose quickly, so in general, you'll want to use [the dedicated genroll command](#genroll-genesys-narrative-dice) instead, which takes simplified input and translates it into this syntax for you. That command will also hide the operations breakdown by default to make the output less wordy.
 
 There is no default behavior for the g operator by itself without a specifier (it will return an error). The syntax for the different dice is:
 
@@ -496,9 +496,26 @@ There is no default behavior for the g operator by itself without a specifier (i
 
 ### Combinations
 
+Combinations are operations that combine two dicepools (or any two operations) in some way not supported by other basic functionality. This is a very broad category in theory, but right now there is just one: The merge operator.
+
 #### Merge
 
-TBA
+**Notation** &
+
+Merge is like a generalized addition between two pools of dice. Where regular addition (with the + operator) between two dicepools treats both of them as numbers and returns another number, the merge operator preserves both dicepools in their entirety and returns another dicepool consisting of all the dice in both mashed together.
+
+The main application for this is when you need to combine results that can't be added together mathematically, such as [narrative dice](#genesys-dice) (see that section for an example).
+
+While I don't know of a system that would call for this, you can also use merging to get very granular with nested dice operations, for example:
+
+> ~roll (2d6kh1 & 3d8kl2)kh1  
+> Output:  
+> (2d6kh1 & 3d8kl2)kh1:  
+> 6 (2d6 -> [6, 1], keep highest 1 -> [6]; 3d8 -> [8, 6, 1], keep lowest 2 -> [1, 6], keep highest 1 -> [6])
+
+Here, we have rolled 2d6 and kept the higher of the two, then taken the lowest two of 3d8, and finally of those three dice we selected the highest one. This isn't restricted to keeping dice; we can do similar tricks with arbitrary operations.
+
+In contexts that don't call for preserving the full dicepool, the merge operator works equivalently to addition, but less efficiently.
 
 ## Roll Commands
 
