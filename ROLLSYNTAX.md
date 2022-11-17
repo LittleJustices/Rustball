@@ -61,25 +61,29 @@ Conversions are notated the same way as other dice operators but don't take an a
 
 Below is a summary of the currently supported operations and the way they are written:
 
- - Mathematical operations: Refer back to the math section of the main readme. The ones you're likely to use when rolling dice are written how you expect.
- - d: Roll dice.
- - &: Merge.
- - e: Explode dice showing the number or numbers specified by the argument to the right.
-    - ea: Explode additive: Instead of adding the new die to the pool, its value is added to that of the die that exploded. This is also recursive (see below).
-    - eo: Explode once (i.e. if the new die shows the same number, do not explode it too). This is the default.
-    - er: Explode recursively: If the new die shows the same number, it explodes again, and so on.
- - k: Keep dice specified by the argument to the right.
-    - ke: Keep exact. Rather than keeping a certain number of dice, keeps all dice that show the number or numbers given as an argument, and no more.
-    - kh: Keep high. Keeps the highest N dice, where N is the argument. This is the default.
-    - kl: Keep low. Keeps the lowest N dice, where N is the argument.
- - r: Reroll dice specified by the argument to the right.
-    - rb: Reroll better. Roll a die again and keep whichever roll is higher.
-    - ro: Reroll once. Roll a die again and replace it with the new one regardless of result. This is the default.
-    - rr: Reroll recursively. Roll a die again until it doesn't show any of the numbers in the argument.
-    - rw: Reroll worse. Roll a die again and keep whichever roll is lower.
- - t or b: Target and Botch. These are variants of the same operation, but represented as separate letters. Given a single number as an argument, target will count dice equal to or above that number and botch will count dice equal to or below that number. See the individual entry for details.
-    - t: Target number. Count dice showing the specified number(s) and treat the pool's value as the number of dice beating the target number (successes) instead of the sum of die faces.
-    - b: Botch. As target number, but dice showing the specified number(s) are counted as negative successes. Generally used only together with target number.
+|  Syntax   |  |  Operation  |  Example  | Note |
+| --- | --- | --- | --- | --- |
+|  (Any number)   | |  Numerical argument  |  20  |
+|  [\*, ...]   | |  Array argument  |  [1, 2, 3]  |
+|  d   | |  Die roll  |  1d20  |
+|  e   | |  Explode...  |  6d10e10  |
+| |  ea  |  Additively  |    |
+| |  eo  |  Once  |    |  Default behavior
+| |  ea  |  Recursively  |    |
+|  k   | |  Keep...  |  4d6k3  |
+| |  ke  |  Exact  |    |
+| |  kh  |  Highest  |    |  Default behavior
+| |  kl  |  Lowest  |    |
+|  r   | |  Reroll...  |  2d6r1  |
+| |  rb  |  Keep better  |    |
+| |  ro  |  Once  |    |  Default behavior
+| |  rr  |  Recursively  |    |
+| |  rb  |  Keep worse  |    |
+|  t   | |  Target number  |  6d6r5  |
+|  b   | |  Botch number  |  4d10t6b1  |
+|  &   | |  Merge  |  2d6 & 3d8  |
+|  + - \* / ^   | |  Mathematical operations  |  2 + 2  | Refer to [math section of main readme](/README.md#math)
+|  (Various)   | |  Conversions  |    | Refer to [individual documentation](#conversions)
 
 ### Formatting, Whitespace, and Typos
 
