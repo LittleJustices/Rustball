@@ -323,6 +323,8 @@ Keep high only accepts a single number as its right-hand argument, as an array d
 
 Because of the way Sixball stores dice, if there are dice of multiple different sizes in the pool, keep high will preferentially keep larger dice (i.e. dice with more sides) over smaller ones if it has to pick between dice that came up the same number. It will still return a smaller die showing a greater result before a larger die showing a lesser result.
 
+Note that keep high and keep low do not preserve the order of dice in a pool. The dice will be sorted in ascending order of result in the output pool.
+
 If you try to keep more dice than there are in the pool, keep high will just give back the entire pool unmodified. If you keep 0 dice, you get an empty pool.
 
 ##### Low
@@ -345,6 +347,8 @@ Keep low only accepts a single number as its right-hand argument, as an array do
 > ☢ Roll error! ☢ (ぇ━(*´･д･)━!!! I don't know what to do with this! (Failed to find an argument or wrong argument))
 
 Because of the way Sixball stores dice, if there are dice of multiple different sizes in the pool, keep low will preferentially keep smaller dice (i.e. dice with fewer sides) over larger ones if it has to pick between dice that came up the same number. It will still return a larger die showing a lesser result before a smaller die showing a greater result.
+
+Note that keep high and keep low do not preserve the order of dice in a pool. The dice will be sorted in ascending order of result in the output pool.
 
 If you try to keep more dice than there are in the pool, keep low will just give back the entire pool unmodified. If you keep 0 dice, you get an empty pool.
 
