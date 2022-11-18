@@ -18,6 +18,10 @@ impl Tray {
         }
     }
 
+    pub fn repeat_rolls(number: &str) -> Result<u8, RollError> {
+        Ok(number.parse()?)
+    }
+
     pub fn rolls(&self) -> &VecDeque<Roll> {
         &self.rolls
     }

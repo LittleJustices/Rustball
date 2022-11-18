@@ -249,18 +249,33 @@ async fn new_roll_output(ctx: &Context, msg: &Message, in_command: &str, roll_co
         }
     };
     let roller = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
-
-    let roll = tray.add_roll_from_command(roll_command, roll_comment, &roller)?;
     
     let annotation = match roll_comment.trim() {
         "" => "".to_owned(),
         other => format!(" ({})", other)
     };
 
-    match breakdown {
-        true => Ok(format!("`{}`{}:\n**{}** ({})", in_command.trim(), annotation, roll.result(), roll)),
-        false => Ok(format!("`{}`{}:\n**{}** (use `verbose` or `tray` commands for details)", in_command.trim(), annotation, roll.result())),
+    let (repeat, roll_command) = match roll_command.split_once("#") {
+        Some((number, command)) => (Tray::repeat_rolls(number)?, command),
+        None => (1, roll_command)
+    };
+
+    let mut output = format!("`{}`{}:", in_command.trim(), annotation);
+
+    for i in 1..=repeat {
+        let roll = tray.add_roll_from_command(roll_command, roll_comment, &roller)?;
+        let numbering = match repeat {
+            1 => "".to_string(),
+            _ => format!("{}: ", i)
+        };
+        let next = match breakdown {
+            true => format!("\n{}**{}** ({})", numbering, roll.result(), roll),
+            false => format!("\n{}**{}** (use `verbose` or `tray` commands for details)", numbering, roll.result())
+        };
+        output.push_str(&next);
     }
+
+    Ok(output)
 }
 
 fn make_tray_id(msg: &Message) -> TrayId {
