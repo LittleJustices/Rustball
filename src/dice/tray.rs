@@ -5,7 +5,7 @@ use super::{
 };
 use crate::sixball_errors::SixballError;
 
-const CAPACITY: usize = 10;
+const CAPACITY: usize = 16;
 
 pub struct Tray {
     rolls: VecDeque<Roll>,
@@ -19,7 +19,10 @@ impl Tray {
     }
 
     pub fn repeat_rolls(number: &str) -> Result<u8, RollError> {
-        Ok(number.parse()?)
+        match number.parse()? {
+            repeat if (1..=CAPACITY).contains(&repeat) => Ok(repeat as u8),
+            _ => Err(RollError::PlaceholderError)
+        }
     }
 
     pub fn rolls(&self) -> &VecDeque<Roll> {
