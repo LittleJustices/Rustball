@@ -20,7 +20,7 @@ impl Tray {
 
     pub fn repeat_rolls(number: &str) -> Result<u8, RollError> {
         match number.parse()? {
-            repeat if (1..=CAPACITY).contains(&repeat) => Ok(repeat as u8),
+            repeat @ 1..=CAPACITY => Ok(repeat as u8),
             _ => Err(RollError::PlaceholderError)
         }
     }
