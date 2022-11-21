@@ -49,6 +49,8 @@ pub fn dailydose() -> &'static str {
             "https://twitter.com/Vtcsku3HJBR2eZw/status/1562432126091268097",
             "https://twitter.com/Vtcsku3HJBR2eZw/status/1561344299702165504",
             "https://twitter.com/Vtcsku3HJBR2eZw/status/1566211831143604225",
+            "https://avlvla.tumblr.com/post/700762577625645056/when-her-narrative-echoes-with-yours",
+            "https://avlvla.tumblr.com/post/691729454195752960/touhou-ship-week-2022-day-5-rarepair",
         ]
     };
     let random_index = rand::thread_rng().gen_range(0..links.len());
