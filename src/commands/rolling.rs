@@ -43,10 +43,16 @@ For full documentation on roll syntax, check out the [readme](https://github.com
 Or look over the [quick reference](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md#quick-reference) if you just need a refresher. (* ˘꒳˘)⁾⁾ｳﾝｳﾝ"]
 #[aliases("r", "rill", "rol", "rll")]
 async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let (roll_command, roll_comment) = extract_arguments(ctx, args).await;
+    let (repeat, roll_command, roll_comment) = match extract_arguments(ctx, args).await {
+        Ok(arguments) => arguments,
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+            return Ok(());
+        },
+    };
     let in_command = &roll_command;
 
-    let response = match new_roll_output(&ctx, &msg, &in_command, &roll_command, &roll_comment, true).await {
+    let response = match new_roll_output(&ctx, &msg, repeat, &in_command, &roll_command, &roll_comment, true).await {
         Ok(res) => format!("{}", res),
         Err(why) => format!("{}", why),
     };
@@ -207,10 +213,16 @@ The dice codes are:
 Documentation can be found [here](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md#genroll-genesys-narrative-dice)!"]
 #[aliases("gr", "genesys", "groll")]
 async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let (in_command, roll_comment) = extract_arguments(ctx, args).await;
+    let (repeat, in_command, roll_comment) = match extract_arguments(ctx, args).await {
+        Ok(arguments) => arguments,
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+            return Ok(());
+        },
+    };
 
     let response = match command_translations::genesys(&in_command) {
-        Ok(roll_command) => match new_roll_output(&ctx, &msg, &in_command, &roll_command, &roll_comment, false).await {
+        Ok(roll_command) => match new_roll_output(&ctx, &msg, repeat, &in_command, &roll_command, &roll_comment, false).await {
             Ok(res) => format!("{}", res),
             Err(why) => format!("{}", why),
         },
@@ -221,18 +233,32 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
-async fn extract_arguments(ctx: &Context, args: Args) -> (String, String) {
+async fn extract_arguments(ctx: &Context, args: Args) -> Result<(u8, String, String), SixballError> {
     // Get config data as read-only to look up the comment separator. It is then freed up when we move out of the function
     let config_data = ctx.data.read().await;
     let cfg = config_data.get::<crate::ConfigKey>().expect("Failed to retrieve config!");
 
-    match args.message().split_once(&cfg.comment_separator) {
+    let (full_command, comment) = match args.message().split_once(&cfg.comment_separator) {
         Some((command, comment)) => (command.to_lowercase(), comment.into()),
         None => (args.message().to_lowercase(), "".into())
-    }
+    };
+    let (repeat, command) = match full_command.split_once(&cfg.repeater_separator) {
+        Some((number, command)) => (Tray::repeat_rolls(number)?, command.into()),
+        None => (1, full_command)
+    };
+
+    Ok((repeat, command, comment))
 }
 
-async fn new_roll_output(ctx: &Context, msg: &Message, in_command: &str, roll_command: &str, roll_comment: &str, breakdown: bool) -> Result<String, SixballError> {
+async fn new_roll_output(
+    ctx: &Context,
+    msg: &Message,
+    repeat: u8,
+    in_command: &str,
+    roll_command: &str,
+    roll_comment: &str,
+    breakdown: bool,
+) -> Result<String, SixballError> {
     // Get config data with write permission to manipulate the tray
     let mut tray_data = ctx.data.write().await;
     let mut tray_map = tray_data
@@ -253,11 +279,6 @@ async fn new_roll_output(ctx: &Context, msg: &Message, in_command: &str, roll_co
     let annotation = match roll_comment.trim() {
         "" => "".to_owned(),
         other => format!(" ({})", other)
-    };
-
-    let (repeat, roll_command) = match roll_command.split_once("#") {
-        Some((number, command)) => (Tray::repeat_rolls(number)?, command),
-        None => (1, roll_command)
     };
 
     let mut output = format!("`{}`{}:", in_command.trim(), annotation);

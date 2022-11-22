@@ -176,7 +176,7 @@ async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result:
 async fn main() {
     let config = Config::new();
 
-    let Config { discord_token, prefix, comment_separator: _, log_folder_path: _, pfp_source: _} = &config;
+    let Config { discord_token, prefix, .. } = &config;
 
     let http = Http::new_with_token(discord_token);
 
