@@ -3,7 +3,6 @@ use super::{
     dice_errors::RollError,
     roll::Roll,
 };
-use crate::sixball_errors::SixballError;
 
 const CAPACITY: usize = 16;
 
@@ -48,7 +47,7 @@ impl Tray {
     }
 
     // Take a roll command, resolve it, and return the roll while storing it in the tray
-    pub fn add_roll_from_command(&mut self, roll_command: &str, roll_comment: &str, roller: &str) -> Result<&Roll, SixballError> {
+    pub fn add_roll_from_command(&mut self, roll_command: &str, roll_comment: &str, roller: &str) -> Result<&Roll, RollError> {
          // If Rolls queue is full, remove the oldest element
         while self.rolls.len() >= CAPACITY { self.rolls.pop_front(); }
 
@@ -58,7 +57,7 @@ impl Tray {
         // Add new roll to tray
         self.rolls.push_back(new_roll);
 
-        Ok(self.get_newest_roll()?)
+        self.get_newest_roll()
     }
 
     pub fn reroll_latest(&mut self) -> Result<&Roll, RollError> {
