@@ -8,7 +8,7 @@ The quick reference is [here](#quick-reference).
 
 Every roll command looks like this:
 
-> ~[command name] [roll string] : [comment (optional)]
+> ~[command name] [repetitions (optional)] \# [roll string] : [comment (optional)]
 
 Sixball will repeat the original roll string and comment and reply with the results. For example:
 
@@ -22,7 +22,7 @@ Sixball will repeat the original roll string and comment and reply with the resu
 > a2p1d2 (Genesys roll example):  
 > Blank (use verbose or tray commands for details)  
 
-For obvious reasons, sixball needs the command name and the roll string to be able to do anything. The colon separator and the comment are optional and don't affect the roll itself in any way (but you do need the colon if you want to add a comment).
+For obvious reasons, sixball needs the command name and the roll string to be able to do anything. The colon separator and the comment are optional and don't affect the roll itself in any way (but you do need the colon if you want to add a comment). The same goes for the hash separator and repetion number (the latter affects how the roll is **handled** but not the roll itself).
 
 ### Dice Operations
 
@@ -85,14 +85,37 @@ Below is a summary of the currently supported operations and the way they are wr
 |  + - \* / ^   | |  Mathematical operations  |  2 + 2  | Refer to [math section of main readme](/README.md#math)
 |  (Various)   | |  Conversions  |    | Refer to [individual documentation](#conversions)
 
+### Repetitions and Comments
+
+There are two optional additions to the roll string that aren't handled by the roller itself: Specifying a number of times the same roll should be repeated, and adding a comment.
+
+Both of these are separated from the actual roll string by separator characters. These can be changed in the config file; by default they are a hash (\#) and colon (:) respectively. The number of repetitions has to come before the roll and the comment after.
+
+If you prepend a number separated by a hash to the roll string, Sixball will process the roll that many times and collect all the rolls into a single output. For example:
+
+> ~roll 6#3d6: Stats in order  
+> Output:  
+> 3d6 (Stats in order):  
+> 1: 12 (3d6 -> [6, 5, 1])  
+> 2: 10 (3d6 -> [2, 4, 4])  
+> 3: 7 (3d6 -> [3, 1, 3])  
+> 4: 8 (3d6 -> [1, 2, 5])  
+> 5: 7 (3d6 -> [1, 3, 3])  
+> 6: 10 (3d6 -> [1, 5, 4])
+
+Sixball will accept at most 16 simultaneous rolls.
+
+Comments have no effect on the way a roll is processed and are simply added to the roll and output. You can use them for labeling what a roll is for or whatever else you like. There's no inherent limitation to how long a comment can be or what can go in it besides the chat client's character limit and other players' willingness to put up with nonsense. Since Sixball only looks for the leftmost hash and colon separators in the roll input, it should even be safe to use those characters in the comment, but I have not bothered to test this exhaustively, so no guarantees.
+
 ### Formatting, Whitespace, and Typos
 
 As a rule, Sixball makes no distinction between uppercase and lowercase and allows arbitrary whitespace within the roll string (including line breaks, tabs, and [anything the Unicode standard considers whitespace](https://en.wikipedia.org/wiki/Template:Whitespace_(Unicode))). Since roll strings can get complicated, this allows you to break them up as you see fit to help you write and/or read them correctly. Specialized functions (but not roll itself) may even ignore arbitrary characters in between meaningful ones, but this is a side effect and the only thing I'm committed to supporting for all commands is whitespace and case insensitivity. 
 
-In general, Sixball is meant to be as forgiving of mistakes as I can reasonably make it. There are two hard rules:
+In general, Sixball is meant to be as forgiving of mistakes as I can reasonably make it. There are three hard rules:
 
  - There **must** be at least one whitespace between the command name and the roll string. Otherwise, Sixball won't be able to tell them apart from some other command it doesn't recognize.
- - If you want to add a comment to the roll, it **must** be separated from the roll string by a colon (:). This is so that Sixball can tell the comment apart from another portion of the roll string (whitespace before or after the colon doesn't matter).
+ - If you want to add a comment to the roll, it **must** be separated from the roll string by a colon (:). This is so that Sixball can tell the comment apart from another portion of the roll string (whitespace before or after the colon doesn't matter). The same is true of repetitions and the hash (\#) separator.
+ - If you want to repeat the roll multiple times, the repeat number and hash separator **must** come before the roll; if you're adding a comment, the comment and colon separator **must** come after.
 
 Each roll command has **aliases**, which are commands that Sixball treats as equivalent. These include abbreviations or intuitive alternate names as well as typos I expect to be common. For example, ~roll, ~r, ~rill, ~rol, and ~rll all do the same thing without skipping a beat.
 

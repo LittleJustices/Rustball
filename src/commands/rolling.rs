@@ -39,6 +39,8 @@ pub enum TrayId {
 Use standard die roll notation of the form `XdY`. I can roll up to 255 dice with up to 255 sides at once!\n
 I can also do math with dice! (　-\\`ω-)✧ﾄﾞﾔｯ Just plug your dice into any math expression, e.g. `1d20+5`. If the `calc` command can handle it, so can the `roll` command!\n
 Additional dice operations are added as the Boss thinks of them and has time. Please wait warmly!\n
+Want to roll the same kind of roll multiple times in one go? Put the number in front of the roll separated by a hash (#)! Like this: `6#3d6`.
+To append a comment to your roll, put it after the roll separated by a colon (:) like this: `1d20+5: Comment here`.\n
 For full documentation on roll syntax, check out the [readme](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md)!
 Or look over the [quick reference](https://github.com/LittleJustices/Rustball/blob/master/ROLLSYNTAX.md#quick-reference) if you just need a refresher. (* ˘꒳˘)⁾⁾ｳﾝｳﾝ"]
 #[aliases("r", "rill", "rol", "rll")]
