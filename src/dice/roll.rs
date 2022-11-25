@@ -31,11 +31,6 @@ impl Roll {
         Ok(Roll { command, comment, operations, result, owner, timestamp })
     }
 
-    #[allow(dead_code)]
-    pub fn reroll_all(&mut self) {
-        todo!();
-    }
-
     pub fn command(&self) -> &str {
         &self.command
     }
@@ -58,6 +53,10 @@ impl Roll {
 
     pub fn timestamp(&self) -> DateTime<Utc> {
         self.timestamp
+    }
+
+    pub fn roll_again(&self) -> Result<Self, RollError> {
+        Self::new(&self.command, &self.comment, &self.owner)
     }
 }
 
