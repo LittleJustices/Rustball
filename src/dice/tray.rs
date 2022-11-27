@@ -29,12 +29,7 @@ impl Tray {
     }
 
     pub fn get_newest_roll(&self) -> Result<&Roll, RollError> {
-        let get_roll_result = match self.rolls.back() {
-            Some(roll) => Ok(roll),
-            None => Err(RollError::RetrieveError("Error retrieving latest roll from tray: Roll queue is empty".to_owned()))
-        };
-
-        get_roll_result
+        self.rolls.back().ok_or(RollError::RetrieveError)
     }
 
     // Take a roll command, resolve it, and return the roll while storing it in the tray
@@ -52,7 +47,7 @@ impl Tray {
     }
 
     pub fn reroll_latest(&mut self) -> Result<&Roll, RollError> {
-        let latest_roll = self.rolls.back().ok_or(RollError::PlaceholderError)?;
+        let latest_roll = self.get_newest_roll()?;
         let new_roll = latest_roll.roll_again()?;
         self.rolls.push_back(new_roll);
 
