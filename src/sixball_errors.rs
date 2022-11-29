@@ -23,9 +23,9 @@ impl Error for SixballError {}
 impl Display for SixballError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            SixballError::MathError(why) => write!(f, "☢ Math error! ☢ ({})", why),
-            SixballError::RollError(why) => write!(f, "☢ Roll error! ☢ ({})", why),
-            SixballError::ScryfallError(why) => write!(f, "☢ Scryfall error! ☢ ({})", why),
+            SixballError::MathError(why) => write!(f, "☢ Math error! ☢ {}", why),
+            SixballError::RollError(why) => write!(f, "☢ Roll error! ☢ {}", why),
+            SixballError::ScryfallError(why) => write!(f, "☢ Scryfall error! ☢ {}", why),
         }
     }
 }
