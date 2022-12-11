@@ -992,15 +992,59 @@ impl Target {
 
     pub fn description(&self) -> String {
         match self {
-            Target::Success { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
-            Target::Botch { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
+            Target::Success { arg, pool: _, sux: _ } => match arg {
+                Some(argument) => match argument {
+                    Argument::Single(n) => format!("Count one success per die showing {} or higher", n),
+                    Argument::Array(a) => format!("Count successes: {:?}", a),
+                },
+                None => "Something went wrong! Pleasse let the boss know!".into(),
+            },
+            Target::Botch { arg, pool: _, sux: _ } => match arg {
+                Some(argument) => match argument {
+                    Argument::Single(n) => format!("Subtract one success per die showing {} or lower", n),
+                    Argument::Array(a) => format!("Subtract successes: {:?}", a),
+                },
+                None => "Something went wrong! Pleasse let the boss know!".into(),
+            },
         }
     }
 
     pub fn verbose(&self) -> String {
         match self {
-            Target::Success { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
-            Target::Botch { arg: _, pool: _, sux: _ } => format!("Verbose description TBA"),
+            Target::Success { arg, pool, sux } => match arg {
+                Some(argument) => match argument {
+                    Argument::Single(n) => format!(
+                        "{} -> {:?} = {} success(es)",
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)),
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)).dice().iter().map(|d| if d.equal_or_greater(*n) {1} else {0}).collect::<Vec<i16>>(),
+                        sux
+                    ),
+                    Argument::Array(a) => format!(
+                        "{} -> {:?} = {} success(es)",
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)),
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)).dice().iter().map(|d| d.count_successes(a)).collect::<Vec<u8>>(),
+                        sux
+                    ),
+                },
+                None => "Something went wrong! Pleasse let the boss know!".into(),
+            },
+            Target::Botch { arg, pool, sux } => match arg {
+                Some(argument) => match argument {
+                    Argument::Single(n) => format!(
+                        "{} -> {:?} = {} success(es)",
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)),
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)).dice().iter().map(|d| if d.equal_or_less(*n) {-1} else {0}).collect::<Vec<i16>>(),
+                        sux
+                    ),
+                    Argument::Array(a) => format!(
+                        "{} -> {:?} = {} success(es)",
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)),
+                        pool.as_ref().unwrap_or(&Pool::new(0, 0)).dice().iter().map(|d| - (d.count_successes(a) as i16)).collect::<Vec<i16>>(),
+                        sux
+                    ),
+                },
+                None => "Something went wrong! Pleasse let the boss know!".into(),
+            },
         }
     }
 }
@@ -1023,7 +1067,7 @@ impl fmt::Display for Target {
             Target::Success { arg, pool: _, sux } => {
                 match arg.as_ref().unwrap_or(&Argument::Single(0)) {
                     Argument::Single(threshold) => {
-                        write!(f, "success on {} or higher -> {} successes", threshold, sux)
+                        write!(f, "success on {} or higher -> {} success(es)", threshold, sux)
                     },
                     Argument::Array(thresh_array) => {
                         let t_values = thresh_array.iter().enumerate();
@@ -1035,8 +1079,8 @@ impl fmt::Display for Target {
                             }
                         });
                         match t_string.strip_suffix(", ") {
-                            Some(output) => write!(f, "count successes: {} -> {} successes", output, sux),
-                            None => write!(f, "no success counting rule given -> {} successes", sux),
+                            Some(output) => write!(f, "count successes: {} -> {} success(es)", output, sux),
+                            None => write!(f, "no success counting rule given -> {} success(es)", sux),
                         }
                     },
                 }
@@ -1044,7 +1088,7 @@ impl fmt::Display for Target {
             Target::Botch { arg, pool: _, sux } => {
                 match arg.as_ref().unwrap_or(&Argument::Single(0)) {
                     Argument::Single(threshold) => {
-                        write!(f, "subtract success on {} or lower -> {} successes", threshold, sux)
+                        write!(f, "subtract success on {} or lower -> {} success(es)", threshold, sux)
                     },
                     Argument::Array(thresh_array) => {
                         let t_values = thresh_array.iter().enumerate();
@@ -1056,8 +1100,8 @@ impl fmt::Display for Target {
                             }
                         });
                         match t_string.strip_suffix(", ") {
-                            Some(output) => write!(f, "subtract successes: {} -> {} successes", output, sux),
-                            None => write!(f, "no success counting rule given -> {} successes", sux),
+                            Some(output) => write!(f, "subtract successes: {} -> {} success(es)", output, sux),
+                            None => write!(f, "no success counting rule given -> {} success(es)", sux),
                         }
                     },
                 }
