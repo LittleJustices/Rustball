@@ -26,7 +26,12 @@ const GENESYS_TOKEN_STRING: &str = r"(?x)
     (?P<number>\d+)     # Number of dice of the preceding kind, named capture group
 ";
 
+const S3_TOKEN_STRING: &str = r"(?x)
+    (?P<mod>[+-]\S+)    # Modifier or penalty
+";
+
 lazy_static!{
     pub static ref DICE_TOKEN_RE: Regex = Regex::new(&format!("(?x)(?P<token>{}|{})", MATH_TOKEN_STRING, DICE_TOKEN_STRING)).expect("Failed to compile dice token regex!");
     pub static ref GENESYS_TOKEN_RE: Regex = Regex::new(GENESYS_TOKEN_STRING).expect("Failed to compile genesys token regex!");
+    pub static ref S3_TOKEN_RE: Regex = Regex::new(S3_TOKEN_STRING).expect("Failed to compile story shaper token regex!");
 }
