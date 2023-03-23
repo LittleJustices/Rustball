@@ -235,6 +235,30 @@ async fn genroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     Ok(())
 }
 
+#[command]
+#[description="This command is for rolling Story Shaper System dice! Help string to be added."]
+#[aliases("s3r")]
+async fn s3roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let (repeat, in_command, roll_comment) = match extract_arguments(ctx, args).await {
+        Ok(arguments) => arguments,
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+            return Ok(());
+        },
+    };
+
+    let response = match command_translations::story_shaper(&in_command) {
+        Ok(roll_command) => match new_roll_output(&ctx, &msg, repeat, &roll_command, &roll_command, &roll_comment, true).await {
+            Ok(res) => format!("{}", res),
+            Err(why) => format!("{}", why),
+        },
+        Err(why) => format!("{}", SixballError::RollError(why)),
+    };
+    msg.reply_ping(&ctx.http, response).await?;
+
+    Ok(())
+}
+
 async fn extract_arguments(ctx: &Context, args: Args) -> Result<(u8, String, String), SixballError> {
     // Get config data as read-only to look up the comment separator. It is then freed up when we move out of the function
     let config_data = ctx.data.read().await;

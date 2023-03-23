@@ -22,6 +22,10 @@ pub fn genesys(in_command: &str) -> Result<String, RollError> {
     Ok(out_command)
 }
 
+pub fn story_shaper(_in_command: &str) -> Result<String, RollError> {
+    Ok(format!("2d10"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
