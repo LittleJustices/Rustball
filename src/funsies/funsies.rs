@@ -58,6 +58,7 @@ pub fn dailydose() -> &'static str {
             "https://avlvla.tumblr.com/post/691729454195752960/touhou-ship-week-2022-day-5-rarepair",
             "https://www.tumblr.com/amemenojaku/710993007892168704/for-the-rarepair-suggestions-maybe-akyuurei-im",
             "https://twitter.com/PileArcato/status/1640618804559372293",
+            "https://twitter.com/smalllightAON/status/1625319312700350468",
         ]
     };
     let random_index = rand::thread_rng().gen_range(0..links.len());
