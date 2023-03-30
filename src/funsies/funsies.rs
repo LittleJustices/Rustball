@@ -59,6 +59,8 @@ pub fn dailydose() -> &'static str {
             "https://www.tumblr.com/amemenojaku/710993007892168704/for-the-rarepair-suggestions-maybe-akyuurei-im",
             "https://twitter.com/PileArcato/status/1640618804559372293",
             "https://twitter.com/smalllightAON/status/1625319312700350468",
+            "https://twitter.com/PileArcato/status/1641288827368099841",
+            "https://twitter.com/PileArcato/status/1641120552373960707",
         ]
     };
     let random_index = rand::thread_rng().gen_range(0..links.len());
