@@ -45,6 +45,7 @@ async fn card(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     match card_info {
         Ok(c) => {
             msg.channel_id.send_message(&ctx.http, |m| {
+                m.content(format!("<{}>", c.get_uri()));
                 m.embed(|e| {
                     e.title(c.get_name());
                     e.url(c.get_uri());
