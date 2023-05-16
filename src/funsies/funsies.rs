@@ -61,6 +61,7 @@ pub fn dailydose() -> &'static str {
             "https://twitter.com/smalllightAON/status/1625319312700350468",
             "https://twitter.com/PileArcato/status/1641288827368099841",
             "https://twitter.com/PileArcato/status/1641120552373960707",
+            "https://twitter.com/PileArcato/status/1658374773674475520",
             "https://twitter.com/Kuzukago_123/status/1646491966434349056",
             "https://twitter.com/31mriri0830/status/1652673110141976576",
         ]
