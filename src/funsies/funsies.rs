@@ -35,6 +35,7 @@ pub fn dailydose() -> &'static str {
             "https://twitter.com/bon_feather/status/1626925749629321217",
             "https://skeb.jp/@Hisona_/works/278\nhttps://media.discordapp.net/attachments/245782979710812161/1044659249009135616/951808-1.output.png",
             "https://twitter.com/kyomoneko_2/status/1595693938798567425",
+            "https://twitter.com/bon_feather/status/1672803801978269696",
         ],
         _ => vec![
             "https://twitter.com/nsl_mgh/status/1367171515154800640",
