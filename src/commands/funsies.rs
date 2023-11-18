@@ -1,12 +1,8 @@
 use serenity::{
-    framework::{
-        standard::{
+    framework::standard::{
             CommandResult,
-            macros::{
-                command,
-            },
+            macros::command,
         },
-    },
     model::channel::Message,
     prelude::*,
 };
