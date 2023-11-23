@@ -266,12 +266,14 @@ mod tests {
             "(2+2)d10+4d(5+5)",
             "4d6r1k3",
             "1d2d3d4",
+            "d20",
         ];
         let token_vector_0 = RollToken::tokenize_expression(expressions[0]).unwrap();
         let token_vector_1 = RollToken::tokenize_expression(expressions[1]).unwrap();
         let token_vector_2 = RollToken::tokenize_expression(expressions[2]).unwrap();
         let token_vector_3 = RollToken::tokenize_expression(expressions[3]).unwrap();
         let token_vector_4 = RollToken::tokenize_expression(expressions[4]).unwrap();
+        let token_vector_5 = RollToken::tokenize_expression(expressions[5]).unwrap();
 
         let postfix_0 = vec![
             RollToken::Argument(Argument::Single(2)),
@@ -328,12 +330,17 @@ mod tests {
             RollToken::Argument(Argument::Single(4)),
             RollToken::Dice(Dice{ pool: None }),
         ];
+        let postfix_5 = vec![
+            RollToken::Argument(Argument::Single(20)),
+            RollToken::Dice(Dice{ pool: None }),
+        ];
 
         assert_eq!(RollToken::shunting_dice(&token_vector_0).unwrap(), postfix_0);
         assert_eq!(RollToken::shunting_dice(&token_vector_1).unwrap(), postfix_1);
         assert_eq!(RollToken::shunting_dice(&token_vector_2).unwrap(), postfix_2);
         assert_eq!(RollToken::shunting_dice(&token_vector_3).unwrap(), postfix_3);
         assert_eq!(RollToken::shunting_dice(&token_vector_4).unwrap(), postfix_4);
+        assert_eq!(RollToken::shunting_dice(&token_vector_5).unwrap(), postfix_5);
     }
 
     #[test]

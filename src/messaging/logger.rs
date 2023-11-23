@@ -2,7 +2,7 @@ use std::fs;
 use std::fs::{ File, OpenOptions };
 use std::io;
 use std::io::Write;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
 use chrono::{DateTime, Utc};
 

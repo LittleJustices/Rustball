@@ -1,13 +1,9 @@
 use serenity::{
-    framework::{
-        standard::{
+    framework::standard::{
             Args,
             CommandResult,
-            macros::{
-                command,
-            },
+            macros::command,
         },
-    },
     model::{
         channel::Message, 
         id::{
@@ -21,7 +17,7 @@ use std::collections::HashMap;
 use crate::{
     dice::{
         command_translations,
-        tray::Tray
+        tray::Tray, roll::Roll,
     }, 
     sixball_errors::SixballError
 };
@@ -66,7 +62,7 @@ async fn roll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 #[command]
 #[description="Under construction. Please wait warmly!"]
 async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
-    // Get config data with write permission to manipulate the tray
+    // Get context data with write permission to manipulate the tray
     let mut tray_data = ctx.data.write().await;
     let mut tray_map = tray_data
         .get_mut::<crate::TrayKey>()
@@ -86,6 +82,54 @@ async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
         }
     } else {
         msg.reply_ping(&ctx.http, "There's nothing to reroll!").await?;
+    }
+
+    Ok(())
+}
+
+#[command]
+#[description="Under construction. Please wait warmly!"]
+#[aliases("mod")]
+async fn modify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let (_, revision_command, revision_comment) = match extract_arguments(ctx, args).await {
+        Ok(arguments) => {
+            arguments
+        },
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+            return Ok(());
+        },
+    };
+    // Get context data with write permission to manipulate the tray
+    let mut tray_data = ctx.data.write().await;
+    let mut tray_map = tray_data
+        .get_mut::<crate::TrayKey>()
+        .expect("Failed to retrieve tray map!")
+        .lock().await;
+
+    if let Some(tray) = tray_map.get_mut(&make_tray_id(msg)) {
+        let reviser = msg.author_nick(&ctx).await.unwrap_or(msg.author.name.clone());
+        match tray.modify_latest(&revision_command, &revision_comment, &reviser) {
+            Ok(revised_roll) => {
+                let annotation = match revised_roll.comment().trim() {
+                    "" => "".to_string(),
+                    other => format!(" ({})", other),
+                };
+                let message = format!(
+                    "Amended roll: `{}`{}\n{}",
+                    revised_roll.command(),
+                    annotation,
+                    roll_format_discord(revised_roll, true, ""),
+                );
+                msg.reply_ping(&ctx.http, message).await?;
+            },
+            Err(why) => {
+                let roll_error = format!("{}", why);
+                msg.reply_ping(&ctx.http, roll_error).await?;
+            }
+        }
+    } else {
+        msg.reply_ping(&ctx.http, "There's nothing to modify!").await?;
     }
 
     Ok(())
@@ -312,17 +356,21 @@ async fn new_roll_output(
     for i in 1..=repeat {
         let roll = tray.add_roll_from_command(roll_command, roll_comment, &roller)?;
         let numbering = match repeat {
-            1 => "".to_string(),
-            _ => format!("{}: ", i)
+            1 => "\n".to_string(),
+            _ => format!("\n{}: ", i)
         };
-        let next = match breakdown {
-            true => format!("\n{}**{}** ({})", numbering, roll.result(), roll),
-            false => format!("\n{}**{}** (use `verbose` or `tray` commands for details)", numbering, roll.result())
-        };
+        let next = roll_format_discord(roll, breakdown, &numbering);
         output.push_str(&next);
     }
 
     Ok(output)
+}
+
+fn roll_format_discord(roll: &Roll, breakdown: bool, prepend: &str) -> String {
+    match breakdown {
+        true => format!("{}**{}** ({})", prepend, roll.result(), roll),
+        false => format!("{}**{}** (use `verbose` or `tray` commands for details)", prepend, roll.result()),
+    }
 }
 
 fn make_tray_id(msg: &Message) -> TrayId {

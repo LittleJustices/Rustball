@@ -53,4 +53,12 @@ impl Tray {
 
         self.get_newest_roll()
     }
+
+    pub fn modify_latest(&mut self, revision_command: &str, revision_comment: &str, reviser: &str) -> Result<&Roll, RollError> {
+        let latest_roll = self.get_newest_roll()?;
+        let new_roll = latest_roll.revise(revision_command, revision_comment, reviser)?;
+        self.rolls.push_back(new_roll);
+
+        self.get_newest_roll()
+    }
 }

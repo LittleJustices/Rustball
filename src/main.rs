@@ -26,9 +26,7 @@ mod config;
 use config::Config;
 
 mod messaging;
-use messaging::{
-    message_handler::Handler,
-};
+use messaging::message_handler::Handler;
 
 mod funsies;
 
@@ -87,7 +85,7 @@ struct Funsies;
 #[group]
 #[description = "Commands related to rolling dice.\n\n
 Use `roll` for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
-#[commands(roll, reroll, pastrolls, exroll, genroll, l5r, s3roll, sr, wod, verbose)]
+#[commands(roll, modify, reroll, pastrolls, exroll, genroll, l5r, s3roll, sr, wod, verbose)]
 struct Dice;
 
 #[group]

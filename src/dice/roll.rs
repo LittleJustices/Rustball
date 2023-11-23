@@ -31,6 +31,38 @@ impl Roll {
         Ok(Roll { command, comment, operations, result, owner, timestamp })
     }
 
+    pub fn revise(&self, expression: &str, comment: &str, reviser: &str) -> Result<Self, RollError> {
+        if reviser != self.owner {
+            return Err(RollError::PlaceholderError)
+        }
+
+        let mut new_command = self.command.clone();
+        new_command.push_str(expression);
+
+        let new_comment = match comment {
+            "" => self.comment.clone(),
+            revision => revision.to_string(),
+        };
+
+        let new_timestamp = Utc::now();
+
+        let mut new_operations = self.operations.clone();
+        new_operations.append_from_string(expression)?;
+
+        let new_result = new_operations.final_result.value()?;
+
+        let new_roll = Roll {
+            command: new_command,
+            comment: new_comment,
+            operations: new_operations,
+            result: new_result,
+            owner: reviser.to_string(),
+            timestamp: new_timestamp
+        };
+
+        Ok(new_roll)
+    }
+
     pub fn command(&self) -> &str {
         &self.command
     }
