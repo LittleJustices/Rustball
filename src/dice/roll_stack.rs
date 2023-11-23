@@ -4,10 +4,9 @@ use super::{
     roll_token::RollToken,
 };
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RollStack {
     pub operations: Vec<RollToken>,
-    pub stack: Vec<RollToken>,
     pub final_result: RollToken,
 }
 
@@ -21,12 +20,14 @@ impl RollStack {
     pub fn evaluate_tokens(infix_tokens: &[RollToken]) -> Result<Self, RollError> {
         let postfix_tokens = RollToken::shunting_dice(&infix_tokens)?;
 
-        Self::resolve_rpn(&postfix_tokens)
+        let (operations, final_result) = Self::resolve_rpn(&postfix_tokens, &[])?;
+
+        return Ok(RollStack { operations, final_result })
     }
 
-    pub fn resolve_rpn(postfix_tokens: &[RollToken]) -> Result<Self, RollError> {
+    pub fn resolve_rpn(postfix_tokens: &[RollToken], starting_stack: &[RollToken]) -> Result<(Vec<RollToken>, RollToken), RollError> {
         let tokens = postfix_tokens.to_vec();
-        let mut stack = vec![];
+        let mut stack = starting_stack.to_vec();
         let mut operations = vec![];
 
         for token in tokens {
@@ -82,7 +83,20 @@ impl RollStack {
             Err(RollError::MathError(MathError::TrailingTokensError))
         } else {
             let final_result = stack.last().ok_or(MathError::ImpossibleError)?.clone();
-            Ok(RollStack { operations, stack, final_result })
+            Ok((operations, final_result))
         }
+    }
+
+    pub fn append_from_string(&mut self, infix_expression: &str) -> Result<(), RollError> {
+        let infix_tokens = RollToken::tokenize_expression(infix_expression)?;
+        let postfix_tokens = RollToken::shunting_dice(&infix_tokens)?;
+
+        let previous_result = self.final_result.clone();
+        let (mut new_operations, new_result) = Self::resolve_rpn(&postfix_tokens, &[previous_result])?;
+
+        self.operations.append(&mut new_operations);
+        self.final_result = new_result;
+
+        Ok(())
     }
 }
