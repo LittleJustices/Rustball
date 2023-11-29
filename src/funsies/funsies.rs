@@ -34,6 +34,7 @@ pub fn dailydose() -> &'static str {
             "https://fxtwitter.com/bon_feather/status/1620748694147706880",
             "https://fxtwitter.com/bon_feather/status/1626925749629321217",
             "https://fxtwitter.com/bon_feather/status/1672803801978269696",
+            "https://fxtwitter.com/bon_feather/status/1729784951690723423",
             "https://skeb.jp/@Hisona_/works/278\nhttps://media.discordapp.net/attachments/245782979710812161/1044659249009135616/951808-1.output.png",
             "https://fxtwitter.com/kyomoneko_2/status/1595693938798567425",
         ],
