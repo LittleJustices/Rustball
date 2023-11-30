@@ -89,7 +89,7 @@ async fn reroll(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 #[description="Under construction. Please wait warmly!"]
-#[aliases("mod")]
+#[aliases("mod", "revise", "rev", "amend", "am")]
 async fn modify(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let (_, revision_command, revision_comment) = match extract_arguments(ctx, args).await {
         Ok(arguments) => {
