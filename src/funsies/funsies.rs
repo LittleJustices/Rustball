@@ -46,7 +46,7 @@ pub fn dailydose() -> &'static str {
             "https://www.phixiv.net/artworks/65369107",
             "https://www.phixiv.net/artworks/52084017",
             "https://www.phixiv.net/artworks/1291597",
-            "https://www.phixiv.net/artworks/56980398\nhttps://cdn.donmai.us/original/8e/fc/__hakurei_reimu_and_hieda_no_akyuu_touhou_drawn_by_kayako_tdxxxk__8efc14dafa57afd806c95f1ead3ffa8a.jpg",
+            "https://www.phixiv.net/artworks/56980398/8",
             "https://www.phixiv.net/artworks/44898062",
             "https://fxtwitter.com/k0mamid0ri/status/815561664477073411",
             "https://fxtwitter.com/smalllightAON/status/1532765221240160261",
