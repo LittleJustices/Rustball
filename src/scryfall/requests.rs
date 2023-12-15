@@ -5,6 +5,7 @@ use super::{
     },
     req_token::ReqToken,
     scryfall_errors::ScryfallError,
+    booru_post::BooruPost,
 };
 use reqwest::Client;
 
@@ -73,4 +74,13 @@ pub async fn get_scryfall_random_json(client: &Client) -> Result<Card, ScryfallE
             Err(ScryfallError::ApiError(why))
         }
     }
+}
+
+pub async fn get_booru_random_json(client: &Client, search_tags: &[&str]) -> Result<BooruPost, ScryfallError> {
+    let request_url = format!(
+        "https://danbooru.donmai.us/posts/random.json?tags={}",
+        search_tags.join("+")
+    );
+
+    Ok(client.get(request_url).send().await?.json::<BooruPost>().await?)
 }

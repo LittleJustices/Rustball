@@ -1,7 +1,12 @@
-use reqwest::Client;
+use reqwest::{Client, ClientBuilder};
 use chrono::{prelude::*, Duration};
 
 const COOLDOWN: i64 = 100;  // Cooldown between requests in ms
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+);
 
 pub struct ClientHandler {
     last_request: DateTime<Utc>,
@@ -13,7 +18,9 @@ impl ClientHandler {
     pub fn new() -> ClientHandler {
         let last_request = Utc::now();
         let cooldown = Duration::milliseconds(COOLDOWN);
-        let client = Client::new();
+        let client_builder = ClientBuilder::new()
+            .user_agent(APP_USER_AGENT);
+        let client = client_builder.build().expect("Failed to build client from builder!");
 
         ClientHandler { last_request, cooldown, client }
     }

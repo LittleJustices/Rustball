@@ -6,7 +6,7 @@ use serenity::{
     model::channel::Message,
     prelude::*,
 };
-use crate::funsies::funsies;
+use crate::{funsies::funsies, scryfall::requests};
 
 #[command]
 async fn squid(ctx: &Context, msg: &Message) -> CommandResult {
@@ -55,6 +55,37 @@ async fn yuru(ctx: &Context, msg: &Message) -> CommandResult {
 async fn them(ctx: &Context, msg: &Message) -> CommandResult {
     let dose = funsies::dailydose();
     msg.reply_ping(&ctx.http, dose).await?;
+
+    Ok(())
+}
+
+#[command]
+#[aliases("frostleaf", "her", "frost", "leaf")]
+async fn dailyfox(ctx: &Context, msg: &Message) -> CommandResult {
+    let client;
+    let search_tags = ["frostleaf_(arknights)", "rating:g"];
+
+    let mut config_data = ctx.data.write().await;
+    let mut client_handler = config_data
+        .get_mut::<crate::ClientHandlerKey>()
+        .expect("Failed to retrieve client handler!")
+        .lock()
+        .await;
+    if client_handler.client_available() {
+        client = client_handler.client();
+    } else {
+        msg.reply_ping(&ctx.http, "☢ Not so fast! ☢\nThis command is rate-limited (100ms cooldown)! Please wait warmly and try again in a bit ❤").await?;
+        return Ok(());
+    }
+    
+    match requests::get_booru_random_json(client, &search_tags).await {
+        Ok(booru_post) => {
+            msg.reply_ping(&ctx.http, booru_post.post_url()).await?;
+        },
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+        }
+    }
 
     Ok(())
 }
