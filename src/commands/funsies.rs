@@ -60,7 +60,7 @@ async fn them(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[aliases("frostleaf", "her", "frost", "leaf")]
+#[aliases("frostleaf", "frost", "her", "kee", "leaf")]
 async fn dailyfox(ctx: &Context, msg: &Message) -> CommandResult {
     let client;
     let search_tags = ["frostleaf_(arknights)", "rating:g"];
