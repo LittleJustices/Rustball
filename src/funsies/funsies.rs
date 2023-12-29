@@ -61,7 +61,6 @@ pub fn dailydose() -> &'static str {
             "https://fxtwitter.com/PileArcato/status/1641288827368099841",
             "https://fxtwitter.com/PileArcato/status/1641120552373960707",
             "https://fxtwitter.com/PileArcato/status/1658374773674475520",
-            "https://fxtwitter.com/Kuzukago_123/status/1646491966434349056",
             "https://fxtwitter.com/31mriri0830/status/1652673110141976576",
             "https://fxtwitter.com/smalllightAON/status/1676784121618497538",
             "https://fxtwitter.com/chapannnnn/status/1737844130280259622",
