@@ -63,7 +63,11 @@ async fn them(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("frostleaf", "frost", "her", "kee", "leaf")]
 async fn dailyfox(ctx: &Context, msg: &Message) -> CommandResult {
     let client;
-    let search_tags = ["frostleaf_(arknights)", "rating:g"];
+    let search_tags = if rand::random::<u8>() < 7 {
+        ["kudamaki_tsukasa", "rating:g"]
+    } else {
+        ["frostleaf_(arknights)", "rating:g"]
+    };
 
     let mut config_data = ctx.data.write().await;
     let mut client_handler = config_data
