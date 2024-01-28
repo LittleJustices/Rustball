@@ -63,7 +63,7 @@ async fn them(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("frostleaf", "frost", "her", "kee", "leaf")]
 async fn dailyfox(ctx: &Context, msg: &Message) -> CommandResult {
     let client;
-    let search_tags = if rand::random::<u8>() < 7 {
+    let search_tags = if rand::random::<u8>() < 13 {
         ["kudamaki_tsukasa", "rating:g"]
     } else {
         ["frostleaf_(arknights)", "rating:g"]
