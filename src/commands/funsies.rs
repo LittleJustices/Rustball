@@ -1,5 +1,6 @@
 use serenity::{
     framework::standard::{
+            Args,
             CommandResult,
             macros::command,
         },
@@ -62,12 +63,32 @@ async fn them(ctx: &Context, msg: &Message) -> CommandResult {
 #[command]
 #[aliases("frostleaf", "frost", "her", "kee", "leaf")]
 async fn dailyfox(ctx: &Context, msg: &Message) -> CommandResult {
-    let client;
     let search_tags = if rand::random::<u8>() < 13 {
         ["kudamaki_tsukasa", "rating:g"]
     } else {
         ["frostleaf_(arknights)", "rating:g"]
     };
+
+    request_random_booru(ctx, msg, &search_tags).await
+}
+
+#[command]
+#[aliases("atash", "marisa", "mors", "shrooms", "witch")]
+async fn dailywitch(ctx: &Context, msg: &Message) -> CommandResult {
+    let search_tags = ["kirisame_marisa", "rating:g"];
+
+    request_random_booru(ctx, msg, &search_tags).await
+}
+
+#[command]
+async fn booru(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let search_tags = ["rating:g", args.message()];
+
+    request_random_booru(ctx, msg, &search_tags).await
+}
+
+async fn request_random_booru(ctx: &Context, msg: &Message, search_tags: &[&str]) -> CommandResult {
+    let client;
 
     let mut config_data = ctx.data.write().await;
     let mut client_handler = config_data
