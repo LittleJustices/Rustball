@@ -26,7 +26,7 @@ pub fn yuru() -> &'static str {
 }
 
 pub fn dailydose() -> &'static str {
-    let links = match rand::thread_rng().gen_range(0..2) {
+    let links = match rand::thread_rng().gen_range(0..3) {
         0 => vec![
             "https://fxtwitter.com/yakumosgap/status/1474855343176011779",
             "https://fxtwitter.com/kyomoneko_2/status/1485186556210163713",
