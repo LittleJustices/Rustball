@@ -1,3 +1,4 @@
+use rand::Rng;
 use serenity::{
     framework::standard::{
             Args,
@@ -76,6 +77,23 @@ async fn dailyfox(ctx: &Context, msg: &Message) -> CommandResult {
 #[aliases("atash", "marisa", "mors", "shrooms", "witch")]
 async fn dailywitch(ctx: &Context, msg: &Message) -> CommandResult {
     let search_tags = ["kirisame_marisa", "rating:g"];
+
+    request_random_booru(ctx, msg, &search_tags).await
+}
+
+#[command]
+#[aliases("birb", "bird", "borb")]
+async fn dailybird(ctx: &Context, msg: &Message) -> CommandResult {
+    let characters = vec![
+        "mystia_lorelei",
+        "shameimaru_aya",
+        "reiuji_utsuho",
+        "himekaidou_hatate",
+        "niwatari_kutaka",
+        "iizunamaru_megumu",
+    ];
+    let random_index = rand::thread_rng().gen_range(0..characters.len());
+    let search_tags = [characters[random_index], "rating:g"];
 
     request_random_booru(ctx, msg, &search_tags).await
 }
