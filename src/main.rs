@@ -85,7 +85,7 @@ struct Funsies;
 #[group]
 #[description = "Commands related to rolling dice.\n\n
 Use `roll` for generic dice rolls or one of the specialized functions to use simplified syntax tailored to the system."]
-#[commands(roll, modify, reroll, pastrolls, exroll, genroll, l5r, s3roll, sr, wod, verbose)]
+#[commands(roll, modify, reroll, pastrolls, exroll, genroll, l5r, s3roll, sr, cofd, verbose)]
 struct Dice;
 
 #[group]

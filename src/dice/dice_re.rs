@@ -36,6 +36,16 @@ const EXALTED_TOKEN_STRING: &str = r"(?x)
     \{(?P<other>.*)\}   # Dice operations
 ";
 
+const COFD_TOKEN_STRING: &str = r"(?x)
+r                   # Rote
+|
+m                   # No N-again (m for mortal, from Ex2)
+|
+a(?P<again>\d+)     # N-again number
+|
+\{(?P<other>.*)\}   # Dice operations
+";
+
 const S3_TOKEN_STRING: &str = r"(?x)
     (?P<mod>[+-]\S+)    # Modifier or penalty
 ";

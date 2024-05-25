@@ -71,6 +71,54 @@ pub fn exalted(in_command: &str) -> Result<String, RollError> {
     Ok(out_command)
 }
 
+pub fn cofd(in_command: &str) -> Result<String, RollError> {
+    if in_command.to_lowercase().trim() == "chance" {
+        return Ok("1d10t10".to_string())
+    }
+
+    let (base, bonus) = in_command.split_once(';').unwrap_or((in_command, ""));
+
+    // If none of the special flags are present, just give back the expression with default target and double numbers
+    let out_command = if !COFD_TOKEN_RE.is_match(base) {
+        format!("({})d10t8{}", base, bonus)
+    } else {
+        let target = 8;
+        let mut again = match base.contains('m') {
+            true => None,
+            false => Some(10),
+        };
+        let mut operations = match base.contains('r') {
+            true => format!("ro{:?}", (1..target).collect::<Vec<u8>>()),
+            false => String::new(),
+        };
+
+        for caps in COFD_TOKEN_RE.captures_iter(base) {
+            if let Some(a) = again {
+                let new_again = match caps.name("again") {
+                    Some(m) => m.as_str().parse()?,
+                    None => a,
+                };
+                again = Some(new_again);
+            }
+
+            operations.push_str(caps.name("other").map_or("", |m| m.as_str()));
+        }
+        if let Some(a) = again {
+            operations.push_str(&format!("er{}", a));
+        }
+        
+        format!(
+            "({})d10{}t{}{}",
+            COFD_TOKEN_RE.replace_all(base, ""),
+            operations,
+            target,
+            bonus
+        )
+    };
+
+    Ok(out_command)
+}
+
 pub fn story_shaper(in_command: &str) -> Result<String, RollError> {
     let mut out_command = String::from("2d10");
     for caps in S3_TOKEN_RE.captures_iter(in_command) {

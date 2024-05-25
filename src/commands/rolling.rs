@@ -209,10 +209,24 @@ async fn verbose(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-#[aliases("cod", "cofd")]
-async fn wod(ctx: &Context, msg: &Message) -> CommandResult {
-    let roll = format!("{} I'm not edgy enough for that yet!", msg.author);
-    msg.channel_id.say(&ctx.http, roll).await?;
+#[aliases("cod", "nwod")]
+async fn cofd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+    let (repeat, in_command, roll_comment) = match extract_arguments(ctx, args).await {
+        Ok(arguments) => arguments,
+        Err(why) => {
+            msg.reply_ping(&ctx.http, format!("{}", why)).await?;
+            return Ok(());
+        },
+    };
+
+    let response = match command_translations::cofd(&in_command) {
+        Ok(roll_command) => match new_roll_output(&ctx, &msg, repeat, &in_command, &roll_command, &roll_comment, true).await {
+            Ok(res) => format!("{}", res),
+            Err(why) => format!("{}", why),
+        },
+        Err(why) => format!("{}", SixballError::RollError(why)),
+    };
+    msg.reply_ping(&ctx.http, response).await?;
 
     Ok(())
 }
