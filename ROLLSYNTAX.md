@@ -69,7 +69,7 @@ Below is a summary of the currently supported operations and the way they are wr
 |  e   | |  Explode...  |  6d10e10  |
 | |  ea  |  Additively  |    |
 | |  eo  |  Once  |    |  Default behavior
-| |  ea  |  Recursively  |    |
+| |  er  |  Recursively  |    |
 |  k   | |  Keep...  |  4d6k3  |
 | |  ke  |  Exact  |    |
 | |  kh  |  Highest  |    |  Default behavior
@@ -79,7 +79,7 @@ Below is a summary of the currently supported operations and the way they are wr
 | |  ro  |  Once  |    |  Default behavior
 | |  rr  |  Recursively  |    |
 | |  rb  |  Keep worse  |    |
-|  t   | |  Target number  |  6d6r5  |
+|  t   | |  Target number  |  6d6t5  |
 |  b   | |  Botch number  |  4d10t6b1  |
 |  &   | |  Merge  |  2d6 & 3d8  |
 |  + - \* / ^   | |  Mathematical operations  |  2 + 2  | Refer to [math section of main readme](/README.md#math)
