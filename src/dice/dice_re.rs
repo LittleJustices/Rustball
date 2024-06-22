@@ -42,8 +42,6 @@ r                   # Rote
 m                   # No N-again (m for mortal, from Ex2)
 |
 a(?P<again>\d+)     # N-again number
-|
-\{(?P<other>.*)\}   # Dice operations
 ";
 
 const S3_TOKEN_STRING: &str = r"(?x)

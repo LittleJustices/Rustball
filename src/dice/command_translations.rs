@@ -80,7 +80,7 @@ pub fn cofd(in_command: &str) -> Result<String, RollError> {
 
     // If none of the special flags are present, just give back the expression with default target and double numbers
     let out_command = if !COFD_TOKEN_RE.is_match(base) {
-        format!("({})d10t8{}", base, bonus)
+        format!("({})d10er10t8{}", base, bonus)
     } else {
         let target = 8;
         let mut again = match base.contains('m') {
@@ -104,7 +104,7 @@ pub fn cofd(in_command: &str) -> Result<String, RollError> {
             operations.push_str(caps.name("other").map_or("", |m| m.as_str()));
         }
         if let Some(a) = again {
-            operations.push_str(&format!("er{}", a));
+            operations.push_str(&format!("er{:?}", (a..=10).collect::<Vec<u8>>()));
         }
         
         format!(
@@ -167,6 +167,32 @@ mod tests {
 
         for i in 0..in_commands.len() {
             assert_eq!(out_commands[i], exalted(in_commands[i]).unwrap());
+        }
+    }
+
+    #[test]
+    fn test_cofd() {
+        let in_commands = vec![
+            "5",
+            "5+3",
+            "5+3;+1",
+            "5+3a9",
+            "5+3m",
+            "5+3r",
+            "chance",
+        ];
+        let out_commands = vec![
+            "(5)d10er10t8",
+            "(5+3)d10er10t8",
+            "(5+3)d10er10t8+1",
+            "(5+3)d10er[9, 10]t8",
+            "(5+3)d10t8",
+            "(5+3)d10ro[1, 2, 3, 4, 5, 6, 7]er[10]t8",
+            "1d10t10",
+        ];
+
+        for i in 0..in_commands.len() {
+            assert_eq!(out_commands[i], cofd(in_commands[i]).unwrap());
         }
     }
 
