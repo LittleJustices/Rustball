@@ -208,6 +208,40 @@ async fn verbose(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Specialty command for CofD/nWoD rolls! ｶﾀｶﾀｶﾀ(((;ﾟ;Д;ﾟ;)))ｶﾀｶﾀｶﾀ
+/// It was written with CofD/nWoD 2e in mind, but should be backwards compatible with 1e.
+/// 
+/// ### Basic Usage
+/// For basic usage, just supply a number, e.g.:
+/// > ~cofd 9
+/// This will roll 9 dice with the usual rules for success counting (sux on 8+, explode 10s).
+/// 
+/// ### Advanced Usage
+/// If you want to write out a bunch of bonuses and penalties, the command will also accept \$
+/// arbitrary mathematical expressions, e.g.:
+/// > ~cofd 5+3
+/// Mathematical operations will always be resolved first, even if you don't put them in parentheses.
+/// 
+/// To apply the 9-again or 8-again rules, use `a` followed by the number you want:
+/// > ~cofd 5a9
+/// 
+/// To roll without 10-again, add the `m` flag:
+/// > ~cofd 10m
+/// 
+/// To apply the rote quality, add the `r` flag:
+/// > ~cofd 8r
+/// 
+/// You can also add successes after rolling (or do whatever other math you want), but you'll \$
+/// have to distinguish post-roll math from pre-roll math by putting it after a semicolon:
+/// > ~cofd 5+3; +1
+/// The above would roll 5+3=8 dice, count successes as normal, then add 1 automatic success.
+/// 
+/// ### Weird Stuff
+/// Finally, if you need to do something complicated, you can provide arbitrary dice \$
+/// operations to be resolved **after dice are rolled, but before successes are counted**, \$
+/// by supplying them inside {curly braces} before the semicolon if you're using one, e.g.:
+/// > ~cofd 6{rr1}
+/// The above will roll 6 dice and reroll 1s until 1s fail to appear.
 #[command]
 #[aliases("cod", "nwod")]
 async fn cofd(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
@@ -249,6 +283,42 @@ async fn sr(ctx: &Context, msg: &Message) -> CommandResult {
     Ok(())
 }
 
+/// Specialty command for Exalted rolls! (oﾟ□ﾟ)o≪≪≪ﾜｱｧｧｧｧｧｧｯ!!
+/// 
+/// ### Basic Usage Instruction
+/// For basic usage, just supply a number, e.g.:
+/// > ~exroll 9
+/// This will roll 9 dice with the usual rules for success counting (sux on 7+, 2 sux on 10).
+/// 
+/// ### Advanced Player's Precepts
+/// If you want to write out a bunch of bonuses and penalties, the command will also accept \$
+/// arbitrary mathematical expressions, e.g.:
+/// > ~exroll 5+3
+/// Mathematical operations will always be resolved first, even if you don't put them in parentheses.
+/// 
+/// To roll without counting 10s twice (say, for decisive damage), add the `m` flag:
+/// > ~exroll 10m
+/// 
+/// For double 7s, 8s, or 9s, use `d` followed by the number you want:
+/// > ~exroll 5d9
+/// (This looks like a normal command to roll 5 9-sided dice, but won't be treated as one.)
+/// 
+/// You can also add successes after rolling (or do whatever other math you want), but you'll \$
+/// have to distinguish post-roll math from pre-roll math by putting it after a semicolon:
+/// > ~exroll 5+3; +1
+/// The above would roll 5+3=8 dice, count successes as normal, then add 1 automatic success.
+/// 
+/// Old legends speak of an `s` option that can set the target number, e.g.:
+/// > ~exroll 8s5
+/// This would have counted results of 5 or higher as 1 success, with the usual 2 for a 10.
+/// But if such a thing ever existed, it was forgotten when the Mask shattered. (｡•̀ᴗ-)
+/// 
+/// ### Master Gambler's Technique
+/// Finally, if you need to do something complicated, you can provide arbitrary dice \$
+/// operations to be resolved **after dice are rolled, but before successes are counted**, \$
+/// by supplying them inside {curly braces} before the semicolon if you're using one, e.g.:
+/// > ~exroll 6{rr1}
+/// The above will roll 6 dice and reroll 1s until 1s fail to appear.
 #[command]
 #[aliases("ex")]
 async fn exroll(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
