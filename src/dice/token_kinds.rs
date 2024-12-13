@@ -421,6 +421,7 @@ impl fmt::Display for GenesysDice {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Operator {
+    Cap(Cap),
     Explode(Explode),
     Keep(Keep),
     Reroll(Reroll),
@@ -430,6 +431,7 @@ pub enum Operator {
 impl Operator {
     pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
         match self {
+            Operator::Cap(cap) => Ok(Operator::Cap(cap.apply(token, argument)?)),
             Operator::Explode(explode) => Ok(Operator::Explode(explode.apply(token.pool()?, argument)?)),
             Operator::Keep(keep) => Ok(Operator::Keep(keep.apply(token.pool()?, argument)?)),
             Operator::Reroll(reroll) => Ok(Operator::Reroll(reroll.apply(token.pool()?, argument)?)),
@@ -439,6 +441,7 @@ impl Operator {
 
     pub fn pool(self) -> Result<Pool, RollError> {
         match self {
+            Operator::Cap(_) => todo!(),
             Operator::Explode(explode) => explode.pool(),
             Operator::Keep(keep) => keep.pool(),
             Operator::Reroll(reroll) => reroll.pool(),
@@ -448,6 +451,7 @@ impl Operator {
 
     pub fn value(&self) -> Result<RollValue, RollError> {
         match self {
+            Operator::Cap(_) => todo!(),
             Operator::Explode(explode) => explode.value(),
             Operator::Keep(keep) => keep.value(),
             Operator::Reroll(reroll) => reroll.value(),
@@ -457,6 +461,7 @@ impl Operator {
 
     pub fn description(&self) -> String {
         match self {
+            Operator::Cap(_) => todo!(),
             Operator::Explode(explode) => explode.description(),
             Operator::Keep(keep) => keep.description(),
             Operator::Reroll(reroll) => reroll.description(),
@@ -466,6 +471,7 @@ impl Operator {
 
     pub fn verbose(&self) -> String {
         match self {
+            Operator::Cap(_) => todo!(),
             Operator::Explode(explode) => explode.verbose(),
             Operator::Keep(keep) => keep.verbose(),
             Operator::Reroll(reroll) => reroll.verbose(),
@@ -478,7 +484,9 @@ impl FromStr for Operator {
     type Err = RollError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(explode) = s.parse() {          // Attempt to parse into explode token
+        if let Ok(cap) = s.parse() {          // Attempt to parse into cap token
+            Ok(Operator::Cap(cap))
+        } else if let Ok(explode) = s.parse() {          // Attempt to parse into explode token
             Ok(Operator::Explode(explode))
         } else if let Ok(keep) = s.parse() {                // Attempt to parse into keep token
             Ok(Operator::Keep(keep))
@@ -495,10 +503,39 @@ impl FromStr for Operator {
 impl fmt::Display for Operator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Operator::Cap(_) => todo!(),
             Operator::Explode(explode) => write!(f, "{}", explode),
             Operator::Keep(keep) => write!(f, "{}", keep),
             Operator::Reroll(reroll) => write!(f, "{}", reroll),
             Operator::Target(target) => write!(f, "{}", target),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Cap {
+    Max{arg: Option<Argument>, res: Option<Pool>},
+    Min{arg: Option<Argument>, res: Option<Pool>},
+}
+
+impl Cap {
+    pub fn apply(&self, token: RollToken, argument: Argument) -> Result<Self, RollError> {
+        todo!()
+    }
+}
+
+impl FromStr for Cap {
+    type Err = RollError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Some(mode) = s.trim().strip_prefix('c') {
+            match mode {
+                "" | "h" | "max"    => Ok(Cap::Max { arg: None, res: None }),
+                "l" | "min"         => Ok(Cap::Min { arg: None, res: None }),
+                _           => Err(RollError::SymbolError(s.into()))
+            }
+        } else {
+            Err(RollError::SymbolError(s.into()))
         }
     }
 }

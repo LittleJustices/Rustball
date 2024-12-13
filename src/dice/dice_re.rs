@@ -46,6 +46,8 @@ a(?P<again>\d+)     # N-again number
 
 const S3_TOKEN_STRING: &str = r"(?x)
     (?P<mod>[+-]\S+)    # Modifier or penalty
+    |
+    (?P<dice>d\s*[13])  # Variant number of dice
 ";
 
 lazy_static!{
