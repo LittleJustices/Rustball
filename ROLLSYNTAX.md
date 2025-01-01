@@ -240,7 +240,7 @@ The explode modifier takes the dicepool to its left and picks out those dice tha
 
 The right-hand argument gives the number or numbers to be exploded. For example:
 
-> 5d6e6 -> Roll 5d6, explode all dice that came up 6
+> 5d6e6 -> Roll 5d6, explode all dice that came up 6  
 > 6d10e[9, 10] -> Roll 6d10, explode all dice coming up either 9 or 10
 
 The explosion types currently supported are Additive (ea), Once (eo), and Recursive (er). If you just use e without a specifier, Sixball defaults to explode once (so e is equivalent to eo).
@@ -461,12 +461,12 @@ The greater result is discarded, so there's no way to check what both rolls were
 
 The target modifier alters a roll such that its total value will be calculated from the number of dice that meet or exceed a certain target number or number(s). Use it for success-counting dicepool mechanics like World of Darkness or Shadowrun.
 
-> 6d6t5 -> Roll 6d6 and count 5 or higher as successes (Shadowrun 5e)
+> 6d6t5 -> Roll 6d6 and count 5 or higher as successes (Shadowrun 5e)  
 > 5d10t[1, 1, 1, 2] -> Roll 5d10 and count 7-9 as 1 success and 10 as 2 (Exalted)
 
 There are two kinds of target modifier, Target (t) and Botch (b). They are identical, except that target treats its successes as positive numbers and botch as negative numbers (i.e. botch can subtract successes).
 
-A single-number arguments gives the target number for the roll. Any die which comes up that number or higher is counted as a success for Target. For a Botch, dice which come up that number or lower are counted as negative successes. So you can do this, for example, for a difficulty 6 roll in one of the WoD 20th anniversary edition games:
+A single-number argument gives the target number for the roll. Any die which comes up that number or higher is counted as a success for Target. For a Botch, dice which come up that number or lower are counted as negative successes. So you can do this, for example, for a difficulty 6 roll in one of the WoD 20th anniversary edition games:
 
 > ~roll 5d10t6b1  
 > Output:  
@@ -527,7 +527,7 @@ Combinations are operations that combine two dicepools (or any two operations) i
 
 #### Merge
 
-**Notation** &
+**Notation:** &
 
 Merge is like a generalized addition between two pools of dice. Where regular addition (with the + operator) between two dicepools treats both of them as numbers and returns another number, the merge operator preserves both dicepools in their entirety and returns another dicepool consisting of all the dice in both mashed together.
 
