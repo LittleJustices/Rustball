@@ -34,10 +34,10 @@ impl Logger {
     pub fn record(&self, timestamp: DateTime<Utc>, sender_name: &str, content: &str) -> io::Result<()> {
         let mut log = &self.log_file;
         let log_entry = format!(
-            "[{}] **{}**: {}  ",
-            timestamp.format("%H:%M:%S"),
-            sender_name,
-            content
+            "###### {timestamp} {name}\n> {content}\n",
+            timestamp=timestamp.format("[%H:%M:%S]"),
+            name=sender_name,
+            content=content.replace("\n", "\n> ")
         );
 
         writeln!(log, "{}", log_entry)?;
@@ -47,7 +47,7 @@ impl Logger {
 
     pub fn end_log(&self) -> io::Result<String> {
         let mut file = &self.log_file;
-        writeln!(file, "\n# LOG END")?;
+        writeln!(file, "# LOG END")?;
         let path = format!("{}", self.log_path.display());
         Ok(path)
     }
