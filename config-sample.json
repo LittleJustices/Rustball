@@ -1,6 +1,6 @@
 {
     "discord_token": "tokengoeshere",
-    "prefix": "!",
+    "prefixes": ["~"],
     "comment_separator": ":",
     "repeater_separator": "#",
     "log_folder_path": "./Logs",

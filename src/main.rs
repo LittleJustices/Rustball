@@ -174,7 +174,7 @@ async fn after(ctx: &Context, msg: &Message, command_name: &str, command_result:
 async fn main() {
     let config = Config::new();
 
-    let Config { discord_token, prefix, .. } = &config;
+    let Config { discord_token, prefixes, .. } = &config;
 
     let http = Http::new_with_token(discord_token);
 
@@ -192,7 +192,7 @@ async fn main() {
         .configure(|c| c
             .case_insensitivity(true)
             .owners(owners)
-            .prefix(prefix)
+            .prefixes(prefixes)
             .with_whitespace(true)
         )
         .normal_message(normal_message)
