@@ -37,7 +37,7 @@ impl Logger {
             "###### {timestamp} {name}\n> {content}\n",
             timestamp=timestamp.format("[%H:%M:%S]"),
             name=sender_name,
-            content=content.replace("\n", "\n> ")
+            content=content.replace("\n", "\n> ").replace("<", "\\<")
         );
 
         writeln!(log, "{}", log_entry)?;
