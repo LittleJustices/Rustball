@@ -231,6 +231,9 @@ async fn verbose(ctx: &Context, msg: &Message) -> CommandResult {
 /// To apply the rote quality, add the `r` flag:
 /// > ~cofd 8r
 /// 
+/// To roll just a chance die, use the special `chance` command:
+/// > ~cofd chance
+/// 
 /// You can also add successes after rolling (or do whatever other math you want), but you'll \$
 /// have to distinguish post-roll math from pre-roll math by putting it after a semicolon:
 /// > ~cofd 5+3; +1
