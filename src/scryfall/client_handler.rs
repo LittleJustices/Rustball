@@ -1,5 +1,6 @@
 use reqwest::{Client, ClientBuilder};
 use chrono::{prelude::*, Duration};
+use crate::config::Config;
 
 const COOLDOWN: i64 = 100;  // Cooldown between requests in ms
 static APP_USER_AGENT: &str = concat!(
@@ -19,7 +20,7 @@ impl ClientHandler {
         let last_request = Utc::now();
         let cooldown = Duration::milliseconds(COOLDOWN);
         let client_builder = ClientBuilder::new()
-            .user_agent(APP_USER_AGENT);
+            .user_agent(format!("{}; user #{}", APP_USER_AGENT, Config::new().user_id));
         let client = client_builder.build().expect("Failed to build client from builder!");
 
         ClientHandler { last_request, cooldown, client }

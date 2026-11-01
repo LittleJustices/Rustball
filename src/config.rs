@@ -10,6 +10,7 @@ pub struct Config {
     pub repeater_separator: String,
     pub log_folder_path: String,
     pub pfp_source: String,
+    pub user_id: String,
 }
 
 impl Config {

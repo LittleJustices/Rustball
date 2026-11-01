@@ -4,5 +4,6 @@
     "comment_separator": ":",
     "repeater_separator": "#",
     "log_folder_path": "./Logs",
-    "pfp_source": "https://foo.bar/"
+    "pfp_source": "https://foo.bar/",
+    "user_id": "idgoeshere"
 }
